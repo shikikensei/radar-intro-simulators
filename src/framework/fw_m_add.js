@@ -95,6 +95,9 @@ function renderSim(st, i){
   if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
   if (st.ask){ const a = el('div', 'card ans', '<div class="body" id="ansBody" hidden></div><span class="hint" id="ansWait">解き方は、正解したとき（または 3 回外れたとき）に、ここに出ます。</span>'); sim.appendChild(a); showSolve(); }
 }
+/* 強調（marks）に高さの範囲がないとき、上を 2 割あける。ラベルが、枠の上（図の中）に出て、横軸の目盛りに重ならない */
+const plotSetIntro = Plot.prototype.set;
+Plot.prototype.set = function(cfg){ if (cfg && cfg.marks && cfg.yr) for (const k in cfg.marks){ const mk = cfg.marks[k]; if (mk.y0 === undefined && mk.y1 === undefined) mk.y1 = cfg.yr[1] - 0.2 * (cfg.yr[1] - cfg.yr[0]); } return plotSetIntro.call(this, cfg); };
 function bootM(){
   STEPS.forEach((s, i) => { if (s.ask && !s.mission) s.mission = {t: '手で計算した値を入力して、「正解」と判定されること。', ok: () => !!MST.ok[i]}; });
   boot();

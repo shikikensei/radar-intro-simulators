@@ -1,7 +1,7 @@
 /* ============================================================
    中級 第6回 伝搬と覆域：計算部分（共通の計算は cm_common.js）
-   もとにした資料：Radar Handbook 3rd ed. 第26章 The Propagation Factor, Fp, in the Radar Equation（p.26.1–26.28）、
-                   第19章 §19.2・19.3（雨による減衰。図19.1、p.19.9）
+   もとにした資料：Radar Handbook 3rd ed. 第26章 The Propagation Factor, Fp, in the Radar Equation（屈折・反射・ダクト・伝搬損失の部分。p.26.1–26.15、p.26.19–26.20）、
+                   第19章 §19.3（雨による減衰。p.19.8–19.9、図19.1）
    入門 第9回（c9_core.js）で確かめてある式を写した：
      式26.16  等価地球半径係数 k = 1/(1 + a·dN/dh)（標準の勾配 −39 N/km で 1.33）
      式26.12  自由空間の伝搬損失 Lfs [dB] = 32.45 + 20·log f[MHz] + 20·log r[km]

@@ -11,7 +11,7 @@ MSIMS = {
      '角度・距離・速度の測定の誤差を、熱雑音、グリント、多重反射などの原因ごとに計算し、合成して、追尾フィルタでならしたあとの値までを、誤差の一覧表にまとめます。', '入門 第5回、第8回、第16回、中級 第1回'),
  5: ('m05_array_practice.html', 'アレイの実際', ['cm_common.js', 'cm05_core.js'], 'sm05_steps.js', 'Phased Arrays in Practice', '第13章 Phased Array Radar Antennas §13.2・§13.5〜13.7（p.13.9–13.15、p.13.28–13.46）',
      '利得と振る範囲から素子の数と間隔を決め、誤差・移相器のビット数・故障がサイドローブに与える影響、帯域の制約、走査の損失を計算して、要求と見比べます。', '入門 第7回、第17回、中級 第1回'),
- 6: ('m06_propagation_coverage.html', '伝搬と覆域', ['cm_common.js', 'cm06_core.js'], 'sm06_steps.js', 'Propagation and Coverage', '第26章 The Propagation Factor（p.26.1–26.28）、第19章 §19.3（図19.1）',
+ 6: ('m06_propagation_coverage.html', '伝搬と覆域', ['cm_common.js', 'cm06_core.js'], 'sm06_steps.js', 'Propagation and Coverage', '第26章 The Propagation Factor（p.26.1–26.20 のうち、屈折・反射・ダクト・伝搬損失）、第19章 §19.3（図19.1）',
      '屈折と水平線、海面の反射によるローブ、伝搬因子の 4 乗、ダクト、雨の減衰を計算し、自由空間の探知距離が、環境でどう変わるかを、覆域の図と計算書にまとめます。', '入門 第9回、第17回、中級 第1回'),
  7: ('m07_resource_budget.html', '時間と資源の見積もり', ['cm_common.js', 'cm07_core.js'], 'sm07_steps.js', 'Time and Resource Budget', '§1.4（式1.6）、§4.6（式4.27）、§24.11（p.24.44–24.45）、Smouse ほか (2020) 前半',
      '捜索 1 巡の時間、追尾 1 つの負荷、占有率と余裕を計算し、時間が足りないときに何が延び、何を失うかを、時間の計算書にまとめます。', '入門 第13回、第15回、中級 第1回'),
