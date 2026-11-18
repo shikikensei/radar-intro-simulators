@@ -27,7 +27,8 @@ python tests/stest.py <ファイル名> 1366 768 light a       # 1 つの回の�
 python tests/stest.py <ファイル名> 820 900 light n        #   狭い画面
 python tests/stest.py <ファイル名> 1366 768 dark d        #   ダーク表示
 python tests/itest.py && python tests/xlink.py            # 目次と、回をまたぐリンク
-python src/build/build_m.py 1                             # 中級 第1回を組み立てる（docs/m01_detection.html）
+python src/build/build_m.py 1 2 3 4 5 6 7 8               # 中級 第1〜8回を組み立てる（回の一覧は src/build/msims.py）
+node tests/harness/tm_common.js && node tests/harness/tm08.js  # 中級の計算部分の確認（共通の計算、回をまたいだ一致）
 python tests/stest.py m01_detection.html 1366 768 light a # 中級のテスト（入門と同じスクリプト）
 ```
 
@@ -64,6 +65,7 @@ python tests/stest.py m01_detection.html 1366 768 light a # 中級のテスト�
 
 入社 5 年目くらいで、性能計算を自分でやり始める人のための回。到達点は「性能計算書を自分で書けて、数字の根拠を説明できる」こと。入門の決まりのうち、下に書いた点だけが違う。
 
+- **回を足すとき**：`src/build/msims.py` に 1 項目足す（ファイル名、題、計算部分、説明）。目次のカード、「次の回へ」のリンク、`SERIES[100 + N]` は、ここから作られる。第2回以降の共通の計算（例のレーダの値、検出の式）は `src/episodes/cm_common.js`。回を足したら、中級の全回も組み立て直す。
 - **ファイル**：`src/episodes/cmNN_core.js`（計算）、`smNN_steps.js`（ステップ。最後は `bootM()`）。組み立ては `src/build/build_m.py`。共通部品は `make_fw_m.py` が `fw_core2.js` + `src/framework/fw_m_add.js` から作る（`src/generated/fw_core_m.js`）。**入門の HTML は 1 バイトも変えない。**
 - **用語は `src/framework/gloss_m.js`**（中級の HTML にだけ入る）。`gloss_add.js` に足すと、入門の全回が変わる。
 - **数値入力式**：各ステップは「前提を読む → 手計算 → 数値を入力 → 答え合わせ → 感度を見る」。3 択の予想は使わない。ステップ定義に `ask: [{id, label, unit, ans, tol, tolType: 'abs'|'rel', hints: [1 回目, 2 回目]}]` と `solve`（解き方）。入力欄は 1〜3 個。外れると、ヒントが 1 段ずつ出て、3 回目で解き方を全部見せる。正しく入力できたら、ミッション達成。
@@ -100,7 +102,8 @@ python tests/stest.py m01_detection.html 1366 768 light a # 中級のテスト�
 
 ## 残っている作業
 
-- 中級シリーズの続き（第2回以降。題材は未定）。
+- 中級 第6回：回折の領域（水平線の少し先）の計算、雨の減衰の表（第19章）の確認、3 GHz の値。
+- 中級 第2回：クラッタの計算書の前提（50 km、ゆらがない目標）を、第8回の前提（60 km、Swerling 1）にそろえるか検討。
 
 - 第9〜12回の、問いの正解の位置を散らす。
 - 第14回：クラッタマップの 4 段階表示（雑音に対する dB で色分け）を入れるか検討。

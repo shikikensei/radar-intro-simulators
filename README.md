@@ -55,6 +55,13 @@ Chrome と Edge を想定しています（確認は Chrome で行いました�
 | 回 | ファイル | 内容 | もとにした資料 |
 |---|---|---|---|
 | 中級 1 | `m01_detection.html` | 検出の計算（必要な S/N と探知距離を、自分で出す） | 第4章 §4.6 Range Performance |
+| 中級 2 | `m02_clutter_performance.html` | クラッタの中の性能（要る改善係数と、その上限） | 第2章 MTI Radar |
+| 中級 3 | `m03_waveform_ambiguity.html` | 波形とあいまいさ（PRF、パルス圧縮） | 第4章、第8章 |
+| 中級 4 | `m04_measurement_accuracy.html` | 測定の精度（角度・距離・速度の誤差と合成） | 第9章、第7章 §7.3 |
+| 中級 5 | `m05_array_practice.html` | アレイの実際（素子の数、間隔、誤差、ビット数、帯域） | 第13章 |
+| 中級 6 | `m06_propagation_coverage.html` | 伝搬と覆域（水平線、ローブ、ダクト、雨の減衰） | 第26章、第19章 §19.3 |
+| 中級 7 | `m07_resource_budget.html` | 時間と資源の見積もり（占有率と余裕） | §1.4、§24.11、Smouse ほか (2020) |
+| 中級 8 | `m08_performance_report.html` | 性能計算書を通して作る（判定と感度の順位） | §1.4、§1.10、中級 第1〜7回 |
 
 目次は `00_index.html` です。全回共通の用語集（293 語）も、ここから引けます。
 
@@ -82,7 +89,7 @@ docs/            完成した HTML（GitHub Pages の公開元）
   index.html       目次（00_index.html）へ転送するだけのページ
   00_index.html    目次と用語集
   00_basics.html 〜 17_design_exercise.html
-  m01_detection.html   中級 第1回
+  m01_detection.html 〜 m08_performance_report.html   中級 第1〜8回
 src/
   framework/     共通の部品（ページのひな形、図の描画、用語集、ステップを動かすしくみ）
   episodes/      回ごとの計算部分（cN_core.js）と、ステップの定義（sN_steps.js）
@@ -104,7 +111,7 @@ Python 3.9 以降が必要です。追加のパッケージは要りません。
 ```
 python src/build/build2.py 0 5 6 7 8 9 10 11 12 13 14 15 16 17 # 第0回、第5回以降
 python src/build/build.py 1 2 3 4                         # 第1〜4回
-python src/build/build_m.py 1                             # 中級 第1回
+python src/build/build_m.py 1 2 3 4 5 6 7 8               # 中級 第1〜8回（回の一覧は src/build/msims.py）
 ```
 
 結果は `docs/` に書き出されます。このリポジトリの `docs/` は、上のコマンドで組み立てたものと 1 バイトも違わないことを確かめてあります。
