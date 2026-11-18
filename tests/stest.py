@@ -14,7 +14,11 @@ async def main(f, w=1366, h=768, scheme='light', tag='a', shots=True):
             r=await pg.evaluate('''async (i)=>{const st=STEPS[i],o={i:i+1,free:!st.q};
               o.locked0=document.querySelector('#opCard').classList.contains('locked');
               o.pre=st.mission?!!st.mission.ok(lastR):null;
-              if(st.q){const bs=document.querySelectorAll('#choices button');bs[(st.ans+1)%bs.length].click();o.unlocked=!document.querySelector('#opCard').classList.contains('locked');}
+              if(st.ask){o.ask=true;o.free=false;const A=a=>typeof a.ans==='function'?a.ans():a.ans,fill=f=>{for(const a of st.ask){const e=document.querySelector('#asks input[data-id="'+a.id+'"]');e.value=f(A(a));}document.querySelector('#judgeBtn').click();};
+                fill(v=>String(v*1.4+0.37));o.hint=!!document.querySelector('#askFb .hintline');o.wrongdone=document.querySelector('#msCard').classList.contains('done');o.stillLocked=document.querySelector('#opCard').classList.contains('locked');
+                fill(v=>String(v*1.4+0.37));fill(v=>String(v*1.4+0.37));o.revealed=!document.querySelector('#ansBody').hidden&&!document.querySelector('#opCard').classList.contains('locked');o.revdone=document.querySelector('#msCard').classList.contains('done');
+                fill(v=>v.toPrecision(6));o.unlocked=!document.querySelector('#opCard').classList.contains('locked');o.ans=!document.querySelector('#ansBody').hidden;o.sheet=document.querySelectorAll('#sheet table tr').length;}
+              else if(st.q){const bs=document.querySelectorAll('#choices button');bs[(st.ans+1)%bs.length].click();o.unlocked=!document.querySelector('#opCard').classList.contains('locked');}
               o.miss=[];
               const SOL=st.solFn?st.solFn():(st.sol||{});for(const k in SOL){const e=document.querySelector('#sim .ctl[data-k="'+k+'"]');if(!e){o.miss.push(k);continue;}const v=SOL[k];
                 const rg=e.querySelector('input[type=range]'),sg=e.querySelector('.seg'),ck=e.querySelector('input[type=checkbox]');
@@ -23,7 +27,7 @@ async def main(f, w=1366, h=768, scheme='light', tag='a', shots=True):
                 else if(ck){if(ck.checked!==v)ck.click();}}
               for(const ci of (st.solClicks||[])){document.querySelectorAll('#acts button')[ci].click();}
               o.done=st.mission?document.querySelector('#msCard').classList.contains('done'):null;
-              if(st.q){document.querySelector('#ansBtn').click();const t=document.querySelector('#ansBody');o.ans=!t.hidden&&t.textContent.includes(st.ch[st.ans].replace(/<[^>]*>/g,''));}
+              if(st.q&&!st.ask){document.querySelector('#ansBtn').click();const t=document.querySelector('#ansBody');o.ans=!t.hidden&&t.textContent.includes(st.ch[st.ans].replace(/<[^>]*>/g,''));}
               const a=document.querySelector('#read a.term');if(a){a.click();o.hl=HLKEY||(document.querySelector('.flash')?'flash':null);o.hlok=!!(document.querySelector('.flash')||PLOTS.some(p=>p.cfg&&p.cfg.marks&&p.cfg.marks[HLKEY]));}
               const terms=[...document.querySelectorAll('#read a.term')].map(a=>a.dataset.hl);o.badterms=terms.filter(k=>!(k.startsWith('ctl:')?document.querySelector('#sim .ctl[data-k="'+k.slice(4)+'"]'):k.startsWith('tile:')?document.querySelectorAll('#tiles .tile')[Number(k.slice(5))]:PLOTS.some(p=>p.cfg&&p.cfg.marks&&p.cfg.marks[k])));
               o.rdlen=[...document.querySelectorAll('#read h3 ~ p, #read .mis')].map(e=>e.textContent).join('').length;
@@ -36,6 +40,12 @@ async def main(f, w=1366, h=768, scheme='light', tag='a', shots=True):
                 if not r['locked0']: prob.append('not locked initially')
                 if not r['unlocked']: prob.append('not unlocked')
                 if not r['ans']: prob.append('answer not shown')
+            if r.get('ask'):
+                if not r['hint']: prob.append('no hint on wrong answer')
+                if r['wrongdone'] or r['revdone']: prob.append('mission done with wrong answer')
+                if not r['stillLocked']: prob.append('unlocked after one wrong answer')
+                if not r['revealed']: prob.append('solution not revealed after 3 wrong answers')
+                if not r['sheet']: prob.append('no sheet')
             if r['pre']: prob.append('mission true at start')
             if r['done'] is False: prob.append('MISSION NOT DONE with sol')
             if r['miss']: prob.append('sol keys: %s'%r['miss'])
@@ -43,10 +53,10 @@ async def main(f, w=1366, h=768, scheme='light', tag='a', shots=True):
             if r['ov'] or r['nan'] or r['docw']>w: prob.append('layout %s %s %s'%(r['ov'],r['nan'],r['docw']))
             print(tag,'step',r['i'],'OK' if not prob else 'PROBLEM: '+'; '.join(prob),'| 読み物',r['rdlen'],'字 | スライダー',r['nctl'])
             if prob: bad.append(r['i'])
-            if shots: await pg.wait_for_timeout(80); await pg.screenshot(path=str(SHOTS/('%s_%s_s%02d.png'%(f[:2],tag,i+1))),full_page=True)
+            if shots: await pg.wait_for_timeout(80); await pg.screenshot(path=str(SHOTS/('%s_%s_s%02d.png'%(f.split('_')[0],tag,i+1))),full_page=True)
         ms=await pg.evaluate("document.querySelector('#msbar b').textContent")
         await pg.click('#glBtn'); g1=await pg.evaluate("!document.querySelector('#gloss').hidden"); 
-        if shots: await pg.screenshot(path=str(SHOTS/('%s_%s_gloss.png'%(f[:2],tag))))
+        if shots: await pg.screenshot(path=str(SHOTS/('%s_%s_gloss.png'%(f.split('_')[0],tag))))
         await pg.keyboard.press('Escape'); g2=await pg.evaluate("document.querySelector('#gloss').hidden")
         await pg.click('#themeBtn'); th=await pg.evaluate("document.documentElement.dataset.theme")
         print(tag,'missions',ms,'| glossary open/close',g1,g2,'| theme ->',th,'| errors',errs,'| external',reqs,'| problem steps',bad)

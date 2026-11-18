@@ -170,7 +170,7 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <body>
 <header class="top">
   <h1>レーダ 入門シミュレータ</h1>
-  <div id="msbar">全 18 回・目次</div>
+  <div id="msbar">入門 18 回・中級 1 回</div>
   <button class="btn sm" id="glBtn" type="button">用語集</button>
   <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
 </header>
@@ -189,7 +189,7 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 </div>
 <p class="sym">受信した信号がたどる処理の順に並べた、おおまかな見取り図です。実際のレーダでは、方式によって使う処理や順番が変わります。</p>
 
-<h2 class="sec">18 回の一覧（上から順に進めるのがおすすめ）</h2>
+<h2 class="sec">入門：18 回の一覧（上から順に進めるのがおすすめ）</h2>
 <div class="cards">
 <section class="card sim"><div class="sim-h"><span class="no">第0回</span><h2>レーダの基礎の基礎 <small>Radar Basics</small></h2></div>
 <p>レーダが距離・方向・速度を知るしくみと、dB・レーダ方程式・雑音という共通の道具を学びます。</p>
@@ -263,6 +263,15 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <p>船に載せて 1 台で捜索も追尾もするレーダを例に、要求から順に、高さ・周波数・波形・時間の配分・余裕を決めていきます。値はすべて説明用です。シリーズの最後の回です。</p>
 <p class="sym">所要時間の目安：約 35〜56 分　／　前提となる回：第0回〜第16回（とくに第9・13・15・16回）<br>もとにした章：Radar Handbook 3rd ed. 第1章 §1.4・§1.6、第26章、第8章 ほか（これまでの各回）</p>
 <p><a class="btn primary" href="17_design_exercise.html">第17回をはじめる →</a>　<span class="sym">全 7 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="17_design_exercise.html#s1">要求を数字にする</a></li><li><a href="17_design_exercise.html#s2">水平線の壁</a></li><li><a href="17_design_exercise.html#s3">周波数を選ぶ</a></li><li><a href="17_design_exercise.html#s4">波形を決める</a></li><li><a href="17_design_exercise.html#s5">時間を配る</a></li><li><a href="17_design_exercise.html#s6">損失と余裕</a></li><li><a href="17_design_exercise.html#s7">自由実験とまとめ</a></li></ol></details></section>
+</div>
+
+<h2 class="sec">中級（性能の計算を、自分でやり始める人へ）</h2>
+<p>入門を終えた人のための回です。3 択の予想のかわりに、<b>手で計算した数値を入力</b>します。外れたときは、途中の値のヒントが 1 段ずつ出ます。画面の「計算書」に、前提・式・値が 1 行ずつ埋まっていきます。式が使える条件と、崩れる条件も書いています。</p>
+<div class="cards">
+<section class="card sim"><div class="sim-h"><span class="no">中級 第1回</span><h2>検出の計算 <small>Detection Performance Calculation</small></h2></div>
+<p>誤報の要求から誤警報確率を決め、必要な S/N、損失、探知距離（1 回の検出確率と、累積の検出確率）を、手で計算して計算書にまとめます。</p>
+<p class="sym">所要時間の目安：約 90〜135 分（手計算を含む）　／　前提となる回：入門 第4回、第15回、第16回<br>もとにした章：Radar Handbook 3rd ed. 第4章 §4.6 Range Performance（p.4.39–4.48）</p>
+<p><a class="btn primary" href="m01_detection.html">中級 第1回をはじめる →</a>　<span class="sym">全 9 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="m01_detection.html#s1">誤警報を決める</a></li><li><a href="m01_detection.html#s2">ゆらがない目標</a></li><li><a href="m01_detection.html#s3">ゆらぐ目標</a></li><li><a href="m01_detection.html#s4">足し合わせ</a></li><li><a href="m01_detection.html#s5">M-of-N</a></li><li><a href="m01_detection.html#s6">損失を積む</a></li><li><a href="m01_detection.html#s7">累積の検出確率 (1)</a></li><li><a href="m01_detection.html#s8">累積の検出確率 (2)</a></li><li><a href="m01_detection.html#s9">計算書を 1 枚作る</a></li></ol></details></section>
 </div>
 
 <h2 class="sec">1 つのステップの進め方</h2>

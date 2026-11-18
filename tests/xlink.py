@@ -1,7 +1,7 @@
 from conf import DOCS, GEN, SHOTS, LAUNCH, URL
 import re, os, json, sys
 from playwright.sync_api import sync_playwright
-out=str(DOCS); files=sorted(f for f in os.listdir(out) if re.match(r'\d\d_.*\.html$', f))
+out=str(DOCS); files=sorted(f for f in os.listdir(out) if re.match(r'(\d\d|m\d\d)_.*\.html$', f))
 d=json.load(open(GEN/'dump.json',encoding='utf8'))
 def nsteps(f):
     v=d.get(f) or {}

@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中級 第1回 検出の計算</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3f2ee; --surface:#fcfcfb; --surface2:#f0efec; --border:#d9d8d2;
+  --text:#0b0b0b; --text2:#52514e; --muted:#77766f; --grid:#e4e3dd; --axis:#a9a8a1;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --ref:#8a8983; --hl:#b4279a;
+  --band:rgba(42,120,214,.10); --band2:rgba(235,104,52,.12); --bandn:rgba(120,119,112,.14); --band3:rgba(27,175,122,.14);
+  --accent:#1c5cab; --accent-bg:#e4eefb; --warn:#8a5a00; --warn-bg:#fdf1d3; --ok:#0a6b0a; --ok-bg:#e2f3e2; --ng:#b02a2a;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111110; --surface:#1a1a19; --surface2:#242423; --border:#3a3a37;
+  --text:#f0efec; --text2:#c3c2b7; --muted:#96958c; --grid:#2d2d2a; --axis:#6a6963;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --ref:#96958c; --hl:#e56bd0;
+  --band:rgba(57,135,229,.16); --band2:rgba(217,89,38,.18); --bandn:rgba(150,149,140,.16); --band3:rgba(25,158,112,.20);
+  --accent:#86b6ef; --accent-bg:#1c2c44; --warn:#f0c869; --warn-bg:#3a2f12; --ok:#5fd05f; --ok-bg:#16301a; --ng:#f08a8a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-size:14px;line-height:1.75;
+  font-family:"Yu Gothic UI","Meiryo UI","Meiryo","Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",system-ui,sans-serif}
+button,select,input{font:inherit;color:inherit}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+header.top h1{font-size:16px;margin:0;font-weight:700;white-space:nowrap}
+#msbar{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:12px;color:var(--text2);overflow:hidden;white-space:nowrap}
+#msbar button{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--axis);background:none;padding:0;cursor:pointer;font-size:10px;line-height:1;color:transparent;flex:none}
+#msbar button.done{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+#msbar b{margin-left:6px;color:var(--text);font-variant-numeric:tabular-nums}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:4px 10px;cursor:pointer;line-height:1.4;white-space:nowrap;text-decoration:none;color:var(--text);display:inline-block}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:700}
+.btn.sm{padding:2px 8px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:default}
+nav#steps{display:flex;flex-wrap:wrap;gap:5px;max-width:1480px;margin:10px auto 0;padding:0 14px}
+nav#steps button{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:2px 10px 2px 3px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+nav#steps button i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--surface2);font-size:11.5px;font-weight:700}
+nav#steps button[aria-current=true]{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:700}
+nav#steps button[aria-current=true] i{background:var(--accent);color:var(--surface)}
+nav#steps button.done i{background:var(--ok);color:var(--surface)}
+.layout{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;max-width:1480px;margin:0 auto;padding:10px 40px 30px 14px;align-items:start}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr)}}
+#read,.card{background:var(--surface);border:1px solid var(--border);border-radius:10px}
+#read{padding:12px 16px 14px;min-width:0}
+#read h2{font-size:18px;margin:0 0 6px;line-height:1.4}
+#read h2 .num{display:inline-block;font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);border-radius:4px;padding:1px 8px;margin-right:8px;vertical-align:3px}
+#read h3{font-size:13px;margin:12px 0 2px;color:var(--accent)}
+#read p{margin:2px 0 6px}
+#read a.term{color:var(--hl);font-weight:700;text-decoration:underline dotted;cursor:pointer}
+.eq{font-family:"Cambria Math","Times New Roman",serif;font-size:17px;margin:6px 0 4px 8px;overflow-x:auto;white-space:nowrap;padding:6px 10px;background:var(--surface2);border-radius:6px}
+.eq i{font-style:italic}
+.sym{font-size:12.5px;color:var(--text2)}
+.mis{border-left:4px solid var(--warn);background:var(--warn-bg);border-radius:0 8px 8px 0;padding:6px 12px;margin:4px 0}
+.src{font-size:12px;color:var(--text2);border-top:1px dashed var(--border);padding-top:6px;margin-top:10px}
+.hosoku{display:inline-block;font-size:11px;font-weight:700;border:1px solid var(--warn);color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:0 5px;margin:0 4px 0 0;line-height:1.5;vertical-align:1px;white-space:nowrap}
+details{border:1px solid var(--border);border-radius:8px;padding:5px 10px;margin:8px 0 0;background:var(--surface)}
+details summary{cursor:pointer;font-weight:700;font-size:12.5px}
+details p{margin:4px 0;font-size:13px}
+.pre{border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin:6px 0 10px;background:var(--surface2)}
+.pre>b{font-size:12.5px}
+.pre details{background:var(--surface);margin:5px 0 0}
+#sim{min-width:0;display:flex;flex-direction:column;gap:10px}
+.card{padding:10px 14px}
+.card .lbl{display:inline-block;font-size:11.5px;font-weight:700;color:var(--surface);background:var(--accent);border-radius:4px;padding:0 8px;margin-right:8px;line-height:1.6}
+.card.q p{margin:4px 0 8px;font-size:15px;font-weight:700}
+.ch{display:flex;flex-wrap:wrap;gap:6px}
+.ch button{border:1.5px solid var(--border);background:var(--surface);border-radius:8px;padding:5px 12px;cursor:pointer;text-align:left;line-height:1.45}
+.ch button:hover{border-color:var(--accent)}
+.ch button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-bg);font-weight:700}
+.ch button.right{border-color:var(--ok);background:var(--ok-bg)}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.card.op{position:relative}
+.card.op.locked>*:not(.lockmsg){opacity:.3;pointer-events:none;filter:grayscale(.4)}
+.lockmsg{display:none;position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:3;background:var(--warn-bg);border:1.5px solid var(--warn);color:var(--warn);font-weight:700;border-radius:8px;padding:6px 16px;white-space:nowrap}
+.card.op.locked .lockmsg{display:block}
+.fixed{display:flex;flex-wrap:wrap;gap:5px;font-size:12px;color:var(--text2);margin-bottom:6px;align-items:center}
+.fixed span{border:1px solid var(--border);border-radius:999px;padding:0 8px;background:var(--surface2);white-space:nowrap;line-height:1.7}
+.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 14px;margin-bottom:6px}
+.ctl{min-width:0;border-radius:6px;padding:2px 6px;border:2px solid transparent}
+.ctl.flash,.tile.flash{border-color:var(--hl);background:color-mix(in srgb,var(--hl) 12%,transparent)}
+.ctl-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 8px;min-width:0}
+.ctl-h label{font-size:13px;font-weight:700;min-width:0;line-height:1.5}
+.ctl-h output{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;color:var(--accent);margin-left:auto}
+.ctl input[type=range]{display:block;width:100%;margin:1px 0 0;accent-color:var(--s1);height:18px}
+.ctl small{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+.ctl .chk{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer}
+.ctl .chk input{accent-color:var(--s1);margin:0}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface);max-width:100%}
+.seg button{border:0;background:none;padding:2px 10px;cursor:pointer;font-size:12.5px;border-left:1px solid var(--border);white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed=true]{background:var(--accent-bg);color:var(--accent);font-weight:700}
+.acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.plotgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.plot{min-width:0;border:1px solid var(--border);border-radius:8px;padding:5px 8px 2px;background:var(--surface)}
+.plot-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 14px;min-height:20px}
+.plot-t{font-size:12.5px;font-weight:700}
+.plot-lg{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;color:var(--text2)}
+.plot-lg span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.plot-lg i{display:inline-block;width:20px;height:0;border-top:2px solid}
+.plot-c{position:relative;width:100%}
+.plot-c canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.plot-c canvas.ov{cursor:crosshair}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11.5px;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap;z-index:5;font-variant-numeric:tabular-nums}
+.tip b{display:block}
+.tip i{display:inline-block;width:12px;height:0;border-top:2px solid;margin-right:5px;vertical-align:middle}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;margin-top:8px}
+.tile{border:2px solid var(--border);border-radius:8px;padding:4px 10px;min-width:0;background:var(--surface)}
+.tile .k{font-size:11.5px;color:var(--text2);line-height:1.4}
+.tile .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.35;overflow-wrap:anywhere}
+.tile .v small{font-size:12px;font-weight:600;color:var(--text2)}
+.tile .s{font-size:11px;color:var(--muted);line-height:1.4;overflow-wrap:anywhere}
+.card.ms{border-left:5px solid var(--s2)}
+.card.ms.done{border-left-color:var(--ok);background:var(--ok-bg)}
+.card.ms p{margin:4px 0 2px}
+.card.ms .st{font-weight:700;color:var(--muted)}
+.card.ms.done .st{color:var(--ok)}
+.card.ans .body{margin-top:8px}
+.card.ans .body p{margin:3px 0}
+.stepnav{display:flex;justify-content:space-between;gap:8px;max-width:1480px;margin:0 auto;padding:0 14px 30px}
+#gloss{position:fixed;right:0;top:0;bottom:0;width:min(400px,92vw);z-index:40;background:var(--surface);border-left:1px solid var(--border);box-shadow:-4px 0 18px rgba(0,0,0,.2);padding:12px 16px;overflow-y:auto}
+#gloss h2{font-size:15px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+#gloss h3{font-size:12.5px;margin:12px 0 2px;color:var(--accent);border-bottom:1px solid var(--border)}
+#gloss dt{font-weight:700;margin-top:7px;font-size:13px}
+#gloss dd{margin:0;font-size:13px;color:var(--text2);line-height:1.6}
+#gloss input{width:100%;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+#glTab{position:fixed;right:0;top:45%;z-index:35;writing-mode:vertical-rl;border:1px solid var(--border);border-right:0;border-radius:8px 0 0 8px;background:var(--accent-bg);color:var(--accent);font-weight:700;padding:10px 4px;cursor:pointer;letter-spacing:.1em}
+table.t{border-collapse:collapse;width:100%;font-size:12.5px;margin:6px 0}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:4px 8px;text-align:left;vertical-align:top}
+table.t th{color:var(--text2);font-weight:700;background:var(--surface2);white-space:nowrap}
+.tw{overflow-x:auto}
+.ok{color:var(--ok);font-weight:700;white-space:nowrap}.ng{color:var(--ng);font-weight:700;white-space:nowrap}.info{color:var(--muted);white-space:nowrap}
+@media print{nav#steps,.stepnav,header.top .btn,#glTab{display:none}}
+.nextsim{margin:14px 0 4px;font-size:14px}
+.card.q .qm p{margin:4px 0 6px;font-size:14px;font-weight:400}
+.card.q .qm p:first-child{font-size:15px;font-weight:700}
+.asks{display:flex;flex-wrap:wrap;gap:8px 18px;margin:8px 0 10px}
+.ask{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ask .al{font-size:13px;font-weight:700}
+.ask .ai{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.ask input{width:112px;font:inherit;font-size:16px;font-weight:700;padding:3px 8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);text-align:right}
+.ask input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.ask input.good{border-color:var(--ok);background:var(--ok-bg)}
+.ask input.bad{border-color:var(--warn);background:var(--warn-bg)}
+.ask .au{font-size:13px}
+.ask small{font-size:11.5px;color:var(--muted)}
+.card.q .fb p{margin:6px 0 0;font-size:13.5px;font-weight:400}
+.fb .okline{color:var(--ok)}
+.fb .hintline{border-left:3px solid var(--accent);padding-left:8px}
+.card.sheetc{padding-bottom:6px}
+table.t.sheet td.num{font-weight:700;white-space:nowrap}
+table.t.sheet tr.now td{background:var(--accent-bg)}
+table.t.sheet tr.yet td{color:var(--muted)}
+table.t.sheet tr.yet td.num{font-weight:400}
+table.t.sheet tr.sh td{font-weight:700;color:var(--text2);background:var(--surface2)}
+.card.ans .body p{margin:5px 0}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="btn sm" href="00_index.html" title="シリーズの目次へ">← 目次</a>
+  <h1>中級 第1回 検出の計算</h1>
+  <div id="msbar" title="ミッションの達成状況（丸を押すとそのステップへ）"></div>
+  <button class="btn sm" id="glBtn" type="button">用語集</button>
+  <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
+</header>
+<nav id="steps" aria-label="ステップ"></nav>
+<div class="layout">
+  <article id="read" aria-label="読み物"></article>
+  <section id="sim" aria-label="シミュレータ"></section>
+</div>
+<div class="stepnav">
+  <button class="btn" id="prevBtn" type="button">← 前のステップ</button>
+  <button class="btn primary" id="nextBtn" type="button">次のステップ →</button>
+</div>
+<button id="glTab" type="button" aria-label="用語集を開く">用語集</button>
+<aside id="gloss" hidden aria-label="用語集"></aside>
+<script>
+'use strict';
+const SIM_NO = 101;
+/* ============================================================
+   第0回・第5回以降で共通に使う小さな道具
+   ============================================================ */
+const MINUS = '−';
+function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gaussGen(seed){ const r = mulberry32(seed); let sp = null; return function(){ if (sp !== null){ const v = sp; sp = null; return v; } const u = Math.sqrt(-2 * Math.log(1 - r())), a = 2 * Math.PI * r(); sp = u * Math.sin(a); return u * Math.cos(a); }; }
+const db10 = v => 10 * Math.log10(v);
+const SUPD = {'-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'};
+function sup(n){ return String(n).split('').map(c => SUPD[c] || c).join(''); }
+function sci(v, d){ if (!(v === v)) return '—'; if (v === 0) return '0'; let e = Math.floor(Math.log10(Math.abs(v))), m = v / Math.pow(10, e); if (Math.abs(m) >= 9.95){ m /= 10; e++; } return fx(m, d === undefined ? 1 : d) + '×10' + sup(e); }
+function wilson(k, n){ if (!n) return [0, 1]; const z = 1.96, p = k / n, d = 1 + z * z / n, c = (p + z * z / (2 * n)) / d, h = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d; return [k === 0 ? 0 : Math.max(0, c - h), k === n ? 1 : Math.min(1, c + h)]; }
+function checkTable(R){
+  const lab = {ok: '<span class="ok">一致</span>', info: '<span class="info">差あり</span>', ng: '<span class="ng">不一致</span>', ref: '<span class="info">参考</span>'};
+  let h = '<h3>ハンドブックの値との照合</h3><p class="sym">「差あり」は条件の違いなどで差があるもの、「参考」はハンドブックに基準値のない確認です（理由は備考）。</p><div class="tw"><table class="t"><tr><th>項目</th><th>ハンドブック（基準）</th><th>このシミュレータ</th><th>判定</th><th>備考</th></tr>';
+  for (const r of R) h += '<tr><td>' + r.item + '</td><td>' + r.ref + '</td><td>' + r.calc + '</td><td>' + lab[r.st] + '</td><td><small>' + r.note + '</small></td></tr>';
+  return h + '</table></div>';
+}
+const near = (a, b, tol) => Math.abs(a - b) <= tol ? 'ok' : 'ng';
+
+/* ============================================================
+   中級 第1回 検出の計算（必要な S/N と探知距離を、自分で出す）：計算部分
+   もとにした資料：Radar Handbook 3rd ed. 第4章 Pulse Doppler Radar §4.6 Range Performance（p.4.39–4.48）、式4.2 の記号の定義（§4.2、p.4.16）
+                   第1章 §1.4（式1.5）→ 入門 第15回／第7章 §7.2（2 値積分）→ 入門 第4回
+   方針：一般的な原理だけを扱う。例のレーダの値は、入門 第15回の基準のレーダを §4.6 の記号に直したもの（説明用。実在の装置の値ではない）。
+
+   PDF のページを画像で見て確かめた式（記号は原本のまま）：
+   式4.15  SNR = (Ro/R)^4
+   式4.16  Ro = [ Pav·GT·GR·λ²·σT / ((4π)³·k·Ts·Bn·LT) ]^(1/4)      Ro：SNR が 1 になる距離。LT：目標にかかる損失
+           Pav：平均送信電力、GT・GR：送信・受信の利得、λ：波長、k：ボルツマン定数、Ts：システム雑音温度、Bn：ドップラフィルタの帯域幅（式4.2 の下、p.4.16）
+           SNR は、整合フィルタ・パルス圧縮・ドップラフィルタのあとの値（1 つの CPI についての値）。
+   式4.17  エクリプシングとレンジゲートのストラドルの損失（近似）= 12N / (7N − 6)      N：IPP の中のレンジゲートの数。Pd が 0.5 に近いときだけ有効
+   式4.18  PFA = (1/Nr)·[ Td·ln2 / ( C·Nf·NFM^(m−1)·TFR ) ]^(1/m)      1 ルック（m = n = 1）なら PFA = Td·ln2 / (Nr·Nf·TFR)
+           TFR：誤報の時間（その時間内に 1 回以上の誤報が出る確率が 0.5）。TFR ≈ TAVG·ln2
+           二項係数は、原本では上に m、下に n を書き、n!/[m!(n−m)!] と定義している（p.4.44）。
+   式4.22  Pd = (1/2)·erfc( √(−0.8·ln[4·PFA(1−PFA)]) + √(Npdi/2 − 1/2) − √(Npdi·SNR + Npdi/2 − 1/2) )      ゆらがない目標
+           ※ 原本の式4.22 は、2 つの根号の中がどちらも「−1/2」と印刷されている。式4.23 を P_d について解くと、ここは「−1/4」になる。
+             印刷どおりの形は、厳密な計算から大きくずれる（P_FA = 10^-6、N = 1、S/N 10 dB で 0.505。厳密な値は 0.248）。「−1/4」とすると 0.261。
+             ここでは「−1/4」の形（式4.23 と合う形）で計算し、印刷どおりの形は照合表にだけ出す。
+   式4.23  SNRreqd = η²/Npdi + (2η/Npdi)·√(Npdi/2 − 1/4)
+           η = √(−0.8·ln[4·PFA(1−PFA)]) − sign(0.5 − Pd)·√(−0.8·ln[4·Pd(1−Pd)])
+   式4.24  Pd = Km[ ( Km⁻¹(PFA, 2Npdi) − 2(Npdi − ne) ) / ( (Npdi/ne)·SNR + 1 ), 2ne ]
+   式4.25  SNR = [ ( Km⁻¹(PFA, 2Npdi) − 2(Npdi − ne) ) / Km⁻¹(Pd, 2ne) − 1 ]·ne/Npdi
+           ※ 原本の式4.25 は、分子の最初の項が Km⁻¹(Pd, 2ne) と印刷されているように読める。式4.24 を SNR について解くと、
+             分子は Km⁻¹(PFA, 2Npdi) になる。ここでは、式4.24 と合う形（上の形）で計算する。
+           ne = 1（Swerling 1）、Npdi（2）、2（3）、2·Npdi（4）
+           Km(x, d) = 1 − P(d/2, x/2)（カイ二乗分布の上側確率）、P(a, x)：正則化した不完全ガンマ関数
+   式4.26  Pd,dwell = Σ(k = m..n) C(n, k)·Pd,look^k·(1 − Pd,look)^(n−k)
+           ※ 原本は二項係数を、上に k、下に n と書いている（式4.18 と同じ書き方）。ここでは C(n, k) = n!/[k!(n−k)!] で計算する。
+   式4.27  Pd,cum[k] = 1 − Π(i = 1..k) [1 − Pd,ss[i]] = Pd,cum[k−1] + Pd,ss[k]·(1 − Pd,cum[k−1])
+           ※ 原本の 2 行目の最後は (1 − Pd,cum[k]) と印刷されているように読める。1 行目（積の形）と合うのは [k−1]。計算は積の形で行う。
+
+   モデル（補足）：
+   ・厳密な計算（照合用）：ゆらがない目標は、非心カイ二乗分布の級数（入門 第4回の pdNF と同じ）と、N = 1 では Marcum の Q 関数の数値積分。
+     Swerling 2・4 は閉じた式（ガンマ分布、ガンマ分布の混合）。Swerling 1・3 は、目標の強さの分布で pdNF を数値的に平均する（Swerling 1 は、閉じた式 pdSw1 でも確かめる）。
+   ・累積の検出確率（ステップ 8）：SNR = (Ro/R)^4、目標は一定の速さで近づく。走査ごとの検出は独立（Swerling 1、走査ごとに独立にゆらぐ）。
+     平均電力が同じなら、Ro^4 がフレーム時間に比例するとした。最初の走査の位置（位相）は、一様にばらつくとして平均する。
+   ============================================================ */
+const KT0 = 4e-21, C0 = 3e8;
+/* 例のレーダ（説明用。入門 第15回の基準のレーダを §4.6 の記号に直したもの）と、標準の条件 */
+const EX = {pav: 1000, ae: 1.6, lam: 0.1, rcs: 1, fn: 3, bn: 62.5, td: 0.016, nr: 100, nf: 16, tavg: 10, pd: 0.9, ngate: 10, rcum: 100, tf0: 4, v: 600};
+const LOSS = [['送信の損失（送信機からアンテナまで）', 1.0, 0], ['レドーム（往復）', 0.5, 0], ['伝搬（大気。往復）', 0.8, 0], ['走査（ビームを振ったときの利得の低下。往復）', 1.0, 0], ['ビーム形状', 1.3, 1], ['受信の損失（アンテナから初段の増幅器まで）', 0.8, 0], ['整合フィルタ', 0.5, 0], ['量子化', 0.1, 0], ['パルス圧縮のずれ（重み付け）', 1.0, 0],
+  ['エクリプシングとレンジゲートのストラドル', null, 1], ['ドップラフィルタの重み付け', 1.5, 0], ['ドップラフィルタのストラドル', 0.6, 1], ['CFAR', 1.0, 1], ['ガード（ブランキング）', 0.2, 1]];      // [項目, dB（null は式4.17 で計算）, 目標だけにかかるか]
+const DEFAULTS = {ltavg: 1, cells: 1600, x: 6, pd: 0.9, sw: 0, npdi: 1, m: 2, n: 3, pl: 0.7, ladj: 0, pavdb: 0, dr: 10, ltf: 0.602, seed: 1};
+const S = Object.assign({}, DEFAULTS);
+const lin = d => Math.pow(10, d / 10);
+/* ---- 特殊関数 ---- */
+function gammaln(x){ const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.001208650973866179, -0.000005395239384953]; let y = x, t = x + 5.5; t -= (x + 0.5) * Math.log(t); let s = 1.000000000190015; for (let j = 0; j < 6; j++) s += c[j] / ++y; return -t + Math.log(2.5066282746310005 * s / x); }
+function gammaP(a, x){      // 正則化した不完全ガンマ関数 P(a, x)。x < a + 1 は級数、それ以外は連分数
+  if (x <= 0) return 0;
+  if (x < a + 1){ let ap = a, sum = 1 / a, del = sum; for (let n = 0; n < 500; n++){ ap += 1; del *= x / ap; sum += del; if (Math.abs(del) < Math.abs(sum) * 1e-15) break; } return sum * Math.exp(-x + a * Math.log(x) - gammaln(a)); }
+  return 1 - gammaQcf(a, x);
+}
+function gammaQcf(a, x){ const tiny = 1e-300; let b = x + 1 - a, c = 1 / tiny, d = 1 / b, h = d; for (let i = 1; i < 500; i++){ const an = -i * (i - a); b += 2; d = an * d + b; if (Math.abs(d) < tiny) d = tiny; c = b + an / c; if (Math.abs(c) < tiny) c = tiny; d = 1 / d; const del = d * c; h *= del; if (Math.abs(del - 1) < 1e-15) break; } return Math.exp(-x + a * Math.log(x) - gammaln(a)) * h; }
+function gammaQ(a, x){ if (x <= 0) return 1; return x < a + 1 ? 1 - gammaP(a, x) : gammaQcf(a, x); }      // 上側 Q(a, x) = 1 − P(a, x)（小さい値も正確に）
+const Km = (x, d) => gammaQ(d / 2, x / 2);                                                                   // カイ二乗分布の上側確率
+const KMC = new Map();
+function KmInv(p, d){ const key = p + '/' + d, c = KMC.get(key); if (c !== undefined) return c; const v = KmInv0(p, d); if (KMC.size < 20000) KMC.set(key, v); return v; }
+function KmInv0(p, d){ let lo = 0, hi = d + 10; while (Km(hi, d) > p) hi *= 2; for (let i = 0; i < 200; i++){ const m = (lo + hi) / 2; if (Km(m, d) > p) lo = m; else hi = m; if (hi - lo < 1e-13 * hi) break; } return (lo + hi) / 2; }
+const erfc = x => x >= 0 ? gammaQ(0.5, x * x) : 2 - gammaQ(0.5, x * x);
+/* ---- §4.6 の式 ---- */
+const etaA = p => Math.sqrt(-0.8 * Math.log(4 * p * (1 - p)));
+const etaOf = (pd, pfa) => etaA(pfa) - Math.sign(0.5 - pd) * etaA(pd);
+function pd422(snr, pfa, N){ return 0.5 * erfc(etaA(pfa) + Math.sqrt(N / 2 - 0.25) - Math.sqrt(N * snr + N / 2 - 0.25)); }                       // 式4.22（式4.23 と合う形：根号の中を −1/4 とした）
+function pd422print(snr, pfa, N){ return 0.5 * erfc(etaA(pfa) + Math.sqrt(N / 2 - 0.5) - Math.sqrt(N * snr + N / 2 - 0.5)); }                    // 式4.22（原本に印刷されている形：−1/2）
+function snr423(pd, pfa, N){ const e = etaOf(pd, pfa); return e * e / N + 2 * e / N * Math.sqrt(N / 2 - 0.25); }                                // 式4.23
+const neOf = (sw, N) => sw === 1 ? 1 : sw === 2 ? N : sw === 3 ? 2 : 2 * N;
+function pd424(snr, pfa, N, ne){ return Km((KmInv(pfa, 2 * N) - 2 * (N - ne)) / (N / ne * snr + 1), 2 * ne); }                                  // 式4.24
+function snr425(pd, pfa, N, ne){ return ((KmInv(pfa, 2 * N) - 2 * (N - ne)) / KmInv(pd, 2 * ne) - 1) * ne / N; }                                // 式4.25（式4.24 と合う形）
+const pdApprox = (snr, pfa, N, sw) => sw === 0 ? pd422(snr, pfa, N) : pd424(snr, pfa, N, neOf(sw, N));
+const snrApprox = (pd, pfa, N, sw) => sw === 0 ? snr423(pd, pfa, N) : snr425(pd, pfa, N, neOf(sw, N));
+function binom(n, k){ let r = 1; for (let i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; }
+function mOfN(m, n, p){ let s = 0; for (let k = m; k <= n; k++) s += binom(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k); return s; }      // 式4.26
+function mOfNinv(m, n, P){ let lo = 0, hi = 1; for (let i = 0; i < 100; i++){ const q = (lo + hi) / 2; if (mOfN(m, n, q) < P) lo = q; else hi = q; } return (lo + hi) / 2; }      // ドウェルで P になる、1 ルックの確率
+function cumPd(ps){ const out = []; let q = 1; for (const p of ps){ q *= 1 - p; out.push(1 - q); } return out; }                             // 式4.27（積の形）
+const pfaCell = (td, nr, nf, tfr) => td * Math.LN2 / (nr * nf * tfr);                                                                       // 式4.18 で m = n = 1
+const eclApprox = N => 12 * N / (7 * N - 6);                                                                                                // 式4.17
+/* 式4.16。G·Ae = GT·GR·λ²/(4π) なので、入門 第15回の式1.5 と同じ形に書ける。k·Ts = kT0·Fn とした */
+function roOf(o){ const g = 4 * Math.PI * o.ae / (o.lam * o.lam); return Math.pow(o.pav * g * g * o.lam * o.lam * o.rcs / (Math.pow(4 * Math.PI, 3) * KT0 * lin(o.fn) * o.bn * lin(o.lt)), 0.25); }
+/* 入門 第15回（c15_core.js）から写した式：式1.5 */
+function rmax15(p){ return Math.pow(p.pav * p.g * p.ae * p.rcs * p.n * p.ei * Math.pow(p.F, 4) / (16 * Math.PI * Math.PI * KT0 * p.Fn * p.fp * p.snr1 * p.Ls), 0.25); }
+/* ---- 厳密な計算（照合用） ---- */
+function pdNF(n, s, T){      // 入門 第4回（legacy/ccore.js）と同じ：ゆらがない目標、n 個の和、しきい値 T（雑音の平均を 1 とした値）
+  const lam = n * s; if (!(lam > 0)) return gammaQ(n, T);
+  if (n + lam - T > 12 * Math.sqrt(n + 2 * lam)) return 1;
+  const k0 = Math.floor(lam), kmax = k0 + Math.ceil(12 * Math.sqrt(lam + 1)) + 30, q = new Float64Array(kmax + 1);
+  let t = Math.exp(-T), acc = 0; for (let j = 0; j < n; j++){ acc += t; t *= T / (j + 1); }
+  for (let k = 0; k <= kmax; k++){ q[k] = acc; acc += t; t *= T / (n + k + 1); }
+  const p0 = Math.exp(-lam + k0 * Math.log(lam) - gammaln(k0 + 1)); let sum = 0, p = p0;
+  for (let k = k0; k <= kmax; k++){ sum += p * q[k]; p *= lam / (k + 1); if (p < 1e-18 && k > k0 + 5) break; }
+  p = p0; for (let k = k0 - 1; k >= 0; k--){ p *= (k + 1) / lam; sum += p * q[k]; if (p < 1e-18) break; }
+  return Math.min(1, sum);
+}
+const thrOf = (pfa, N) => KmInv(pfa, 2 * N) / 2;                                            // N 個の和（雑音の平均 1）のしきい値
+function marcumInt(s, T){      // N = 1 の検出確率を、数値積分で：∫_T^∞ exp(−(v+s))·I0(2√(vs)) dv（Simpson 則。I0 は指数を掛けて桁あふれを防ぐ）
+  const i0e = x => { if (x < 3.75){ const y = (x / 3.75) * (x / 3.75); return Math.exp(-x) * (1 + y * (3.5156229 + y * (3.0899424 + y * (1.2067492 + y * (0.2659732 + y * (0.0360768 + y * 0.0045813)))))); } const y = 3.75 / x; return (0.39894228 + y * (0.01328592 + y * (0.00225319 + y * (-0.00157565 + y * (0.00916281 + y * (-0.02057706 + y * (0.02635537 + y * (-0.01647633 + y * 0.00392377)))))))) / Math.sqrt(x); };
+  const f = v => { const a = 2 * Math.sqrt(v * s); return Math.exp(-(Math.sqrt(v) - Math.sqrt(s)) * (Math.sqrt(v) - Math.sqrt(s))) * i0e(a); }, hi = Math.pow(Math.sqrt(s) + 9, 2) + T, n = 4000, h = (hi - T) / n; if (hi <= T) return 0;
+  let sum = f(T) + f(hi); for (let i = 1; i < n; i++) sum += f(T + i * h) * (i % 2 ? 4 : 2); return Math.min(1, sum * h / 3);
+}
+function pdExact(snr, pfa, N, sw){
+  const T = thrOf(pfa, N);
+  if (sw === 0) return pdNF(N, snr, T);
+  if (sw === 2) return gammaQ(N, T / (1 + snr));                                            // 各 CPI が独立な指数分布 → ガンマ分布
+  if (sw === 4){ const c = 1 + snr / 2, b = (snr / 2) / c; let s = 0; for (let k = 0; k <= N; k++) s += binom(N, k) * Math.pow(1 - b, N - k) * Math.pow(b, k) * gammaQ(N + k, T / c); return s; }      // ガンマ分布の混合
+  if (sw === 1 && N === 1) return Math.exp(-T / (1 + snr));
+  /* Swerling 1・3：ドウェルの中では同じ強さ。強さの分布（平均 1 の指数分布、または自由度 4 のカイ二乗）で平均する。変数変換して台形則 */
+  const n = 500, zmax = sw === 1 ? 40 : 30; let acc = 0, wsum = 0;
+  for (let i = 0; i < n; i++){ const u = (i + 0.5) / n, z = zmax * u * u * u, w = (sw === 1 ? Math.exp(-z) : 4 * z * Math.exp(-2 * z)) * u * u; acc += w * pdNF(N, snr * z, T); wsum += w; }      // z = zmax·u³ と置いて、0 の近くを細かく刻む
+  return acc / wsum;
+}
+/* Swerling 1 の閉じた式（N ≥ 2。一般に知られた式）：確かめ用 */
+function pdSw1(snr, pfa, N){ const T = thrOf(pfa, N); if (N === 1) return Math.exp(-T / (1 + snr)); const a = 1 + 1 / (N * snr); return 1 - gammaP(N - 1, T) + Math.pow(a, N - 1) * gammaP(N - 1, T / a) * Math.exp(-T / (1 + N * snr)); }
+function snrExact(pd, pfa, N, sw){ let lo = -30, hi = 70; for (let i = 0; i < 44; i++){ const m = (lo + hi) / 2; if (pdExact(lin(m), pfa, N, sw) < pd) lo = m; else hi = m; } return (lo + hi) / 2; }      // [dB]
+/* ---- エクリプシングとレンジゲートのストラドル（p.4.41 の 4 段の手順。ゲートの重なりなし、IPP の中に N ゲート、最初の 1 つは送信） ---- */
+function eclPower(x, N){ const t = x * N, k = Math.floor(t), f = t - k; const v = k === 0 ? f : k === N - 1 ? 1 - f : Math.max(f, 1 - f); return v * v; }      // 遅れ x（IPP に対する割合）での、整合フィルタの出力の電力（最大 1）
+function eclPd(snrDb, pfa, N){ const n = 400; let a = 0; const T = thrOf(pfa, 1); for (let i = 0; i < n; i++) a += pdNF(1, lin(snrDb) * eclPower((i + 0.5) / n, N), T); return a / n; }      // 遅れが一様にばらつくとして、検出確率を平均
+function eclLoss(pd, pfa, N){ let lo = 0, hi = 60; for (let i = 0; i < 50; i++){ const m = (lo + hi) / 2; if (eclPd(m, pfa, N) < pd) lo = m; else hi = m; } return (lo + hi) / 2 - snrExact(pd, pfa, 1, 0); }      // 同じ Pd に要る S/N の増え方 [dB]
+/* ---- 標準の計算書 ---- */
+function lossTable(ngate){ const rows = LOSS.map(r => ({k: r[0], db: r[1] === null ? db10(eclApprox(ngate === undefined ? EX.ngate : ngate)) : r[1], tgt: !!r[2]})); let tot = 0, tgt = 0; for (const r of rows){ tot += r.db; if (r.tgt) tgt += r.db; } return {rows, tot, tgt, com: tot - tgt}; }
+function std(){
+  const tfr = EX.tavg * Math.LN2, pfa = pfaCell(EX.td, EX.nr, EX.nf, tfr), s0 = db10(snr423(EX.pd, pfa, 1)), s1 = db10(snr425(EX.pd, pfa, 1, 1)), s4 = db10(snr423(EX.pd, pfa, 4));
+  const lt = lossTable(), ro0 = roOf(Object.assign({}, EX, {lt: 0})), ro = roOf(Object.assign({}, EX, {lt: lt.tot}));
+  const r0 = ro * Math.pow(10, -s0 / 40), r1 = ro * Math.pow(10, -s1 / 40), ps = [120, 110, 100].map(R => pd424(Math.pow(ro / 1000 / R, 4), pfa, 1, 1)), cum = cumPd(ps);
+  return {tfr, pfa, s0, s1, fl: s1 - s0, s4, il: s4 + db10(4) - s0, pdw: mOfN(2, 3, 0.7), pfw: mOfN(2, 3, 1e-3), lt, ro0, ro, r0, r1, c5: 1 - Math.pow(0.7, 5), c3: 1 - 0.9 * 0.8 * 0.7, ps, cum};
+}
+/* ---- 累積の検出確率と、フレーム時間（ステップ 7〜9） ---- */
+function scanCurve(ro, pfa, sw, npdi, dr, rmax, rmin){      // 距離 rmax から dr ずつ近づく。1 回の Pd と、累積の Pd（1 回の Pd が 5% を超えた所から足す）
+  const R = [], ps = [], cu = []; let q = 1, started = false;
+  for (let r = rmax; r >= rmin - 1e-9; r -= dr){ const p = pdApprox(Math.pow(ro / r, 4), pfa, npdi, sw); if (!started && p >= 0.05) started = true; if (started) q *= 1 - p; R.push(r); ps.push(p); cu.push(started ? 1 - q : 0); }
+  return {R, ps, cu};
+}
+function cumAt(ro, pfa, sw, npdi, dr, rspec, nph){      // 距離 rspec までの累積 Pd。1 回の Pd が 5% になる距離から足し始める。最初の走査の位置を一様にばらつかせて平均
+  const r5 = ro * Math.pow(Math.max(1e-9, snrApprox(0.05, pfa, npdi, sw)), -0.25); if (r5 <= rspec) return 0;
+  const pOf = r => pdApprox(Math.pow(ro / r, 4), pfa, npdi, sw);
+  if ((r5 - rspec) / dr > 60){ const n = 120, h = (r5 - rspec) / n; let s = 0; for (let i = 0; i < n; i++) s += Math.log(Math.max(1e-300, 1 - pOf(rspec + (i + 0.5) * h))); return 1 - Math.exp(s * h / dr); }      // 走査が細かいときは、積を積分で近似
+  nph = nph || 16; let acc = 0; for (let j = 0; j < nph; j++){ let q = 1; for (let r = r5 - (j + 0.5) / nph * dr; r >= rspec; r -= dr) q *= 1 - pOf(r); acc += 1 - q; } return acc / nph;
+}
+function rCum(ro, pfa, sw, npdi, dr, pc){ let lo = 0.01 * ro, hi = 3 * ro; for (let i = 0; i < 26; i++){ const m = (lo + hi) / 2; if (cumAt(ro, pfa, sw, npdi, dr, m) >= pc) lo = m; else hi = m; } return (lo + hi) / 2; }      // 累積 Pd が pc になる距離
+const roFrame = (ro4s, tf) => ro4s * Math.pow(tf / EX.tf0, 0.25);                             // 平均電力が同じなら、Ro^4 はフレーム時間に比例
+function frameCurve(ro4s, pfa, sw, npdi, v, pc){ const xs = [], ys = []; for (let l = 0; l <= 2.5001; l += 0.05){ const tf = Math.pow(10, l), ro = roFrame(ro4s, tf); xs.push(l); ys.push(rCum(ro, pfa, sw, npdi, v * tf, pc) / 1000); } return {xs, ys}; }
+const FC = {};
+function frameCached(ro4s, pfa, sw, npdi, v, pc){ const key = [Math.round(ro4s), pfa, sw, npdi, v, pc].join('/'); if (!FC[key]) FC[key] = frameCurve(ro4s, pfa, sw, npdi, v, pc); return FC[key]; }
+const with_ = o => Object.assign({}, DEFAULTS, o);
+/* 今の設定（S）での計算書の値（ステップ 9） */
+function calc(s){
+  s = s || S; const tavg = Math.pow(10, s.ltavg), tfr = tavg * Math.LN2, pfa = Math.pow(10, -s.x), lt = lossTable().tot + s.ladj, ro = roOf(Object.assign({}, EX, {pav: EX.pav * lin(s.pavdb), lt})), req = db10(snrApprox(s.pd, pfa, s.npdi, s.sw));
+  const r1 = ro * Math.pow(10, -req / 40), tf = Math.pow(10, s.ltf), roF = roFrame(ro, tf), dr = EX.v * tf, rc = rCum(roF, pfa, s.sw, s.npdi, dr, s.pd), r1F = roF * Math.pow(10, -req / 40);
+  return {tavg, tfr, pfa, lt, ro, req, r1, tf, roF, dr, rc, r1F};
+}
+function runChecks(){
+  const R = [], add = (item, ref, calc, st, note) => R.push({item, ref, calc, st, note}), Z = std();
+  add('誤報の時間と、平均の誤報の間隔（Marcum の定義）', 'T_FR ≈ T_AVG·ln 2（p.4.44）', '誤報がポアソン的に起きるとすると、T_FR の間に 1 回以上起きる確率 = 1 − exp(−T_FR/T_AVG) = ' + fx(1 - Math.exp(-Z.tfr / EX.tavg), 4), near(1 - Math.exp(-Z.tfr / EX.tavg), 0.5, 1e-12), '式4.18 の説明（p.4.44）。T_AVG = 10 秒で T_FR = ' + fx(Z.tfr, 2) + ' 秒');
+  add('式4.18（1 ルック）：セルあたりの誤警報確率。T_d = 16 ms、N_r = 100、N_f = 16、T_AVG = 10 秒', '（式に値を入れたもの）10⁻⁶', sci(Z.pfa, 3), near(Z.pfa, 1e-6, 1e-12), '式4.18 で m = n = 1（p.4.44）。例の値は説明用');
+  { const a = db10(snr423(0.5, 1e-6, 1)), b = db10(snr423(0.9, 1e-6, 1)); add('式4.23：ゆらがない目標の必要 S/N。P_FA = 10⁻⁶、N_pdi = 1、P_d = 0.5／0.9', '11.17 dB／13.12 dB（指示書で確かめた値）', fx(a, 2) + ' dB／' + fx(b, 2) + ' dB', Math.abs(a - 11.17) < 0.006 && Math.abs(b - 13.12) < 0.006 ? 'ok' : 'ng', '式4.23（p.4.46）。η = ' + fx(etaOf(0.5, 1e-6), 4) + '／' + fx(etaOf(0.9, 1e-6), 4)); }
+  { const a = db10(snr425(0.5, 1e-6, 1, 1)), b = db10(snr425(0.9, 1e-6, 1, 1)); add('式4.25：Swerling 1 の必要 S/N。P_FA = 10⁻⁶、N_pdi = 1、P_d = 0.5／0.9', '12.77 dB／21.14 dB（指示書で確かめた値）', fx(a, 2) + ' dB／' + fx(b, 2) + ' dB', Math.abs(a - 12.77) < 0.006 && Math.abs(b - 21.14) < 0.006 ? 'ok' : 'ng', '式4.25（p.4.46）。式4.24 と合う形で計算（下の「原本の印刷」の行を参照）'); }
+  { let mx = 0; for (const s of [0.5, 2, 10, 50, 200]) for (const x of [4, 6, 8]){ const pfa = Math.pow(10, -x); mx = Math.max(mx, Math.abs(pd424(s, pfa, 1, 1) - Math.pow(pfa, 1 / (1 + s)))); } add('式4.24：Swerling 1、N_pdi = 1 のとき', 'P_d = P_FA^(1/(1+SNR)) になり、厳密な式と一致する', '15 通りの条件で、差の最大 ' + sci(mx, 1), mx < 1e-9 ? 'ok' : 'ng', '自由度 2 のカイ二乗の上側確率は exp(−x/2) なので、式が閉じた形になる'); }
+  { let mx = 0, m0 = 0; for (const pd of [0.1, 0.5, 0.9, 0.99]) for (const x of [4, 6, 8]) for (const N of [1, 4, 16]) for (const sw of [0, 1, 2, 3, 4]){ const pfa = Math.pow(10, -x), s = snrApprox(pd, pfa, N, sw), d = Math.abs(pdApprox(s, pfa, N, sw) - pd); if (sw === 0) m0 = Math.max(m0, d); else mx = Math.max(mx, d); }
+    add('式4.24 と式4.25 が、たがいに逆の関係になっていること（Swerling 1〜4）', '必要 S/N を P_d の式に戻すと、もとの P_d になる', '144 通りの条件で、差の最大 ' + sci(mx, 1), mx < 1e-6 ? 'ok' : 'ng', '式4.25 を、式4.24 と合う形で計算した場合（下の「原本の印刷」の行を参照）');
+    add('式4.22 と式4.23 の関係（ゆらがない目標）', '（基準なし）式4.23 の必要 S/N を、式4.22 に戻す', '根号の中を −1/4 とした形で、P_d の差は 36 通りの条件で最大 ' + fx(m0, 3), 'ref', '差が残るのは、P_d の側で、誤差関数の逆関数に近似を使っているため（η の式）'); }
+  { const s = lin(10), a = pd422print(s, 1e-6, 1), b = pd422(s, 1e-6, 1), c = pdExact(s, 1e-6, 1, 0), s2 = lin(13), a2 = pd422print(s2, 1e-6, 1), b2 = pd422(s2, 1e-6, 1), c2 = pdExact(s2, 1e-6, 1, 0); add('原本の印刷：式4.22 の根号の中の定数。P_FA = 10⁻⁶、N = 1、S/N 10 dB／13 dB の P_d', '2 つの根号の中が、どちらも「−1/2」と印刷されている', '印刷どおり：' + fx(a, 3) + '／' + fx(a2, 3) + '。「−1/4」とした形：' + fx(b, 3) + '／' + fx(b2, 3) + '。厳密な計算：' + fx(c, 3) + '／' + fx(c2, 3), 'ref', '式4.23 を P_d について解くと「−1/4」になる。印刷どおりの形は、式4.23 とも、厳密な計算とも合わない。計算は「−1/4」の形で行った'); }
+  { const a = marcumInt(lin(13.12), -Math.log(1e-6)), b = pdNF(1, lin(13.12), -Math.log(1e-6)); add('厳密な計算どうしの確かめ：ゆらがない目標、N = 1、S/N 13.12 dB、P_FA = 10⁻⁶', '（基準なし）Marcum の Q 関数の数値積分と、級数の計算', '数値積分 ' + fx(a, 4) + '、級数 ' + fx(b, 4), Math.abs(a - b) < 2e-4 ? 'ref' : 'ng', '級数は、入門 第4回の pdNF と同じ計算'); }
+  { const ex = snrExact(0.9, 1e-6, 1, 0); add('式4.23 と、厳密な計算の差（ゆらがない目標、P_d = 0.9、P_FA = 10⁻⁶、N = 1）', '「それなりに正確」（p.4.46）', '近似 ' + fx(Z.s0, 2) + ' dB、厳密 ' + fx(ex, 2) + ' dB（差 ' + fx(Z.s0 - ex, 2) + ' dB）', Math.abs(Z.s0 - ex) < 0.3 ? 'ok' : 'info', '入門 第15回・第17回の「検出に要る S/N 13 dB」、第16回の 13.18 dB は、この条件に当たる'); }
+  { let mx = 0, at = ''; const t = []; for (const sw of [0, 1, 2, 3, 4]){ let m = 0; for (const pd of [0.5, 0.9]) for (const x of [4, 6, 8]) for (const N of [1, 4, 16]){ const pfa = Math.pow(10, -x), d = db10(snrApprox(pd, pfa, N, sw)) - snrExact(pd, pfa, N, sw); if (Math.abs(d) > Math.abs(m)) m = d; if (Math.abs(d) > Math.abs(mx)){ mx = d; at = 'Swerling ' + sw + '、P_d ' + pd + '、10' + sup(-x) + '、N ' + N; } } t.push((sw === 0 ? 'ゆらがない' : 'Swerling ' + sw) + ' ' + (m >= 0 ? '+' : MINUS) + fx(Math.abs(m), 2)); }
+    add('近似式（式4.23・4.25）と厳密な計算の、必要 S/N の差。P_d 0.5・0.9、P_FA 10⁻⁴〜10⁻⁸、N_pdi 1・4・16', '「それなりに正確」（p.4.46。数値の保証はない）', '差がいちばん大きい条件での値 [dB]：' + t.join('、'), Math.abs(mx) <= 1 ? 'ok' : 'info', 'この表は 18 通り × 5 種類。P_d 0.1〜0.99、N 1〜32 まで広げた結果は、報告書と本文（ステップ 3・4）に書いた。差が大きいのは ' + at); }
+  { const d = mOfN(2, 3, 0.7); add('式4.26：3 ルックのうち 2 回以上。1 ルックの P_d = 0.7', '3·0.7²·0.3 + 0.7³ = 0.784', fx(d, 4), near(d, 0.784, 1e-12), '式4.26（p.4.47）。二項係数は C(n, k) = n!/[k!(n−k)!] で計算'); }
+  { const N = 5, exact = 12 * N / (7 * N - 6); let a = 0; const n = 20000; for (let i = 0; i < n; i++) a += eclPower((i + 0.5) / n, N) / n; add('式4.17：エクリプシングとストラドルで減る、整合フィルタの出力の平均（N = 5 ゲート）', '損失 = 12N/(7N − 6) = ' + fx(exact, 4) + ' 倍（' + fx(db10(exact), 2) + ' dB）', '遅れを一様にばらつかせて、出力の電力を平均：1/' + fx(1 / a, 4), Math.abs(1 / a - exact) < 1e-3 ? 'ok' : 'ng', '式4.17（p.4.41）。図4.20 の左の場合（ゲートの重なりなし）を、自分の計算で作ったもの'); }
+  { const N = 5, l5 = eclLoss(0.5, 1e-6, N), l9 = eclLoss(0.9, 1e-6, N), l2 = eclLoss(0.2, 1e-6, N); add('エクリプシングとストラドルの損失は、P_d によって変わる（N = 5、P_FA = 10⁻⁶、ゆらがない目標）', '式4.17 の近似は、P_d が 50% に近いときだけ有効（p.4.43、図4.21）', 'P_d 0.2／0.5／0.9 で ' + fx(l2, 1) + '／' + fx(l5, 1) + '／' + fx(l9, 1) + ' dB（式4.17 は ' + fx(db10(eclApprox(N)), 1) + ' dB）', Math.abs(l5 - db10(eclApprox(N))) < 1.2 && l9 > l5 + 2 ? 'ok' : 'info', 'p.4.41 の 4 段の手順を、厳密な P_d の曲線で計算した。P_d が高いほど損失が大きい'); }
+  { const a = eclPd(14, 1e-6, 5), b = eclPd(20, 1e-6, 5), c = pdExact(lin(14), 1e-6, 1, 0); add('図4.21 に当たる曲線（デューティ 20%、5 ゲート、P_FA = 10⁻⁶、ゆらがない目標）：損失を入れない S/N が 14 dB／20 dB のときの P_d', '約 0.46／約 0.855（図の読み取り）。損失なしの曲線は 14 dB で約 0.97', fx(a, 3) + '／' + fx(b, 3) + '（損失なしは 14 dB で ' + fx(c, 3) + '）', Math.abs(a - 0.46) < 0.04 && Math.abs(b - 0.855) < 0.03 ? 'ok' : 'info', '図4.21（p.4.43）。読み取りの誤差を含む。図は転載せず、自分の計算で描いた'); }
+  { const g = 4 * Math.PI * EX.ae / (EX.lam * EX.lam), a = roOf(Object.assign({}, EX, {lt: 0})), b = rmax15({pav: EX.pav, g, ae: EX.ae, rcs: 1, n: 16, ei: 1, F: 1, Fn: lin(EX.fn), fp: 1000, snr1: 1, Ls: 1}); add('式4.16 の R_o と、入門 第15回の式1.5 で S/N = 1 とした距離（損失なし）', '同じ値になる（B_n = f_p/n、k·T_s = k·T_0·F_n、G·A_e = G_T·G_R·λ²/4π）', '式4.16：' + fx(a / 1000, 3) + ' km、式1.5：' + fx(b / 1000, 3) + ' km', near(a, b, 1e-6), '平均 1 kW、有効開口面積 1.6 m²、波長 10 cm、1 m²、雑音指数 3 dB、PRF 1 kHz で 16 パルス（B_n = 62.5 Hz）。第15回の rmax15 と同じ式'); }
+  add('例の計算書：損失の合計、R_o、探知距離（1 回の P_d 0.9。ゆらがない／Swerling 1）', '（基準なし）', fx(Z.lt.tot, 2) + ' dB、' + fx(Z.ro / 1000, 1) + ' km、' + fx(Z.r0 / 1000, 1) + ' km／' + fx(Z.r1 / 1000, 1) + ' km', 'ref', '損失の値は説明用。目標だけにかかる損失は ' + fx(Z.lt.tgt, 2) + ' dB');
+  { const ps = [0.1, 0.2, 0.3], a = cumPd(ps); let c = 0; const b = ps.map(p => (c = c + p * (1 - c))); add('式4.27：積の形（1 行目）と、漸化式。1 回の P_d が 0.1、0.2、0.3 と続く場合', '同じ値になる', '積の形：' + a.map(v => fx(v, 3)).join('、') + '。漸化式（[k−1] の形）：' + b.map(v => fx(v, 3)).join('、'), Math.abs(a[2] - b[2]) < 1e-12 ? 'ok' : 'ng', '式4.27（p.4.47）'); }
+  { const ps = [0.1, 0.2, 0.3], prod = cumPd(ps); let c = 0; const pr = ps.map(p => { c = (c + p) / (1 + p); return c; }); add('原本の印刷：式4.27 の 2 行目', '2 行目の最後が (1 − P_d,cum[k]) と印刷されているように読める', 'その形を P_d,cum[k] について解いて計算すると ' + pr.map(v => fx(v, 3)).join('、') + '。積の形は ' + prod.map(v => fx(v, 3)).join('、'), 'ref', '印刷どおりの形は、1 行目（積の形）と合わない。[k−1] と読むと合う。計算は積の形で行った'); }
+  { const a = ((KmInv(0.9, 2) - 0) / KmInv(0.9, 2) - 1); add('原本の印刷：式4.25 の分子', '分子の最初の項が K_m⁻¹(P_d, 2n_e) と印刷されているように読める', '印刷どおりに計算すると、Swerling 1・N = 1 で SNR = ' + fx(a, 1) + '（P_FA が式に現れない）', 'ref', '式4.24 を SNR について解くと、分子は K_m⁻¹(P_FA, 2N_pdi) − 2(N_pdi − n_e) になる。この形で計算すると、指示書で確かめた値（21.14 dB）と合う'); }
+  add('原本の印刷：式4.18・4.26 の二項係数', '上に m（または k）、下に n と書かれている。p.4.44 に n!/[m!(n−m)!] と定義がある', 'ふつうの書き方の C(n, m) と同じ値。3 つのうち 2 つを選ぶ場合 = ' + binom(3, 2), 'ref', '誤りではなく、書き方の違いと読める。計算は C(n, k) = n!/[k!(n−k)!] で行った');
+  return R;
+}
+
+/* ============================================================
+   画面まわりの共通部品
+   ============================================================ */
+const $ = (s, r) => (r || document).querySelector(s);
+function el(tag, cls, html){ const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
+function fx(v, d){ if (!isFinite(v)) return '—'; const s = Math.abs(v).toFixed(d); return (v < 0 && Number(s) !== 0 ? MINUS : '') + s; }
+const H = '<span class="hosoku">補足</span>';
+let HLKEY = null;
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function toDb(mag, ref){ const o = new Float64Array(mag.length), r = ref || 1; for (let i = 0; i < mag.length; i++) o[i] = 20 * Math.log10(Math.max(mag[i] / r, 1e-7)); return o; }
+function maxIn(arr, i0, i1){ let m = 0; i0 = Math.max(0, i0 | 0); i1 = Math.min(arr.length - 1, i1 | 0); for (let i = i0; i <= i1; i++) if (arr[i] > m) m = arr[i]; return m; }
+
+/* ---------- canvas グラフ ---------- */
+const PLOTS = [];
+function niceStep(span, target){
+  const raw = span / Math.max(1, target), p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p;
+}
+function tickFmt(step){ const d = Math.max(0, -Math.floor(Math.log10(step) + 1e-9)); return v => fx(v, Math.min(d, 6)); }
+class Plot {
+  constructor(host, o){
+    this.o = Object.assign({h: 200}, o || {});
+    this.root = el('div', 'plot', '<div class="plot-h"><span class="plot-t"></span><span class="plot-lg"></span></div>' +
+      '<div class="plot-c" style="height:' + this.o.h + 'px"><canvas></canvas><canvas class="ov"></canvas><div class="tip" hidden></div></div>');
+    host.appendChild(this.root);
+    this.tEl = $('.plot-t', this.root); this.lgEl = $('.plot-lg', this.root); this.box = $('.plot-c', this.root);
+    this.cv = this.box.children[0]; this.ov = this.box.children[1]; this.tip = this.box.children[2];
+    this.ov.addEventListener('pointermove', e => this.hover(e));
+    this.ov.addEventListener('pointerleave', () => { this.tip.hidden = true; this.clearOv(); });
+    PLOTS.push(this);
+  }
+  set(cfg){ this.cfg = cfg; this.draw(); }
+  col(k){ return cssv('--' + (k || 's1')); }
+  draw(){
+    const cfg = this.cfg; if (!cfg) return;
+    const W = this.box.clientWidth, Hh = this.o.h; if (W < 60) return;
+    const dpr = window.devicePixelRatio || 1;
+    for (const c of [this.cv, this.ov]){ c.width = Math.round(W * dpr); c.height = Math.round(Hh * dpr); }
+    const g = this.cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh);
+    const m = {l: 56, r: cfg.heat ? 66 : 14, t: 16, b: cfg.xl ? 38 : 22}, pw = W - m.l - m.r, ph = Hh - m.t - m.b;
+    let xr = cfg.xr; const yr = cfg.yr;
+    if (cfg.equal){ const c0 = (xr[0] + xr[1]) / 2, half = (yr[1] - yr[0]) / 2 * pw / ph; xr = [c0 - half, c0 + half]; }
+    this.xr = xr;
+    const X = v => m.l + (v - xr[0]) / (xr[1] - xr[0]) * pw, Y = v => m.t + (1 - (v - yr[0]) / (yr[1] - yr[0])) * ph;
+    this.geo = {m, pw, ph, W, Hh, X, Y};
+    this.tEl.textContent = cfg.title || '';
+    this.lgEl.innerHTML = cfg.series.filter(s => s.name && !s.noLegend).map(s =>
+      '<span><i style="border-top-color:' + this.col(s.color) + ';border-top-style:' + (s.dash ? 'dashed' : s.noLine ? 'dotted' : 'solid') + '"></i>' + s.name + '</span>').join('');
+    const cText = cssv('--text2'), cMuted = cssv('--muted'), cGrid = cssv('--grid'), cAxis = cssv('--axis');
+    g.font = '11px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
+    /* 帯 */
+    for (const b of (cfg.bands || [])){
+      const x0 = Math.max(m.l, X(b.x0)), x1 = Math.min(m.l + pw, X(b.x1)); if (x1 <= x0) continue;
+      g.fillStyle = cssv('--' + (b.color || 'band')); g.fillRect(x0, m.t, x1 - x0, ph);
+      if (b.label){ g.fillStyle = cText; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(b.label, Math.min(Math.max((x0 + x1) / 2, m.l + 40), m.l + pw - 40), m.t + 3 + (b.row || 0) * 13); }
+    }
+    const halo = !!cfg.heat, cSurf = cssv('--surface');
+    const ft = (str, x, y) => { if (halo){ g.save(); g.lineWidth = 3; g.lineJoin = 'round'; g.strokeStyle = cSurf; g.strokeText(str, x, y); g.restore(); } g.fillText(str, x, y); };
+    /* 濃淡図（距離–ドップラマップなど）。行・列が画素より多いときは最大値でまとめる（ピークを落とさない） */
+    if (cfg.heat){
+      const hm = cfg.heat, dark = document.documentElement.getAttribute('data-theme') === 'dark', pr = Math.max(1, Math.ceil(hm.rows / Math.max(1, ph))), pc = Math.max(1, Math.ceil(hm.cols / Math.max(1, pw)));
+      const R = Math.ceil(hm.rows / pr), Cc = Math.ceil(hm.cols / pc), off = document.createElement('canvas'); off.width = Cc; off.height = R;
+      const og = off.getContext('2d'), img = og.createImageData(Cc, R), nn = heatRGB(-1, dark);
+      for (let r = 0; r < R; r++) for (let c = 0; c < Cc; c++){
+        let v = -Infinity, any = false;
+        for (let a = r * pr; a < Math.min(hm.rows, (r + 1) * pr); a++) for (let b = c * pc; b < Math.min(hm.cols, (c + 1) * pc); b++){ const z = hm.db[a * hm.cols + b]; if (z === z){ any = true; if (z > v) v = z; } }
+        const rgb = any ? heatRGB((v - hm.zmin) / (hm.zmax - hm.zmin), dark) : nn, o = ((R - 1 - r) * Cc + c) * 4;
+        img.data[o] = rgb[0]; img.data[o + 1] = rgb[1]; img.data[o + 2] = rgb[2]; img.data[o + 3] = 255;
+      }
+      og.putImageData(img, 0, 0);
+      g.save(); g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip(); g.imageSmoothingEnabled = false;
+      g.drawImage(off, X(hm.x0), Y(hm.y1), X(hm.x1) - X(hm.x0), Y(hm.y0) - Y(hm.y1)); g.restore();
+      /* 色の凡例 */
+      const bx = m.l + pw + 10, bw = 10; for (let i = 0; i < ph; i++){ const rgb = heatRGB(1 - i / (ph - 1), dark); g.fillStyle = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')'; g.fillRect(bx, m.t + i, bw, 1.5); }
+      g.strokeStyle = cAxis; g.lineWidth = 1; g.strokeRect(bx + 0.5, m.t + 0.5, bw, ph);
+      g.fillStyle = cMuted; g.textAlign = 'left'; g.textBaseline = 'middle';
+      const zs = hm.zticks || (() => { const st = niceStep(hm.zmax - hm.zmin, 5), a = []; for (let v = Math.ceil(hm.zmin / st) * st; v <= hm.zmax + 1e-9; v += st) a.push([v, fx(v, 0)]); return a; })();
+      for (const z of zs) g.fillText(z[1], bx + bw + 4, m.t + (1 - (z[0] - hm.zmin) / (hm.zmax - hm.zmin)) * ph);
+      if (hm.zl){ g.fillStyle = cText; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillText(hm.zl, W - 2, Hh - 3); }
+    }
+    /* 目盛と格子 */
+    const xs = niceStep(xr[1] - xr[0], Math.max(3, Math.floor(pw / 90))), ys = niceStep(yr[1] - yr[0], Math.max(2, Math.floor(ph / 34)));
+    const xf = cfg.xfmt || tickFmt(xs), yf = cfg.yfmt || tickFmt(ys);
+    g.lineWidth = 1; g.strokeStyle = cfg.heat ? 'rgba(0,0,0,0)' : cGrid; g.fillStyle = cMuted;
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    if (cfg.xticks){
+      for (const tk of cfg.xticks){ if (tk[0] < xr[0] - 1e-9 || tk[0] > xr[1] + 1e-9) continue;
+        const px = Math.round(X(tk[0])) + 0.5; g.globalAlpha = tk[1] ? 1 : 0.5; g.beginPath(); g.moveTo(px, m.t); g.lineTo(px, m.t + ph); g.stroke(); g.globalAlpha = 1; if (tk[1]) g.fillText(tk[1], px, m.t + ph + 5); }
+    } else for (let v = Math.ceil(xr[0] / xs - 1e-9) * xs; v <= xr[1] + xs * 1e-6; v += xs){
+      const px = Math.round(X(v)) + 0.5; g.beginPath(); g.moveTo(px, m.t); g.lineTo(px, m.t + ph); g.stroke(); g.fillText(xf(v), px, m.t + ph + 5);
+    }
+    g.textAlign = 'right'; g.textBaseline = 'middle';
+    if (cfg.yticks){
+      for (const tk of cfg.yticks){ if (tk[0] < yr[0] - 1e-9 || tk[0] > yr[1] + 1e-9) continue;
+        const py = Math.round(Y(tk[0])) + 0.5; g.globalAlpha = tk[1] ? 1 : 0.5; g.beginPath(); g.moveTo(m.l, py); g.lineTo(m.l + pw, py); g.stroke(); g.globalAlpha = 1; if (tk[1]) g.fillText(tk[1], m.l - 6, py); }
+    } else for (let v = Math.ceil(yr[0] / ys - 1e-9) * ys; v <= yr[1] + ys * 1e-6; v += ys){
+      const py = Math.round(Y(v)) + 0.5; g.beginPath(); g.moveTo(m.l, py); g.lineTo(m.l + pw, py); g.stroke(); g.fillText(yf(v), m.l - 6, py);
+    }
+    g.strokeStyle = cAxis; g.strokeRect(m.l + 0.5, m.t + 0.5, pw, ph);
+    g.fillStyle = cText; g.textAlign = 'center'; g.textBaseline = 'bottom';
+    if (cfg.xl) g.fillText(cfg.xl, m.l + pw / 2, Hh - 3);
+    if (cfg.yl){ g.save(); g.translate(11, m.t + ph / 2); g.rotate(-Math.PI / 2); g.textBaseline = 'middle'; g.fillText(cfg.yl, 0, 0); g.restore(); }
+    /* 系列 */
+    g.save(); g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip();
+    const ylo = yr[0] - (yr[1] - yr[0]), yhi = yr[1] + (yr[1] - yr[0]);
+    const cl = v => v < ylo ? ylo : v > yhi ? yhi : (v === v ? v : ylo);
+    for (const s of cfg.series){
+      const col = this.col(s.color);
+      g.strokeStyle = col; g.lineWidth = s.w || 1.8; g.setLineDash(s.dash || []); g.globalAlpha = s.alpha || 1; g.lineJoin = 'round';
+      if (s.stem || s.mk){          /* 棒（ステム）と点の表示：パルスごとのサンプルなど */
+        const n = s.x ? s.x.length : s.y.length, xa = i => s.x ? s.x[i] : s.x0 + i * s.dx, y0 = Y(cl(s.base || 0));
+        if (s.stem){ g.beginPath(); for (let i = 0; i < n; i++){ const px = X(xa(i)); g.moveTo(px, y0); g.lineTo(px, Y(cl(s.y[i]))); } g.stroke(); }
+        if (s.mk){ g.fillStyle = col; for (let i = 0; i < n; i++){ g.beginPath(); g.arc(X(xa(i)), Y(cl(s.y[i])), s.mk, 0, 2 * Math.PI); g.fill(); } }
+        if (s.stem || s.noLine){ g.globalAlpha = 1; g.setLineDash([]); continue; }
+      }
+      g.beginPath();
+      let fx0 = null, fx1 = null;
+      if (s.x){
+        for (let i = 0; i < s.x.length; i++){ const px = X(s.x[i]), py = Y(cl(s.y[i])); if (i){ if (s.step) g.lineTo(px, Y(cl(s.y[i - 1]))); g.lineTo(px, py); } else g.moveTo(px, py); }
+        if (s.x.length){ fx0 = X(s.x[0]); fx1 = X(s.x[s.x.length - 1]); }
+      } else {
+        const n = s.y.length, i0 = Math.max(0, Math.floor((xr[0] - s.x0) / s.dx) - 1), i1 = Math.min(n - 1, Math.ceil((xr[1] - s.x0) / s.dx) + 1);
+        if (i1 > i0){
+          fx0 = X(s.x0 + i0 * s.dx); fx1 = X(s.x0 + i1 * s.dx);
+          if (i1 - i0 > pw * 3){            /* 点が多いときは画素列ごとの最小・最大で描く（ピークを落とさない） */
+            let cur = -1e9, lo = 0, hi = 0, first = 0, last = 0, started = false;
+            const flush = () => { if (cur < -1e8) return; if (!started){ g.moveTo(cur, Y(first)); started = true; } else g.lineTo(cur, Y(first)); g.lineTo(cur, Y(lo)); g.lineTo(cur, Y(hi)); g.lineTo(cur, Y(last)); };
+            for (let i = i0; i <= i1; i++){
+              const px = Math.round(X(s.x0 + i * s.dx)), v = cl(s.y[i]);
+              if (px !== cur){ flush(); cur = px; lo = hi = first = last = v; } else { if (v < lo) lo = v; if (v > hi) hi = v; last = v; }
+            }
+            flush();
+          } else {
+            for (let i = i0; i <= i1; i++){ const px = X(s.x0 + i * s.dx), py = Y(cl(s.y[i])); if (i === i0) g.moveTo(px, py); else g.lineTo(px, py); }
+          }
+        }
+      }
+      g.stroke();
+      if (s.fill && fx0 !== null){ g.lineTo(fx1, Y(s.base || 0)); g.lineTo(fx0, Y(s.base || 0)); g.closePath(); g.globalAlpha = s.fill; g.fillStyle = col; g.fill(); }
+      g.globalAlpha = 1; g.setLineDash([]);
+    }
+    for (const a of (cfg.arrows || [])){      /* ベクトル（矢印） */
+      const x0 = X(a.x0 || 0), y0 = Y(a.y0 || 0), x1 = X(a.x1), y1 = Y(a.y1), ang = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0), h = Math.min(9, L * 0.4);
+      g.strokeStyle = g.fillStyle = this.col(a.color); g.lineWidth = a.w || 2; g.globalAlpha = a.alpha || 1; g.setLineDash(a.dash || []);
+      g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]);
+      g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - h * Math.cos(ang - 0.4), y1 - h * Math.sin(ang - 0.4)); g.lineTo(x1 - h * Math.cos(ang + 0.4), y1 - h * Math.sin(ang + 0.4)); g.closePath(); g.fill(); g.globalAlpha = 1;
+    }
+    for (const r of (cfg.rects || [])){      /* 枠（あいまいなし領域など） */
+      const x0 = X(r.x0), x1 = X(r.x1), y0 = Y(r.y1), y1 = Y(r.y0);
+      if (r.fill){ g.globalAlpha = r.fill; g.fillStyle = this.col(r.color); g.fillRect(x0, y0, x1 - x0, y1 - y0); g.globalAlpha = 1; }
+      if (r.w !== 0){ g.strokeStyle = this.col(r.color); g.lineWidth = r.w || 1.5; g.setLineDash(r.dash || []); g.strokeRect(x0, y0, x1 - x0, y1 - y0); g.setLineDash([]); }
+    }
+    g.restore();
+    /* 補助線 */
+    let row = 0;
+    for (const h of (cfg.hl || [])){
+      if (h.y < yr[0] || h.y > yr[1]) continue;
+      const py = Math.round(Y(h.y)) + 0.5; g.strokeStyle = this.col(h.color || 'ref'); g.lineWidth = 1; g.setLineDash(h.dash || [4, 3]);
+      g.beginPath(); g.moveTo(m.l, py); g.lineTo(m.l + pw, py); g.stroke(); g.setLineDash([]);
+      if (h.label){ g.fillStyle = cText; g.textAlign = h.left ? 'left' : 'right'; g.textBaseline = 'bottom'; ft(h.label, h.left ? m.l + 5 : m.l + pw - 5, py - 2); }
+    }
+    for (const v of (cfg.vl || [])){
+      if (v.x < xr[0] || v.x > xr[1]) continue;
+      const px = Math.round(X(v.x)) + 0.5; g.strokeStyle = this.col(v.color || 'ref'); g.lineWidth = v.w || 1; g.setLineDash(v.dash || [4, 3]);
+      g.beginPath(); g.moveTo(px, m.t); g.lineTo(px, m.t + ph); g.stroke(); g.setLineDash([]);
+      if (v.label){
+        const tw = g.measureText(v.label).width, right = px + 4 + tw < m.l + pw;
+        g.fillStyle = cText; g.textAlign = right ? 'left' : 'right'; g.textBaseline = 'top';
+        ft(v.label, right ? px + 4 : px - 4, m.t + 3 + (v.row !== undefined ? v.row : row++ % 3) * 13);
+      }
+    }
+    for (const p of (cfg.pts || [])){
+      if (p.x < xr[0] || p.x > xr[1] || p.y < yr[0] - 1e-9 && p.clipY || p.y > yr[1] + 1e-9 && p.clipY) continue;
+      const px = X(p.x), py = Y(Math.min(Math.max(p.y, yr[0]), yr[1]));
+      if (p.shape === 'x'){ const r = p.r || 4; for (const pass of [0, 1]){ g.lineWidth = pass ? 2 : 4.5; g.strokeStyle = pass ? this.col(p.color) : cSurf; g.lineCap = 'round'; g.beginPath(); g.moveTo(px - r, py - r); g.lineTo(px + r, py + r); g.moveTo(px + r, py - r); g.lineTo(px - r, py + r); g.stroke(); } g.lineCap = 'butt'; }
+      else if (p.hollow){ g.lineWidth = 4; g.strokeStyle = cSurf; g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.lineWidth = 2; g.strokeStyle = this.col(p.color); if (p.dash) g.setLineDash(p.dash); g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.setLineDash([]); }
+      else { g.fillStyle = this.col(p.color); g.strokeStyle = cSurf; g.lineWidth = 2; g.beginPath(); g.arc(px, py, p.r || 4.5, 0, 2 * Math.PI); g.fill(); g.stroke(); }
+      if (p.label){ const dxl = (p.hollow ? (p.r || 7) + 3 : 7); g.fillStyle = cText; g.textAlign = p.left ? 'right' : 'left'; g.textBaseline = p.below ? 'top' : 'bottom'; ft(p.label, px + (p.left ? -dxl : dxl), py + (p.below ? 3 : -3)); }
+    }
+    /* 吹き出し（矢印つきの短い注記）：{x, y, t, dx, dy}。dx・dy は点から吹き出しまでのずれ [px] */
+    g.font = 'bold 11.5px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
+    for (const nt of (cfg.notes || [])){
+      if (nt.x < xr[0] || nt.x > xr[1]) continue;
+      const px = X(nt.x), py = Y(Math.min(Math.max(nt.y, yr[0]), yr[1])), tw = g.measureText(nt.t).width + 12, dx = nt.dx === undefined ? 30 : nt.dx, dy = nt.dy === undefined ? -28 : nt.dy;
+      let bx = dx >= 0 ? px + dx : px + dx - tw, by = py + dy - 10; bx = Math.max(m.l + 2, Math.min(m.l + pw - tw - 2, bx)); by = Math.max(m.t + 2, Math.min(m.t + ph - 22, by));
+      const ex = Math.max(bx, Math.min(bx + tw, px)), ey = by + 10 < py ? by + 20 : by, ang = Math.atan2(py - ey, px - ex), cA = cssv('--accent');
+      g.strokeStyle = cA; g.fillStyle = cA; g.lineWidth = 1.5; g.beginPath(); g.moveTo(ex, ey); g.lineTo(px - 5 * Math.cos(ang), py - 5 * Math.sin(ang)); g.stroke();
+      g.beginPath(); g.moveTo(px - 3 * Math.cos(ang), py - 3 * Math.sin(ang)); g.lineTo(px - 10 * Math.cos(ang - 0.4), py - 10 * Math.sin(ang - 0.4)); g.lineTo(px - 10 * Math.cos(ang + 0.4), py - 10 * Math.sin(ang + 0.4)); g.closePath(); g.fill();
+      g.fillStyle = cssv('--accent-bg'); g.strokeStyle = cA; g.lineWidth = 1.2; g.beginPath(); g.rect(bx + 0.5, by + 0.5, tw, 20); g.fill(); g.stroke();
+      g.fillStyle = cssv('--text'); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(nt.t, bx + 6, by + 11);
+    }
+    /* 読み物の用語をクリックしたときの強調：marks = {キー: {x0, x1, y0, y1, t}} のうち、いま選ばれているキーだけ描く */
+    const mk = cfg.marks && HLKEY ? cfg.marks[HLKEY] : null;
+    if (mk){
+      const x0 = Math.max(m.l, X(mk.x0 === undefined ? xr[0] : mk.x0)), x1 = Math.min(m.l + pw, X(mk.x1 === undefined ? xr[1] : mk.x1)), y0 = Math.max(m.t, Y(mk.y1 === undefined ? yr[1] : mk.y1)), y1 = Math.min(m.t + ph, Y(mk.y0 === undefined ? yr[0] : mk.y0));
+      const a0 = Math.min(x0, x1) - 3, b0 = Math.min(y0, y1) - 3, ww = Math.max(8, Math.abs(x1 - x0) + 6), hh = Math.max(8, Math.abs(y1 - y0) + 6), cH = cssv('--hl');
+      g.fillStyle = cH; g.globalAlpha = 0.16; g.fillRect(a0, b0, ww, hh); g.globalAlpha = 1; g.strokeStyle = cH; g.lineWidth = 3; g.strokeRect(a0, b0, ww, hh);
+      if (mk.t){ const tw = g.measureText(mk.t).width + 12, bx = Math.max(m.l + 2, Math.min(m.l + pw - tw - 2, a0 + ww / 2 - tw / 2)), by = b0 > m.t + 26 ? b0 - 24 : Math.min(m.t + ph - 22, b0 + hh + 4);
+        g.fillStyle = cH; g.fillRect(bx, by, tw, 20); g.fillStyle = '#fff'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(mk.t, bx + 6, by + 11); }
+    }
+    g.font = '11px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
+    for (const t of (cfg.texts || [])){
+      g.fillStyle = cText; g.textAlign = t.align || 'left'; g.textBaseline = 'top'; ft(t.s, t.px !== undefined ? m.l + t.px * pw : X(t.x), t.y !== undefined ? Y(t.y) : m.t + 3 + (t.row || 0) * 13);
+    }
+  }
+  clearOv(){ const g = this.ov.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, this.ov.width, this.ov.height); }
+  hover(e){
+    const cfg = this.cfg, geo = this.geo; if (!cfg || !geo || cfg.noHover) return;
+    const rc = this.ov.getBoundingClientRect(), px = e.clientX - rc.left, m = geo.m;
+    if (px < m.l || px > m.l + geo.pw){ this.tip.hidden = true; this.clearOv(); return; }
+    const xv = this.xr[0] + (px - m.l) / geo.pw * (this.xr[1] - this.xr[0]);
+    const dpr = window.devicePixelRatio || 1, g = this.ov.getContext('2d');
+    this.clearOv(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.strokeStyle = cssv('--axis'); g.lineWidth = 1;
+    g.beginPath(); g.moveTo(Math.round(px) + 0.5, m.t); g.lineTo(Math.round(px) + 0.5, m.t + geo.ph); g.stroke();
+    const xf = cfg.tipx || (v => fx(v, 3)), yf = cfg.tipy || (v => fx(v, 3));
+    let html = '<b>' + xf(xv) + '</b>';
+    if (cfg.heat){
+      const hm = cfg.heat, py = e.clientY - rc.top; if (py < m.t || py > m.t + geo.ph){ this.tip.hidden = true; this.clearOv(); return; }
+      const yv = cfg.yr[1] - (py - m.t) / geo.ph * (cfg.yr[1] - cfg.yr[0]);
+      g.beginPath(); g.moveTo(m.l, Math.round(py) + 0.5); g.lineTo(m.l + geo.pw, Math.round(py) + 0.5); g.stroke();
+      const c = Math.floor((xv - hm.x0) / (hm.x1 - hm.x0) * hm.cols), r = Math.floor((yv - hm.y0) / (hm.y1 - hm.y0) * hm.rows);
+      html += '<div>' + (cfg.tipy2 || (v => fx(v, 3)))(yv) + '</div>';
+      if (c >= 0 && c < hm.cols && r >= 0 && r < hm.rows){ const z = hm.db[r * hm.cols + c]; html += '<div>' + (hm.tipz ? hm.tipz(z) : (z === z ? fx(z, 1) + ' dB' : '受信なし')) + '</div>'; }
+    }
+    for (const s of cfg.series){
+      if (!s.name || s.noTip) continue;
+      let v = NaN;
+      if (s.x){ let lo = 0, hi = s.x.length - 1; if (hi < 0 || xv < s.x[0] || xv > s.x[hi]) continue;
+        while (hi - lo > 1){ const mid = (lo + hi) >> 1; if (s.x[mid] <= xv) lo = mid; else hi = mid; }
+        const d = s.x[hi] - s.x[lo]; v = d > 0 ? s.y[lo] + (s.y[hi] - s.y[lo]) * (xv - s.x[lo]) / d : s.y[lo];
+      } else { const i = Math.round((xv - s.x0) / s.dx); if (i < 0 || i >= s.y.length) continue; v = s.y[i]; }
+      if (v !== v) continue;
+      html += '<div><i style="border-top-color:' + this.col(s.color) + ';border-top-style:' + (s.dash ? 'dashed' : 'solid') + '"></i>' + s.name + '：' + yf(v) + '</div>';
+    }
+    this.tip.innerHTML = html; this.tip.hidden = false;
+    const tw = this.tip.offsetWidth;
+    this.tip.style.left = (px + 14 + tw > geo.W ? Math.max(0, px - tw - 12) : px + 12) + 'px';
+  }
+}
+function redrawAll(){ for (const p of PLOTS) p.draw(); }
+/* 濃淡図の色（1色相の濃淡。ライトでは薄→濃、ダークでは暗→明）。t < 0 は「受信なし」 */
+const HEAT_L = [[250, 250, 248], [204, 222, 244], [128, 174, 232], [42, 120, 214], [20, 70, 150], [8, 26, 66]];
+const HEAT_D = [[30, 30, 29], [22, 46, 84], [32, 88, 168], [57, 135, 229], [142, 190, 246], [240, 246, 255]];
+function heatRGB(t, dark){
+  if (t < 0 && t === -1) return dark ? [58, 58, 55] : [222, 221, 215];
+  const st = dark ? HEAT_D : HEAT_L, x = Math.max(0, Math.min(1, t)) * (st.length - 1), i = Math.min(st.length - 2, Math.floor(x)), f = x - i;
+  return [0, 1, 2].map(k => Math.round(st[i][k] + (st[i + 1][k] - st[i][k]) * f));
+}
+
+
+/* ============================================================
+   4本共通：用語集と「前提知識」の補足
+   ============================================================ */
+const SERIES = [
+  {no: 0, file: '00_basics.html', name: 'レーダの基礎の基礎', ready: true},
+  {no: 1, file: '01_pulse_compression.html', name: 'パルス圧縮', ready: true},
+  {no: 2, file: '02_mti.html', name: 'MTI（移動目標指示）', ready: true},
+  {no: 3, file: '03_pulse_doppler.html', name: 'パルスドップラ', ready: true},
+  {no: 4, file: '04_detection_cfar.html', name: '自動検出とCFAR', ready: true},
+  {no: 5, file: '05_tracking.html', name: '自動追尾', ready: true},
+  {no: 6, file: '06_amti.html', name: '航空機搭載MTI（AMTI）', ready: true},
+  {no: 7, file: '07_phased_array.html', name: 'フェーズドアレイアンテナ', ready: true},
+  {no: 8, file: '08_monopulse.html', name: 'モノパルス測角と追尾レーダ', ready: true},
+  {no: 9, file: '09_propagation.html', name: '電波の伝わり方（伝搬）', ready: true},
+  {no: 10, file: '10_rcs.html', name: 'レーダ断面積（RCS）', ready: true},
+  {no: 11, file: '11_sar.html', name: '合成開口レーダ（SAR）', ready: true},
+  {no: 12, file: '12_eccm.html', name: '電子防護（ECCM）', ready: true},
+  {no: 13, file: '13_scheduling.html', name: 'ビームのスケジューリング', ready: true},
+  {no: 14, file: '14_clutter_map.html', name: 'クラッタマップ', ready: true},
+  {no: 15, file: '15_radar_equation.html', name: 'レーダ方程式', ready: true},
+  {no: 16, file: '16_signal_chain.html', name: '信号を追う（送信から航跡まで）', ready: true},
+  {no: 17, file: '17_design_exercise.html', name: 'レーダを 1 台設計する', ready: true}];
+/* [グループ, 日本語（English）, 説明]。グループ −1＝基礎（補足）、0〜17＝各回 */
+const GLOSS = [
+  [-1, 'dB（デシベル）', '比を対数で表す単位。電力が 10 倍で +10 dB、100 倍で +20 dB、半分で約 −3 dB。掛け算が足し算になるので、レーダの計算でよく使う。'],
+  [-1, 'S/N（信号対雑音比、signal-to-noise ratio）', '信号の電力が雑音の電力の何倍かを表す値。大きいほど目標を見つけやすい。'],
+  [-1, 'I/Q（複素信号）', '受信信号を「振幅」と「位相」の両方が分かる形で表したもの。I（同相）と Q（直交）の 2 つの成分を持ち、平面上の矢印（フェーザ）として描ける。'],
+  [-1, '位相（phase）', '波の「1 周期のうちのどこにいるか」を角度で表したもの。360° で 1 周する。'],
+  [-1, 'ドップラ周波数（Doppler frequency）', '目標が近づく・遠ざかることで、エコーの周波数が送信からずれる量。fd = 2v/λ（v は近づく速度、λ は波長）。'],
+  [-1, 'PRF（pulse repetition frequency、パルス繰り返し周波数）', '1 秒間に送るパルスの数。逆数がパルスの間隔。'],
+  [-1, '距離セル／レンジゲート（range cell / range gate）', '受信信号を、距離（遅れ時間）ごとに細かく区切った 1 区画。'],
+  [-1, 'クラッタ（clutter）', '地面・海面・雨など、見たい目標以外からの不要なエコー。'],
+  [-1, 'サイドローブ（sidelobe）', '本来のピーク（主ローブ）の両脇に出る小さな山。強い信号のサイドローブが、弱い信号を隠すことがある。'],
+  [-1, '重み付け（weighting）', 'データの端を小さくするような係数を掛けて、サイドローブを下げる処理。代わりに主ローブが少し広がり、S/N が少し下がる。'],
+  [-1, 'FFT（高速フーリエ変換）', '信号を周波数の成分に分ける計算を、高速に行う方法。'],
+  [1, 'パルス圧縮（pulse compression）', '変調をかけた長いパルスを送り、受信側のフィルタで細いパルスに戻す方法。長いパルスのエネルギーと、短いパルスの距離分解能を両立させる。'],
+  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域 B の積 TB。パルス圧縮比にほぼ等しい。'],
+  [1, 'パルス圧縮比（pulse compression ratio）', '送信パルス幅と、圧縮後のパルス幅の比。およそ TB。'],
+  [1, '距離分解能（range resolution）', '近くにある 2 つの目標を別々に見分けられる最小の距離差。およそ c/(2B)。'],
+  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変える変調。代表的なパルス圧縮波形。'],
+  [1, '整合フィルタ（matched filter）', '送信波形に合わせて作った受信フィルタ。雑音の中の信号に対して、出力のピークの S/N を最大にする。'],
+  [1, '時間サイドローブ（time sidelobe）', '圧縮後のパルスで、主ローブの前後（距離方向）に出る小さな山。'],
+  [1, 'テイラー重み付け（Taylor weighting）', 'LFM の時間サイドローブを下げるための、代表的な周波数領域の重み付け。'],
+  [1, 'ミスマッチ損失（mismatch loss）', '重み付けなどで整合フィルタからわざと外したために生じる S/N の低下。'],
+  [1, '距離ドップラ結合（range-Doppler coupling）', 'LFM で、目標のドップラ周波数によって圧縮後のピークの位置（距離）がずれる現象。'],
+  [1, '位相符号波形（phase-coded waveform）', 'パルスを短いサブパルスに分け、サブパルスごとに位相を切り替える波形。'],
+  [1, 'バーカー符号（Barker code）', 'サイドローブが主ローブの 1/N になる特別な 2 値位相符号。長さは最大 13。'],
+  [1, 'エクリプシング（eclipsing）', '送信中は受信機がオフなので、その間に戻ってきたエコーが欠けること。'],
+  [1, 'ストレッチ処理（stretch processing）', '受信した LFM に参照の LFM を掛け、周波数の違いとして距離を読み取る圧縮方法。'],
+  [2, 'MTI（moving target indication、移動目標指示）', 'パルスごとのエコーの変化を使って、止まっているクラッタを消し、動いている目標を残す処理。'],
+  [2, 'パルスキャンセラ（delay-line canceler）', '1 つ前のパルスのエコーを引き算する MTI フィルタ。固定物のエコーは毎回同じなので消える。'],
+  [2, 'ブラインド速度（blind speed）', 'MTI で目標まで消えてしまう速度。ドップラ周波数が PRF の整数倍になる速度。'],
+  [2, '改善度（improvement factor）', 'MTI によって、信号対クラッタ比がどれだけ良くなったかを表す値（全速度で平均）。'],
+  [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比。'],
+  [2, 'スタガPRF（staggered PRF）', 'パルスの間隔を交互に変えることで、ブラインド速度を高い速度へ追いやる方法。'],
+  [2, 'クラッタのスペクトル拡がり（clutter spectral spread）', '風で揺れる木やアンテナの走査などで、クラッタのドップラが 0 のまわりに幅を持つこと。'],
+  [2, '走査変調（scanning modulation）', 'アンテナが回ることで、クラッタのエコーの強さがパルスごとに変わること。スペクトル拡がりの原因の 1 つ。'],
+  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強さを記憶したもの。しきい値の設定などに使う。'],
+  [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分けて目標を検出する方式。'],
+  [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通すフィルタ。FFT で多数並べて作る。'],
+  [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ分析する 1 かたまりのパルス列。長いほどドップラ分解能が細かい。'],
+  [3, '距離のあいまいさ（range ambiguity）', 'エコーがどの送信パルスのものか区別できず、距離が決まらないこと。PRF が高いほど起きやすい。'],
+  [3, 'ドップラのあいまいさ（Doppler ambiguity）', 'ドップラ周波数が PRF の整数倍だけ違うものと区別できないこと。PRF が低いほど起きやすい。'],
+  [3, 'メインビームクラッタ（mainbeam clutter）', 'アンテナの主ビームが地面に当たって返ってくる強いクラッタ。'],
+  [3, 'サイドローブクラッタ（sidelobe clutter）', 'アンテナのサイドローブを通って、あらゆる方向の地面から返ってくるクラッタ。'],
+  [3, '高度線（altitude line）', '航空機の真下の地面からのクラッタ。ドップラがほぼ 0 の位置に強く出る。'],
+  [3, 'ブラインドゾーン（blind zone）', 'エクリプシングやクラッタのために目標が見えなくなる、距離やドップラの範囲。'],
+  [4, 'しきい値（threshold）', '「これを超えたら目標あり」と判定する基準の値。'],
+  [4, '探知確率（probability of detection、Pd）', '目標があるときに、正しく検出できる確率。'],
+  [4, '誤警報確率（probability of false alarm、Pfa）', '目標がないのに、雑音などで「目標あり」と判定してしまう確率。'],
+  [4, '積分（integration）', '何パルス分かの受信信号を足し合わせて、目標を検出しやすくすること。'],
+  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器。'],
+  [4, '2値積分（binary integration）', 'パルスごとに 0／1 を判定し、N 回のうち M 回以上 1 なら検出とする方法（M-out-of-N）。'],
+  [4, 'CFAR（constant false alarm rate、一定誤警報率）', '背景の強さに合わせてしきい値を自動で変え、誤警報確率を一定に保つ処理。'],
+  [4, 'セル平均CFAR（cell-averaging CFAR）', '注目するセルの周りのセル（参照セル）の平均から背景の強さを推定する CFAR。'],
+  [4, '参照セル（reference cells）', 'CFAR で、背景の強さを推定するために使う周りのセル。'],
+  [4, 'CFAR損失（CFAR loss）', '背景を推定で求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N。'],
+  [4, 'Swerlingモデル（Swerling models）', '目標のエコーの強さのゆらぎ方を表す代表的なモデル（スキャンごとに変わるか、パルスごとに変わるか、など）。']
+];
+/* 前提知識の補足（30秒で読める長さ。すべてハンドブックにない一般知識＝補足） */
+const PREQ = {
+  db: ['dB（デシベル）とは', '大きさの比を、掛け算ではなく足し算で扱うための単位です。電力が 10 倍なら +10 dB、100 倍なら +20 dB、1/2 なら約 −3 dB、1/100 なら −20 dB。レーダでは信号の強さが何桁も変わるので、グラフの縦軸によく使います。このシリーズでは、dB の値の横に「何倍か」も書きます。'],
+  iq: ['I/Q（複素信号）とは', '受信した波の「強さ（振幅）」と「タイミング（位相）」を同時に表す方法です。平面の上に矢印を描き、矢印の長さが振幅、向きが位相です。横方向の成分を I、縦方向の成分を Q と呼びます。矢印がぐるぐる回る速さが、周波数にあたります。'],
+  dop: ['ドップラとは', '救急車が近づくとサイレンが高く聞こえるのと同じで、近づく目標からのエコーは周波数が少し高くなります。このずれがドップラ周波数で、fd = 2v/λ（v は近づく速度、λ は波長）。波長 3 cm で 15 m/s なら 1 kHz です。'],
+  prob: ['確率分布とは', '雑音の大きさは毎回ばらばらで、予測できません。ただし「どのくらいの大きさが、どのくらいの割合で出るか」は決まっています。これを表したグラフが確率分布で、横軸が大きさ、縦軸が出やすさです。ある値より右側の面積が、「その値を超える確率」になります。'],
+  wave: ['パルスとエコー、距離の測り方', 'レーダは短い電波（パルス）を出し、目標からはね返ってきた電波（エコー）を受けます。往復にかかった時間 t から、距離 R = c·t/2（c は光の速さ）が分かります。1 マイクロ秒の遅れが 150 m にあたります。'],
+  fft: ['周波数に分ける（スペクトル）とは', 'どんな信号も、いろいろな周波数の波の足し合わせとして表せます。「どの周波数の成分が、どのくらい入っているか」を表したものがスペクトルで、それを計算する方法が FFT です。'],
+  prf: ['パルスの繰り返しと PRF', 'レーダはパルスを一定の間隔で何度も送ります。1 秒あたりの回数が PRF です。同じ目標のエコーを、パルスごとに 1 つずつ受けることになり、その「パルスごとの変化」を見るのが MTI やパルスドップラです。']
+};
+
+/* ---- 第0回・第5回以降で追加した用語（第1〜4回の用語と説明は上のまま変えていない） ---- */
+const PREQLINK = {db: [0, 3], iq: [0, 6], dop: [0, 6], prob: [0, 8], wave: [0, 2], fft: [3, 3], prf: [0, 9], pow10: null, trig: null, speed: null, track0: [0, 9], cfar0: [4, 1]};
+PREQ.pow10 = ['10 の何乗（指数）と、k・M・G・m・µ', 'レーダでは、とても大きい数と小さい数が一緒に出てきます。10⁶ は 1 の後に 0 が 6 個（100 万）、10⁻⁶ は 100 万分の 1 です。掛け算は指数の足し算になります（10⁶ × 10⁻¹³ = 10⁻⁷）。単位の前の k（キロ）は 10³、M（メガ）は 10⁶、G（ギガ）は 10⁹、m（ミリ）は 10⁻³、µ（マイクロ）は 10⁻⁶ を表します。'];
+PREQ.trig = ['角度と sin・cos', '半径 1 の円の上を点が回るとき、横の位置が cos、縦の位置が sin です。角度が 0° なら (1, 0)、90° なら (0, 1)。1 周は 360°（2π ラジアン）。波は、この回る点の横（または縦）の位置を時間の順に並べたものと考えられます。'];
+PREQ.speed = ['速さ × 時間 ＝ 距離', '速さが分かっていれば、かかった時間から距離が分かります。電波の速さ（光の速さ）は 1 秒に約 30 万 km（3×10⁸ m/s）。1 マイクロ秒（100 万分の 1 秒）で 300 m、1 ミリ秒で 300 km 進みます。'];
+GLOSS.push(
+  [0, 'レーダ（radar）', '電波を出し、物に当たってはね返ってきた電波（エコー）を受けて、物の存在と位置を知る装置。'],
+  [0, '目標（target）', 'レーダが見つけたい物。航空機、船、車、雨雲など。電波をはね返す物なら何でも目標になりうる。'],
+  [0, 'エコー（echo）', '目標に当たってはね返り、レーダに戻ってきた電波。送信した電力に比べてけた違いに弱い。'],
+  [0, '波長（wavelength）', '波の山から次の山までの長さ。光の速さ ÷ 周波数。3 GHz で 10 cm、10 GHz で 3 cm。'],
+  [0, 'パルス幅（pulse width）', '1 回に電波を出している時間の長さ。1 µs なら、空間では 300 m の長さの電波のかたまりになる。'],
+  [0, '尖頭電力と平均電力（peak power / average power）', '尖頭電力はパルスを出している間の電力。平均電力は、出していない時間も含めてならした電力で、尖頭電力 × パルス幅 × PRF。'],
+  [0, 'レーダ方程式（radar equation）', 'レーダの性能（電力、アンテナ、雑音など）と、目標の大きさ・距離から、受信電力や最大探知距離を見積もる式。受信電力は距離の 4 乗に反比例する。'],
+  [0, 'レーダ断面積（RCS、radar cross section）', '目標がレーダから「どれくらい大きく見えるか」を面積 [m²] で表した量。実際の大きさとは一致しない。第10回で詳しく扱う。'],
+  [0, 'アンテナ利得（antenna gain）', 'アンテナが電波を特定の方向にどれだけ集中させるかを表す倍率。全方向に均等に出す場合と比べた値。'],
+  [0, '有効開口面積（effective area）', '受信アンテナが電波を集める「実質的な広さ」[m²]。利得 G とは G = 4π·Ae/λ² の関係がある。'],
+  [0, '最小検出信号（minimum detectable signal）', '検出できる、いちばん弱いエコーの電力。受信機の雑音で決まる。'],
+  [0, '雑音指数（noise figure）', '実際の受信機の雑音が、理想的な受信機の何倍かを表す値。小さいほど良い。'],
+  [0, 'ビーム幅（beamwidth）', 'アンテナが電波を集中させる角度の幅。ふつうは、強さが半分（−3 dB）になる 2 方向の間の角度。アンテナが波長に比べて大きいほど狭い。'],
+  [0, '周波数帯（letter band）', 'レーダの周波数の範囲を表す文字の名前。L 帯（1〜2 GHz）、S 帯（2〜4 GHz）、X 帯（8〜12 GHz）など。'],
+  [0, '監視レーダ（surveillance radar）', '広い範囲を繰り返し見張り、目標を見つけるレーダ。捜索レーダともいう。'],
+  [0, '追尾レーダ（tracking radar）', '目標の動き（航跡）を求めるレーダ。1 つの目標にビームを向け続ける方式と、見張りながら多数の目標を追う方式がある。'],
+  [0, '再訪時間（revisit time）', '監視レーダが同じ方向をもう一度見るまでの時間。アンテナが 1 回転する時間にあたる。']
+);
+PREQ.vec = ['位置・速度・加速度と「g」', '位置が 1 秒あたりどれだけ変わるかが速度、速度が 1 秒あたりどれだけ変わるかが加速度です。まっすぐ同じ速さで進む物は、加速度が 0 です。向きを変える（旋回する）ときは、速さが同じでも横向きの加速度が生じます。加速度の大きさは、重力の加速度 g（約 9.8 m/s²）の何倍かで表すことがよくあります。'];
+PREQLINK.vec = null;
+GLOSS.push(
+  [5, '航跡（track）', '「ここに目標がいて、こう動いている」という、レーダの推定結果。何回分もの検出点をつないで作る。位置と速度を持つ。'],
+  [5, '検出点／プロット（detection / plot）', '1 回のスキャンで、しきい値を超えた信号を 1 つの点（距離と方向）にまとめたもの。目標のほか、誤警報やクラッタも混ざる。'],
+  [5, '航跡ファイル（track file）', '追尾中のすべての航跡について、番号、位置、速度、最後に更新した時刻などを記録した一覧。'],
+  [5, '対応付け（association）', '新しい検出点が、どの航跡のものかを決めること。相関ともいう。'],
+  [5, 'ゲート（gate）', '航跡の予測位置のまわりに設ける範囲。この中に入った検出点だけを、その航跡の候補にする。'],
+  [5, '統計距離（statistical distance）', '検出点と予測位置のずれを、測定の精度で割って数えた距離。精度の良い方向のずれは大きく、粗い方向のずれは小さく数える。'],
+  [5, '最近傍法（nearest neighbor）', '統計距離がいちばん小さい検出点と航跡の組から、順に割り当てていく方法。もっともよく使われる。'],
+  [5, 'GNN（global nearest neighbor）', '検出点と航跡の組み合わせ全体を見て、統計距離の合計などが最小になる割り当てを選ぶ方法。'],
+  [5, '平滑化と予測（filtering / prediction）', '平滑化は、測定のばらつきをならして現在の位置・速度を推定すること。予測は、次の測定の時刻にいる位置を計算すること。'],
+  [5, 'α-βフィルタ（α-β filter）', '予測と測定の差に、決まった重み（α：位置、β：速度）を掛けて修正する、いちばん簡単な追尾フィルタ。'],
+  [5, '追尾ゲイン（tracking gain）', '予測と測定の差を、どれだけ推定に反映するかを決める重み。大きいと測定を重く、小さいと予測を重く見る。'],
+  [5, '遅れ（lag）', '目標が旋回や加速をしたとき、航跡が実際の位置に追いつかずに生じる、かたよった誤差。'],
+  [5, '機動（maneuver）', '目標が、フィルタの前提（等速直線など）から外れた動きをすること。旋回、加速、減速など。'],
+  [5, 'カルマンフィルタ（Kalman filter）', '測定の精度、測定の間隔、想定する機動の大きさから、追尾ゲインを毎回計算するフィルタ。α-βフィルタの重みを自動で変えるものと考えられる。'],
+  [5, '追尾指数（track filtering parameter）', '想定する機動の大きさ、測定の間隔、測定の精度を 1 つにまとめた、単位のない数。大きいほど追尾ゲインが大きくなる。'],
+  [5, '航跡の開始（track initiation）', 'どの航跡にも対応しない検出点から、新しい航跡を作ること。5 回の機会のうち 4 回の検出、のような基準を使う。'],
+  [5, '偽航跡（false track）', '目標ではないものにできてしまった航跡。無関係な誤警報やクラッタがたまたま並んでできるものと、鳥のように興味のない物にできるものがある。'],
+  [5, 'アクティビティ制御（activity control）', '検出点が多すぎる領域で、検出の条件を厳しくして、追尾処理に入れる検出点の数を抑えること。'],
+  [5, '多重仮説追尾（MHT、multiple hypothesis tracking）', '対応付けを 1 つに決めず、複数の可能性（仮説）を並行して追い、後の測定でありそうにないものを捨てていく方法。'],
+  [5, 'PDA／JPDA（probabilistic data association）', 'ゲート内の検出点を 1 つに絞らず、「その航跡のものである確率」で重み付けして、まとめて更新に使う方法。']
+);
+GLOSS.push(
+  [6, 'AMTI（airborne MTI、航空機搭載MTI）', '航空機に載せたレーダで使う MTI。レーダ自身が動くので、地面のクラッタにもドップラが付く点が、地上のレーダと違う。'],
+  [6, 'プラットフォーム（platform）', 'レーダを載せている乗り物。ここでは航空機のこと。'],
+  [6, '対地速度（ground speed）', '地面に対する機体の速さ。クラッタのドップラは、この速度で決まる。'],
+  [6, 'ボアサイト（boresight）', 'アンテナのビームの中心の方向。'],
+  [6, '俯角（depression angle）', '水平から下向きに測った、見下ろす角度。'],
+  [6, 'スラントレンジ（slant range）', 'レーダから地面の点までの、斜めの直線距離。'],
+  [6, 'プラットフォーム運動スペクトル（platform-motion spectrum）', '機体が動くために、ビームの中の方向ごとにクラッタのドップラが少しずつ違い、その結果として広がったクラッタのスペクトル。真横を見たときにいちばん広い。'],
+  [6, 'TACCAR（time-averaged clutter coherent airborne radar）', 'クラッタのエコーの平均的なドップラを測り、それが 0 になるように周波数をずらして、メインビームクラッタを MTI のノッチに合わせる方法。'],
+  [6, '位相中心（phase center）', 'アンテナが電波を出し入れしている「見かけの 1 点」。開口の中での重みの付け方で、位置を動かせる。'],
+  [6, 'DPCA（displaced phase center antenna）', 'パルスごとにアンテナの位相中心をずらして、機体が進んだ分を打ち消し、クラッタからはアンテナが止まっているように見せる方法。'],
+  [6, '和パターンと差パターン（sum / difference pattern）', 'アンテナの左右半分の信号を、足して作るビーム（和）と、引いて作るビーム（差）。差パターンは、中心で 0、左右で符号が反対になる。'],
+  [6, 'ステップ走査補償（step-scan compensation）', 'アンテナが回ることによるエコーの振幅の変化を、差パターンを使って打ち消す方法。ビームを電子的に少し前後に向け、止まっていたように見せる。'],
+  [6, 'CPCT（coincident phase center technique）', '位相中心を開口の前後にもずらして、進行方向の動きによるクラッタの拡がりも打ち消す方法。'],
+  [6, 'STAP（space-time adaptive processing、時空間適応処理）', 'アンテナの素子ごと（空間）、パルスごと（時間）の信号に、受信したデータから計算した重みを掛けて足し合わせ、クラッタや妨害を消す処理。'],
+  [6, '自由度（degrees of freedom）', '適応処理で自由に決められる重みの数。素子の数 × パルスの数が上限。多いほど細かく消せるが、計算と必要なデータが増える。']
+);
+GLOSS.push(
+  [7, 'フェーズドアレイ（phased array）', '小さなアンテナ（素子）をたくさん並べ、素子ごとの位相を変えることで、アンテナを動かさずにビームの向きを変えるアンテナ。'],
+  [7, '素子（radiating element）', 'アレイを作る 1 つ 1 つの小さなアンテナ。'],
+  [7, '開口（aperture）', 'アンテナが電波を出し入れする面。直線アレイでは、素子の数 × 素子の間隔が開口の長さ。'],
+  [7, 'アレイファクタ（array factor）', '素子がどの方向にも同じ強さで出すと仮定したときの、並べ方と位相だけで決まるパターン。'],
+  [7, '素子パターン（element pattern）', '素子 1 個が持つ、方向ごとの強さ。アレイ全体のパターンは、素子パターン × アレイファクタ。'],
+  [7, '移相器（phase shifter）', '素子ごとの信号の位相をずらす部品。ふつうはデジタル制御で、ビット数に応じた刻みでしか設定できない。'],
+  [7, 'ビーム走査（beam scanning）', 'ビームの向きを変えること。フェーズドアレイでは、素子から素子へ一定の量ずつ位相をずらして行う。'],
+  [7, 'グレーティングローブ（grating lobe）', '素子の間隔が広すぎるときに、メインビームと同じ強さで別の方向に現れるビーム。'],
+  [7, '照射分布（illumination function）', '開口の上での振幅の付け方。端を弱くするとサイドローブが下がり、ビームが太くなる。'],
+  [7, '開口効率（aperture efficiency）', '重み付けなどで、一様な照射のときより利得がどれだけ下がるかを表す比。'],
+  [7, '位相の量子化（phase quantization）', '移相器が決まった刻みでしか位相を設定できないために生じる誤差。'],
+  [7, '量子化ローブ（quantization lobe）', '位相や振幅の量子化誤差が規則的に並ぶことで、特定の方向に現れる余分なローブ。'],
+  [7, '開口充填時間（aperture fill time）', '斜めから来たパルスが、アレイの端から端まで行き渡るのにかかる時間。アレイの帯域を決める。'],
+  [7, '時間遅延走査（time-delay scanning）', '位相ではなく時間の遅れでビームを向ける方法。周波数が変わってもビームの向きが変わらない。'],
+  [7, 'サブアレイ（subarray）', 'アレイをいくつかの素子のまとまりに分けたもの。まとまりごとに受信機や時間遅延を持たせる。'],
+  [7, 'デジタルビーム形成（DBF、digital beamforming）', '素子またはサブアレイごとに信号をデジタルにしてから、計算で重みを掛けて足し、ビームを作る方法。複数のビームを同時に作れる。'],
+  [7, 'ヌル（null）', 'パターンの中で、感度がほぼ 0 になる方向。妨害の方向にヌルを向けると、妨害を抑えられる。']
+);
+GLOSS.push(
+  [8, 'モノパルス（monopulse）', '複数のビームで同時に受けた信号を比べて、1 つのパルスだけで目標の角度のずれを求める方式。同時ローブ（simultaneous lobing）ともいう。'],
+  [8, '振幅比較モノパルス（amplitude-comparison monopulse）', '向きを少しずつずらした複数のビームで受けた信号の、振幅の違いから角度のずれを求めるモノパルス。'],
+  [8, '和信号と差信号（sum / difference signals、Σ・Δ）', '複数のビームの信号を足したもの（和、Σ）と引いたもの（差、Δ）。和は目標の検出と距離の測定に、差は角度のずれの測定に使う。'],
+  [8, 'コンパレータ（comparator）', 'ホーン（給電部）の信号を足し引きして、和信号と差信号を作るマイクロ波の回路。'],
+  [8, '角度誤差信号（angle-error signal）', 'アンテナの軸と目標の方向のずれを表す信号。モノパルスでは、差信号を和信号で割って作る。大きさがずれの量、符号がずれの向きを表す。'],
+  [8, '誤差の傾き（error slope、km）', '目標が軸から少しずれたときに、角度誤差信号（Δ/Σ）がどれだけ変わるかを表す値。ビーム幅 1 つぶんのずれに対する変化で表す。大きいほど、雑音に強い。'],
+  [8, 'ビームの開き（beam offset、squint angle）', '角度を測るために、ビームをアンテナの軸からわざとずらす角度。'],
+  [8, '円錐走査（conical scan）', '軸から少しずらしたビームを、軸のまわりに回す方式。エコーの強さの変化（変調）の大きさと位相から、角度のずれを求める。'],
+  [8, 'ローブ切替（sequential lobing）', 'ビームの向きを、いくつかの位置に順番に切り替えて、エコーの強さを比べる方式。'],
+  [8, 'AGC（automatic gain control、自動利得制御）', '信号の強さが変わっても出力が一定になるように、受信機の利得を自動で変えるしくみ。モノパルスでは、和信号で割り算をする役目を持つ。'],
+  [8, 'サーボ（servo）', '誤差信号が 0 になるように、アンテナを自動で動かすしくみ。'],
+  [8, 'サーボ帯域（servo bandwidth）', 'サーボがどのくらい速い変化まで追いかけられるかを表す周波数。広いほど反応が速いが、雑音の影響も受けやすい。'],
+  [8, '捕捉（acquisition）', '追尾を始めるために、目標をビームと距離ゲートの中にとらえること。'],
+  [8, '早期ゲートと後期ゲート（early / late gates）', '距離ゲートを前半と後半に分けたもの。それぞれに入るエコーの量を比べて、ゲートの中心と目標の距離のずれを求める。'],
+  [8, 'グリント（glint、角度雑音）', '目標の中の複数の反射点からのエコーが干渉して、レーダが指す方向がふらつくこと。目標の外を指すこともある。'],
+  [8, 'シンチレーション（scintillation、振幅雑音）', '目標のエコーの強さが、時間とともにゆらぐこと。'],
+  [8, 'マルチパス（multipath）', '電波が、直接の経路と、地面や海面で反射した経路の、2 つ以上の経路で届くこと。'],
+  [8, '像（image）', '地面や海面の反射で、表面の下に目標があるように見えるもの。鏡に映った姿にあたる。'],
+  [8, 'ミリラジアン（mrad）', '角度の単位。1 mrad = 0.001 ラジアン ≈ 0.057°。距離 1 km で幅 1 m に見える角度。']
+);
+GLOSS.push(
+  [9, '伝搬（propagation）', '電波が空間を伝わること。大気や地面・海面の影響で、伝わり方が変わる。'],
+  [9, '自由空間（free space）', '地球や大気の影響がまったくない、理想的な空間。伝わり方を比べるときの基準にする。'],
+  [9, '伝搬因子（propagation factor、F）', '実際の電界の強さを、同じ距離の自由空間での電界の強さで割った値。1 より大きければ自由空間より強く、小さければ弱い。'],
+  [9, '自由空間伝搬損失（free-space path loss）', '自由空間で、電波が球面状に広がるために、距離とともに弱まる量。'],
+  [9, '伝搬損失（propagation loss）', '送信してから受信するまでに電波が弱まる量。自由空間伝搬損失から、伝搬因子のぶんを引いたもの。'],
+  [9, '屈折（refraction）', '電波が、空気の性質の違う所を通るときに、進む向きを変えること。'],
+  [9, '屈折率（index of refraction、n）', '真空中の電波の速さを、その場所での速さで割った値。地表近くの空気では 1.00025〜1.0004。'],
+  [9, '屈折度（refractivity、N）', '屈折率 n から 1 を引いて 100 万倍した値。扱いやすい大きさにするための単位（N 単位）。'],
+  [9, '修正屈折度（modified refractivity、M）', '屈折度 N に、高さに比例する量を足した値。M が高さとともに減る層があれば、そこがダクトになる。'],
+  [9, '標準大気（standard atmosphere）', '気温が高さとともに一定の割合で下がるなどと仮定した、基準の大気。屈折度は 1 km につき 39 ずつ減る。'],
+  [9, '等価地球半径（effective earth radius）', '電波の曲がりを考えるかわりに、地球の半径を大きくして、電波をまっすぐ進むものとして扱う考え方。標準大気では実際の約 4/3 倍。'],
+  [9, 'レーダ水平線（radar horizon）', 'レーダから出た電波が、地球の表面にちょうど接する点。これより先の低い所は、地球の陰になる。'],
+  [9, '見通し距離（line-of-sight range）', 'レーダと目標のあいだを、地球にさえぎられずに電波が届く、いちばん遠い距離。'],
+  [9, '回折（diffraction）', '電波が、障害物の陰に少し回り込むこと。周波数が低いほど回り込みやすい。'],
+  [9, '反射係数（reflection coefficient）', '反射した波の強さ（電界）を、入ってきた波の強さで割った値。なめらかな海面に浅い角度で入ると、1 に近い。'],
+  [9, '直接波と反射波（direct / reflected wave）', 'レーダと目標のあいだをまっすぐ進む波（直接波）と、海面や地面で一度反射して届く波（反射波）。'],
+  [9, 'ローブ（lobe）', '直接波と反射波が強め合って、電波が強くなる角度の範囲。高さの方向に、ヌルと交互に並ぶ。'],
+  [9, 'カバレッジ図（coverage diagram）', '距離と高度の平面の上に、どこで目標が見えるか（電波の強さや探知確率）を描いた図。'],
+  [9, '異常伝搬（anomalous propagation）', '大気が標準の状態と違うために、電波の曲がり方がふつうと違うこと。'],
+  [9, 'サブリフラクション（subrefraction）', '電波がふつうより曲がらない、または上向きに曲がる状態。見通し距離が短くなる。'],
+  [9, 'スーパーリフラクション（superrefraction）', '電波がふつうより強く下向きに曲がる状態。見通し距離が長くなる。'],
+  [9, 'トラッピング（trapping）', '電波の曲がりが地球の丸みより強くなり、電波が大気の層の中に閉じ込められる状態。'],
+  [9, 'ダクト（duct）', '電波が閉じ込められて、遠くまで伝わる大気の層。'],
+  [9, '蒸発ダクト（evaporation duct）', '海面のすぐ上で、水蒸気が高さとともに急に減ることでできるダクト。海の上ではほぼいつも存在する。'],
+  [9, 'レーダホール（radar hole）', 'ダクトのために電波が届きにくくなる領域。ダクトのすぐ上などにできる。'],
+  [9, 'スキップゾーン（skip zone）', '水平線の近くで、ダクトの効果が現れない距離の範囲。']
+);
+GLOSS.push(
+  [10, '散乱（scattering）', '電波が物体に当たって、いろいろな方向へ散らばること。'],
+  [10, '後方散乱（backscattering）', '散乱のうち、電波が来た方向（レーダの方向）へ戻る分。これがレーダのエコーになる。'],
+  [10, 'dBsm', 'RCS を、1 m² を基準にしたデシベルで表した単位。0 dBsm = 1 m²、20 dBsm = 100 m²、−20 dBsm = 0.01 m²。'],
+  [10, 'アスペクト角（aspect angle）', 'レーダから見た目標の向きを表す角度。'],
+  [10, '反射点（scatterer / scattering center）', '目標の表面のうち、エコーを強く返す場所。複雑な目標は、たくさんの反射点の集まりとして考える。'],
+  [10, '鏡面反射（specular reflection）', 'レーダの視線に垂直な面が、鏡のように電波をまっすぐ返す反射。その方向では強いが、少し向きがずれると急に弱くなる。'],
+  [10, 'レイリー領域（Rayleigh region）', '目標が波長より小さい範囲。RCS は周波数の 4 乗に比例して急に変わり、形の細かい違いは効かない。'],
+  [10, '共振領域（resonance region）', '目標が波長と同じくらいの範囲。いくつかの反射の仕組みが干渉して、RCS が大きさ（周波数）とともに波打つ。'],
+  [10, '光学領域（optics region）', '目標が波長よりずっと大きい範囲。光の反射のように考える近似がよく合う。'],
+  [10, 'クリーピング波（creeping wave）', '球などの陰の側を回り込んで戻ってくる波。'],
+  [10, '進行波エコー（traveling-wave echo）', '電波が表面にごく浅い角度で入ったとき、表面に沿って進む波が端で反射して戻るエコー。'],
+  [10, 'コーナーリフレクタ（corner reflector）', '2 枚または 3 枚の平らな板を直角に組み合わせたもの。広い範囲の向きから来た電波を、来た方向へ返す。'],
+  [10, '幾何光学（geometric optics、GO）', '電波を光線として扱い、反射点での面の曲がり方から RCS を求める近似。'],
+  [10, '物理光学（physical optics、PO）', '面の上に流れる電流を近似して足し合わせ、RCS を求める方法。平らな面や、一方向だけ曲がった面に使う。'],
+  [10, 'モーメント法（method of moments）', '面の上の電流についての方程式を、連立 1 次方程式に直して解く方法。厳密だが、大きな目標では計算量が大きい。'],
+  [10, 'バイスタティック（bistatic）', '送信と受信を、離れた別々の場所で行うこと。同じ場所で行う場合はモノスタティックという。'],
+  [10, '遠方界の条件（far-field criterion）', '目標に当たる波を平面の波とみなせる距離の目安。距離 R > 2D²/λ（D は目標の大きさ）。'],
+  [10, 'コンパクトレンジ（compact range）', '反射鏡などで平面の波を作り、短い距離で RCS を測れるようにした屋内の測定設備。'],
+  [10, '電波吸収材（radar-absorbing material、RAM）', '入ってきた電波のエネルギーを吸収して、反射を弱める材料。'],
+  [10, 'サリスバリースクリーン（Salisbury screen）', '金属面の 1/4 波長手前に抵抗の膜を置いた、いちばん簡単な吸収体。設計した周波数の近くだけで効く。'],
+  [10, '形状制御（shaping）', '面や縁の向きを選んで、エコーをレーダの方向からそらす設計のしかた。']
+);
+GLOSS.push(
+  [11, '合成開口レーダ（SAR、synthetic aperture radar）', '小さなアンテナを動かしながら集めた信号を合成して、長いアンテナと同じ細かさの分解能を得るレーダ。地表の画像を作るのに使う。'],
+  [11, '実開口レーダ（RAR、real aperture radar）', 'アンテナそのものの大きさ（ビーム幅）で分解能が決まる、ふつうのレーダ。'],
+  [11, '合成開口（synthetic aperture）', 'プラットフォームが動いた経路を、1 本の長いアンテナとみなしたもの。その長さを合成開口長、目標から見たその角度を合成開口角という。'],
+  [11, 'レンジ方向とクロスレンジ方向（range / crossrange）', 'レーダの視線に沿った方向（レンジ）と、それに垂直で地面に平行な方向（クロスレンジ）。クロスレンジはアジマス方向ともいう。'],
+  [11, 'クロスレンジ分解能（crossrange resolution）', '視線に垂直な方向で、位置をどれだけ細かく決められるか。アジマス分解能ともいう。'],
+  [11, 'ストリップマップ（stripmap SAR）', 'ビームを飛行経路に垂直に向けたまま飛び、帯のような範囲を連続して画像にする方式。'],
+  [11, 'スポットライト（spotlight SAR）', '飛びながらビームを同じ場所に向け続け、その場所を細かい分解能で画像にする方式。'],
+  [11, 'ドップラビームシャープニング（DBS、doppler beam sharpening）', 'ビームの中のエコーをドップラ周波数で分けて、ビーム幅より細かい分解能を得る方法。SAR の最初の呼び名でもある。'],
+  [11, '非集束 SAR（unfocused SAR）', '位相の補正をせずに信号を足し合わせる、初期の SAR。使える合成開口の長さに限りがある。'],
+  [11, '位相履歴（phase history）', 'プラットフォームが動くあいだに、1 つの目標からのエコーの位相がたどる変化。'],
+  [11, 'ファストタイムとスロータイム（fast time / slow time）', '1 つのパルスの中の時間（距離に対応）と、パルスからパルスへの時間（クロスレンジに対応）。'],
+  [11, 'スクイント角（squint angle、SAR の場合）', 'アンテナの向きが、飛行経路に垂直な方向からずれている角度。'],
+  [11, '動揺補償（motion compensation）', 'プラットフォームが理想の直線からずれた分を測り、信号の位相を直す処理。'],
+  [11, 'レンジマイグレーション（range migration）', 'データを集めるあいだに、目標までの距離が変わって、別の距離セルへ移ってしまうこと。'],
+  [11, 'スラントプレーンとグランドプレーン（slant plane / ground plane）', '視線に沿った斜めの面（スラント）と、地面（グランド）。距離分解能は、地面の上ではスラントより粗くなる。'],
+  [11, '点像応答（point spread function / impulse response）', '点の目標 1 つが、画像の上でどう広がって写るかを表すもの。'],
+  [11, '積分サイドローブ比（ISLR、integrated sidelobe ratio）', '点像応答のサイドローブ全体のエネルギーを、メインローブのエネルギーで割った値。'],
+  [11, 'スペックル（speckle）', '一様な地面でも、画素ごとに明るさがばらつく現象。画素の中の多数の散乱体のエコーが干渉して起きる。'],
+  [11, 'マルチルック（multilook）', '同じ場所の画像を何枚か作って明るさを平均し、スペックルを減らす処理。'],
+  [11, '雑音等価 σ⁰（NEσ⁰、noise-equivalent sigma zero）', '受信機の雑音と同じ明るさに写る、地面の反射の強さ。これより暗い地面は雑音に埋もれる。'],
+  [11, '逆合成開口レーダ（ISAR、inverse SAR）', 'レーダではなく目標の動き（回転）を利用して、目標の画像を作る方法。'],
+  [11, '干渉 SAR（InSAR、interferometric SAR）', '2 つのアンテナの信号の位相の差を使って、高さや動きを測る SAR。']
+);
+GLOSS.push(
+  [12, '電子戦（EW、electronic warfare）', '電磁波の利用をめぐる軍事的な活動の全体。相手の電波を探ること、相手の利用を妨げること、自分の利用を守ることを含む。'],
+  [12, '電子支援（ESM、electronic warfare support measures）', '相手が出す電波を探し、傍受し、位置や種類を調べること。新しい用語では ES。'],
+  [12, '電子攻撃（ECM、electronic countermeasures）', '相手のレーダなどが電磁波を有効に使うのを、妨げたり弱めたりすること。新しい用語では EA。'],
+  [12, '電子防護（ECCM、electronic counter-countermeasures）', '相手の電子攻撃があっても、レーダなどが電磁波を有効に使えるようにする、レーダ側の工夫。新しい用語では EP。'],
+  [12, '妨害（jamming）', 'レーダの受信を乱すための電波を出すこと。その装置を妨害機（jammer）という。'],
+  [12, '雑音妨害（noise jamming）', '雑音のような電波でレーダの受信帯域を埋め、目標のエコーを埋もれさせる妨害。狭い帯域に集中するスポット妨害と、広い帯域を覆うバラージ妨害がある。'],
+  [12, '欺まん（deception）', 'にせの信号でレーダに誤った情報（偽の目標、誤った距離・速度・角度）を与えること。'],
+  [12, 'チャフ（chaff）', '空中にまく、金属を付けた細い繊維や箔。レーダから見ると、雨雲のようなクラッタになる。'],
+  [12, 'デコイ（decoy）', '本物の目標のように見せるための、おとりの物体。'],
+  [12, '自己防御妨害とスタンドオフ妨害（SSJ / SOJ）', '目標自身が妨害の電波を出す場合（自己防御、self-screening jammer）と、離れた場所の別の機体が出す場合（スタンドオフ、stand-off jammer）。'],
+  [12, '実効放射電力（ERP、effective radiated power）', '送信電力にアンテナ利得を掛けた値。その方向へどれだけ強く電波を出しているかを表す。'],
+  [12, '妨害対雑音比（J/N、JNR）', '受信機に入る妨害の電力を、受信機の雑音の電力で割った値。'],
+  [12, '信号対妨害比（S/J）', '目標のエコーの電力を、妨害の電力で割った値。'],
+  [12, 'バーンスルー（burn-through）', '目標が近づいて、エコーが妨害より強くなり、妨害の中でも探知できるようになること。その距離をバーンスルー距離という。'],
+  [12, 'サイドローブブランキング（SLB、sidelobe blanking）', '主アンテナと、利得の低い補助アンテナの受信の強さを比べ、サイドローブから入ったと判断した信号を表示・検出から外すしくみ。'],
+  [12, 'サイドローブキャンセラ（SLC、sidelobe canceler）', '補助アンテナで受けた妨害に重みを掛けて、主アンテナの信号から引き、サイドローブから入る妨害を打ち消すしくみ。'],
+  [12, '補助アンテナ（auxiliary antenna）', 'SLB や SLC のために、主アンテナのそばに置く、利得が低くビームの広いアンテナ。'],
+  [12, '妨害消去比（JCR、jammer cancellation ratio）', 'サイドローブキャンセラを使わないときと使ったときの、出力の妨害電力の比。'],
+  [12, '適応アレイ（adaptive array）', '受信した信号に合わせて、素子ごとの重みを自動で変えるアレイアンテナ。妨害の方向にヌルを作る。'],
+  [12, '周波数アジリティ（frequency agility）', '送信周波数を、パルスごと、またはパルスのまとまりごとに切り替えること。'],
+  [12, '周波数ダイバーシティ（frequency diversity）', 'いくつかの違う周波数を、同時に、または組み合わせて使うこと。'],
+  [12, '低被探知性（LPI、low probability of intercept）', '相手の受信機に見つかりにくいように、レーダの電波の出し方を工夫すること。'],
+  [12, 'レーダ警報受信機（RWR、radar warning receiver）', 'レーダの電波を受けて、照らされていることとその方向を知らせる受信機。'],
+  [12, '電波管制（EMCON、emission control）', '位置や意図を知られないように、電波を出す時間・方向・周波数などを管理すること。'],
+  [12, 'ダイナミックレンジ（dynamic range）', '受信機が、ゆがめずに扱える信号の強さの範囲。強い妨害で飽和しないために、広い範囲が必要。']
+);
+GLOSS.push(
+  [13, 'レーダ資源管理（radar resource management）', 'レーダが持つ限られた時間とエネルギーを、捜索・追尾などの仕事にどう割り振るかを決めること。'],
+  [13, 'ドウェル（dwell）', '1 つのビームの位置に対する、1 回の照射（送信と受信のひとまとまり）。スケジューリングの最小の単位。'],
+  [13, 'スケジューラ（scheduler）', '頼まれた仕事（タスク）を、いつ実行するかを決めて、時間の上に並べるしくみ。'],
+  [13, '占有率（occupancy）', 'レーダの時間のうち、照射に使われている割合。'],
+  [13, 'スケジューラの効率（scheduler efficiency）', '（全時間 − すき間の合計）÷ 全時間。すき間なく並べられたかを表す。'],
+  [13, '固定タスク（fixed task）', '実行してほしい時刻が決まっているタスク。追尾の更新など。少しだけ前後にずらせる。'],
+  [13, '柔軟タスク（flexible task）', '実行する時刻は決まっていないが、決まった一巡（パターン）を、ある周期で回し続けたいタスク。捜索など。'],
+  [13, '希望時刻（requested time）', '固定タスクを実行してほしい時刻。'],
+  [13, 'ずれの許容（slack）', '固定タスクの実行を、希望時刻から前後にずらしてよい幅。'],
+  [13, 'フレーム時間（frame time）', '捜索のパターンを一巡するのにかかる時間。空間の同じ場所を、もう一度見るまでの時間にあたる。'],
+  [13, '望みのフレーム時間（DFT、desired frame time）', '柔軟タスクのパターンを一巡させたい周期。'],
+  [13, 'パターンの長さ（PL、pattern length）', '柔軟タスクのパターン 1 巡ぶんの照射の時間の合計。'],
+  [13, 'スケジューリング区間（RSI、radar scheduling interval）', 'スケジューラがタスクを並べる、ひと区切りの時間。従来の方式では、長さが決まっている。'],
+  [13, '可変のスケジューリング区間（DRSI、dynamic RSI）', '固定タスクの終わりから、次の固定タスクの終わりまでを 1 区間とする考え方。区間の長さがそのつど変わる。'],
+  [13, '次の固定タスク（NFT、next fixed task）', '次に実行する固定タスク。これが、可変のスケジューリング区間の終わりを決める。'],
+  [13, '柔軟タスクの遅れ（FTD、flexible task deficit）', '「今の時点で済んでいるはずの量」から「実際に済んだ量」を引いたもの。大きいほど、そのタスクは遅れている。'],
+  [13, '期限の近い順（EDF、earliest-deadline-first）', '期限がいちばん近い仕事から先に実行する、スケジューリングの方法。計算機の処理の順番決めに使われている。'],
+  [13, '貪欲なスケジューラ（greedy scheduler）', '先のことを考えず、その場でいちばん優先度の高いものから順に入れていくスケジューラ。'],
+  [14, 'エリア MTI（area MTI）', 'クラッタの消え残りを場所ごとに記憶しておき、次のスキャンで差し引く（または割る）方法。今はクラッタマップと呼ぶことが多い。'],
+  [14, 'マップセル（map cell）', 'クラッタマップの 1 マス。距離と方位で区切る。分解能のセルいくつかをまとめて 1 マスにすることが多い。'],
+  [14, '再帰フィルタ（recursive filter）', '前の出力に、新しい入力を一定の割合で混ぜて、次の出力にするフィルタ。過去の値を全部しまっておかなくても、平均に近い値が得られる。'],
+  [14, 'フィルタの定数 α', '再帰フィルタで、新しい入力を混ぜる割合（0〜1）。小さいほど、長い期間の平均になる。'],
+  [14, '実効的な平均の回数（Leff）', '再帰フィルタが、同じ重みで何回ぶんを平均したのと同じ落ち着きを持つかを表す数。(2 − α) ÷ α。'],
+  [14, 'クラッタマップ損失（clutter map loss）', '背景の平均を地図から見積もるために、余分に必要になる S/N。平均の回数が少ないほど大きい。'],
+  [14, '立ち上がり（過渡応答、transient response）', '背景が急に変わったとき（新しいクラッタが現れたときなど）に、地図の値が新しい強さになじむまでの様子。'],
+  [14, 'カットオフ速度（cutoff velocity）', 'クラッタマップが目標を背景として覚えはじめる、目標の速さの境目。マップセルの大きさとスキャンの間隔で決まる。'],
+  [14, 'スプレッディング（spreading）', 'マップセルを、その中の受信だけでなく、隣のセルの受信も使って更新すること。クラッタがマスの境目をまたいだときの誤警報を抑える。'],
+  [14, 'ゼロ速度フィルタ（zero-velocity filter）', 'ドップラが 0 に近い成分だけを取り出すフィルタ。止まっているクラッタと、視線を横切る目標が、ここに出る。'],
+  [14, 'MTD（moving target detector）', 'ドップラフィルタバンク、ゼロ速度フィルタ、クラッタマップなどを組み合わせた、目標検出の方式。'],
+  [14, 'スーパークラッタビジビリティ（superclutter visibility）', '点のクラッタの上を飛ぶ目標を、目標のほうがクラッタより強いことを利用して検出できること。'],
+  [14, '点のクラッタ（discrete clutter / point clutter）', '建物や鉄塔のように、1 つのセルに集中して現れる強いクラッタ。'],
+  [14, 'PPI（plan position indicator）', 'レーダを中心に置き、方位と距離で、まわりの様子を円形に描く表示。上から見た地図のように見える。'],
+  [15, '最大探知距離（maximum detection range、Rmax）', '受信電力が最小検出信号と等しくなる距離。これより遠い目標は検出できない。レーダ方程式で見積もる。'],
+  [15, '熱雑音（thermal noise）', '受信機の中の電子が、熱で動き回ることで生じる雑音。1 Hz あたり k·T₀ = 4×10⁻²¹ W（T₀ = 290 K）で、受信機の帯域幅に比例する。'],
+  [15, '受信機の帯域幅（receiver bandwidth、B）', '受信機が通す周波数の幅。広いほど雑音も多く入る。ふつうはパルス幅の逆数くらいにする（B·τ ≈ 1）。'],
+  [15, '検出に要る S/N（(S/N)₁）', 'パルス 1 つで、決めた誤警報確率と検出確率を満たすのに要る S/N。判定の厳しさと、目標のゆらぎで決まる。'],
+  [15, '積分の効率（integration efficiency、Ei(n)）', 'n 個のパルスを足し合わせたとき、理想（S/N が n 倍）に対して、どれだけの効き目があるかを表す数（0〜1）。位相をそろえて足せば 1。'],
+  [15, 'コヒーレント積分と非コヒーレント積分（coherent / noncoherent integration）', '位相までそろえてパルスを足すのがコヒーレント積分、強さだけを足すのが非コヒーレント積分。後者は効率が 1 より小さい。'],
+  [15, 'デューティ比（duty cycle）', 'パルスを出している時間の割合。パルス幅 × パルス繰り返し周波数。平均電力 = 尖頭電力 × デューティ比。'],
+  [15, 'システム損失（system loss、Ls）', '理想どおりの式から実際の性能を下げるものを、まとめた数（1 より大きい）。全部を数えると 10〜20 dB になることも珍しくない。'],
+  [15, '立体角（solid angle、Ω）', '空間の中の方向の広がりを表す量。単位はステラジアン [sr]。全方向は 4π sr。'],
+  [15, 'ビームの立体角（beam solid angle、Ω₀）', 'アンテナのビームが占める立体角。利得とは G = 4π/Ω₀ の関係にある。'],
+  [15, '電力開口積（power-aperture product）', '平均電力と有効開口面積の積 Pav·Ae。捜索レーダの探知距離を決める、設計で選べるいちばん大事な量。'],
+  [16, '送信機（transmitter）', '仕事に合った波形を作り、増幅して送り出す部分。性能を表すのは、尖頭電力より平均電力。'],
+  [16, '送受切換器（デュプレクサ、duplexer）', '1 つのアンテナを送信と受信で共用するための部分。送信中は受信機を守り、受信中はエコーを受信機へ導く。'],
+  [16, '受信機（receiver）', '弱いエコーを、検出できる強さまで増幅する部分。自分自身が出す雑音が、検出の限界を決める。'],
+  [16, '低雑音増幅器（LNA、low-noise amplifier）', '受信機の初段に置く、雑音の少ない増幅器。受信機全体の雑音は、ほぼここで決まる。'],
+  [16, '信号処理（signal processing）', '欲しい信号を、検出のじゃまになる信号（雑音、クラッタなど）から分ける部分。整合フィルタやドップラ処理が入る。'],
+  [16, 'ドップラ処理（doppler processing）', 'パルスごとの位相の変化（ドップラ周波数）を使って、動く目標を、クラッタやほかの目標から分ける処理。'],
+  [16, '信号対クラッタ比（signal-to-clutter ratio）', '目標のエコーの電力が、クラッタの電力の何倍かを表す値。クラッタが雑音より強い所では、これが検出を決める。'],
+  [16, '判定（detection decision）', '処理後の出力をしきい値と比べ、超えたら「目標あり」とすること。'],
+  [16, 'データ処理（data processing）', '判定のあと、検出点から目標の航跡を求める部分。'],
+  [16, '分解能と精度（resolution / accuracy）', '分解能は、近くに並んだ 2 つの目標を見分けられる間隔。精度は、1 つの目標の位置を測る正確さ。精度は S/N が高いほど良く、分解能より細かくなる。'],
+  [16, 'S/N の家計簿', '受信機の入り口から処理後まで、段階ごとに S/N を何 dB 稼ぎ、何 dB 失うかを並べた表（この教材での呼び名）。'],
+  [17, '多機能レーダ（multifunction radar）', '1 台で、捜索や追尾など、いくつもの役目を受け持つレーダ。ビームを電子的に振り、役目ごとに時間を配る。'],
+  [17, '近くが見えない距離（最小探知距離、minimum range）', '送信している間は受信できないために、エコーを受けられない近距離の範囲。パルスの長さに比例する（c·τ/2）。'],
+  [17, '設計表', '左に要求、右に今の設計で達成できる値を並べ、足りているかを見比べる表（この教材での呼び名）。']
+);
+
+/* ---- 中級シリーズの用語（中級の HTML にだけ入る。入門の用語集は変えない） ---- */
+SERIES[101] = {no: 101, file: 'm01_detection.html', name: '検出の計算', label: '中級 第1回', ready: true};
+GLOSS.push(
+  [101, '計算書', '前提、式、値、単位を 1 行ずつ並べて、性能の数字がどこから出たかを追えるようにした表（この教材での呼び名）。'],
+  [101, '感度（sensitivity）', '前提の値を少し変えたときに、結果がどれだけ動くか。どの前提が効くかを見分けるのに使う（この教材での使い方）。'],
+  [101, '誤報の時間（false-report time、T_FR）', 'その時間のうちに、1 回以上の誤報が出る確率が 0.5 になる時間（Marcum の定義）。誤報の平均の間隔 T_AVG とは、T_FR ≈ T_AVG·ln 2 の関係。'],
+  [101, 'セルあたりの誤警報確率（P_FA）', '距離とドップラで区切った 1 つのセルで、雑音だけでしきい値を超える確率。誤報の時間と、判定するセルの数から決める。'],
+  [101, '必要 S/N（required SNR）', '決めた誤警報確率と検出確率を満たすのに要る S/N。目標のゆらぎ方と、足し合わせる数で変わる。'],
+  [101, 'ゆらがない目標（Marcum target、nonfluctuating target）', 'エコーの強さが、観測のたびに変わらないとした目標のモデル。Swerling 0（または 5）と呼ぶこともある。'],
+  [101, 'Swerling 1〜4 と n_e', '目標の強さのゆらぎ方の 4 つの型。1・3 はドウェルの中では同じ強さで、ドウェルごとに変わる。2・4 は CPI ごとに変わる。1・2 は自由度 2、3・4 は自由度 4 のカイ二乗分布。式では n_e（1、N_pdi、2、2·N_pdi）で区別する。'],
+  [101, 'ゆらぎの損失（fluctuation loss）', '目標がゆらぐために、ゆらがない目標より余分に要る S/N [dB]。検出確率が高いほど大きい。'],
+  [101, 'N_pdi（位相をそろえずに足す CPI の数）', '検波のあとで足し合わせる CPI の数（postdetection integration）。1 なら、1 つの CPI だけで判定する。'],
+  [101, '足し合わせの損失（integration loss）', '位相をそろえずに N 個を足したとき、「N 倍得をする」という理想に届かないぶん [dB]。'],
+  [101, 'ルックとドウェル（look / dwell）', 'ドウェルは、1 つの方向を照らすひとまとまりの時間。ルックは、その中の 1 回ぶんの観測（PRF を変えた 1 回など）。'],
+  [101, 'M-of-N（ドウェルの検出確率）', 'N 回のルックのうち M 回以上で検出したら「目標あり」とする決め方。1 ルックの確率から、二項分布でドウェルの確率を出す。入門 第4回の 2 値積分と同じ考え方。'],
+  [101, 'R_o（S/N が 1 になる距離）', 'レーダと目標の値、損失から決まる基準の距離。S/N = (R_o/R)⁴ と書ける。'],
+  [101, '目標にかかる損失（L_T）', '目標の S/N を下げる損失の合計。クラッタにはかからない損失（ビーム形状、エクリプシング、ストラドル、CFAR、ガード）を含む。'],
+  [101, 'ストラドルの損失（straddle loss）', '目標が、レンジゲートやドップラフィルタの中心からずれているために、出力が下がるぶん。'],
+  [101, '1 回の走査の検出確率（single-scan P_d）', '1 回の走査（フレーム）で、その目標を検出する確率。'],
+  [101, '累積の検出確率（cumulative probability of detection、P_d,cum）', '近づいてくる目標を、ある距離までに 1 回以上検出する確率。近づく目標だけに定義される。'],
+  [101, 'カイ二乗分布の上側確率（K_m）', '自由度 d のカイ二乗分布で、値が x を超える確率 K_m(x, d) = 1 − P(d/2, x/2)。P は正則化した不完全ガンマ関数。自由度 2 なら exp(−x/2)。']
+);
+
+/* ============================================================
+   4本共通の進行部品：問い → 予想 → 操作 → 答え合わせ、ミッション、読み物、用語集、指導者メモ
+   各回のファイルで STEPS（ステップの定義）、CT（操作部の一覧）、PRE（前提知識）、resetS(init) を用意する
+   ============================================================ */
+const STATE = {pred: [], shown: [], ms: [], touched: false};
+let cur = 0, PL = [], playT = null, hlT = null, lastR = {};
+/* dB の値に「何倍か」を添える（電力の比）。例：−20.0 dB（電力 1/100） */
+function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + ' 倍' : '1/' + s; }
+function dbx(d, dg){ return isFinite(d) ? fx(d, dg === undefined ? 1 : dg) + ' dB（電力 ' + ratioTxt(d) + '）' : '—'; }
+/* 読み物の書き方：[[キー|表示]] はシミュレータ側を強調するリンク、{H} は「補足」の印 */
+function rt(s){ return String(s || '').replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '<a class="term" data-hl="$1" role="button" tabindex="0">$2</a>').replace(/\{H\}/g, H); }
+function tilesHtml(a){ return (a || []).filter(Boolean).map(t => '<div class="tile"><div class="k">' + t.k + '</div><div class="v">' + t.v + '</div>' + (t.s ? '<div class="s">' + t.s + '</div>' : '') + '</div>').join(''); }
+const eq = b => '<div class="eq">' + b + '</div>';
+
+function stopPlay(){ if (playT){ clearInterval(playT); playT = null; const b = $('#playBtn'); if (b) b.textContent = b.dataset.t; } }
+function ctlDef(c){ const o = typeof c === 'string' ? {k: c} : c; return Object.assign({}, CT[o.k], o); }
+function getV(d){ return d.get ? d.get() : S[d.k]; }
+function setV(d, v){ if (d.set) d.set(v); else S[d.k] = v; }
+function buildCtl(host, c){
+  const d = ctlDef(c), e = el('div', 'ctl'); e.dataset.k = d.k;
+  if (d.seg){
+    e.innerHTML = '<div class="ctl-h"><label>' + d.l + '</label></div><span class="seg">' + d.seg.map(o => '<button type="button" data-v="' + o[0] + '">' + o[1] + '</button>').join('') + '</span><small></small>';
+    $('.seg', e).addEventListener('click', ev => { const v = ev.target && ev.target.dataset ? ev.target.dataset.v : undefined; if (v !== undefined){ setV(d, typeof d.seg[0][0] === 'number' ? Number(v) : v); userChanged(); } });
+  } else if (d.chk){
+    e.innerHTML = '<label class="chk"><input type="checkbox">' + d.l + '</label><small></small>';
+    $('input', e).addEventListener('change', ev => { setV(d, ev.target.checked); userChanged(); });
+  } else {
+    e.innerHTML = '<div class="ctl-h"><label>' + d.l + '</label><output></output></div><input type="range" min="' + d.min + '" max="' + d.max + '" step="' + d.step + '" aria-label="' + d.l.replace(/<[^>]*>/g, '') + '"><small></small>';
+    $('input', e).addEventListener('input', ev => { setV(d, parseFloat(ev.target.value)); userChanged(); });
+  }
+  e._d = d; host.appendChild(e);
+}
+function syncCtl(){
+  for (const e of document.querySelectorAll('#sim .ctl')){
+    const d = e._d, v = getV(d);
+    if (d.seg){ for (const b of $('.seg', e).children) b.setAttribute('aria-pressed', String(b.dataset.v) === String(v)); }
+    else if (d.chk) $('input', e).checked = !!v;
+    else { $('input', e).value = v; $('output', e).textContent = d.f ? d.f(v) : String(v); }
+    $('small', e).textContent = d.h ? d.h(v) : '';
+  }
+  const fx_ = $('#fixed'), st = STEPS[cur];
+  if (fx_) fx_.innerHTML = ((st.fixed && st.fixed.length) || (st.fixT && st.fixT.length) ? 'このステップでは固定：' + (st.fixed || []).map(k => { const d = ctlDef(k), v = getV(d); return '<span>' + d.l.replace(/（.*?）/g, '') + ' ' + (d.seg ? (d.seg.find(o => String(o[0]) === String(v)) || ['', v])[1] : d.chk ? (v ? 'あり' : 'なし') : d.f ? d.f(v) : v) + '</span>'; }).join('') + (st.fixT || []).map(t => '<span>' + t + '</span>').join('') : '');
+}
+function userChanged(){ STATE.touched = true; redraw(); }
+function redraw_intro(){
+  const st = STEPS[cur]; syncCtl();
+  lastR = st.draw(PL) || {};
+  const tl = $('#tiles'); if (tl) tl.innerHTML = tilesHtml(lastR.tiles);
+  if (st.mission && !STATE.ms[cur] && STATE.touched && ((st.free && !st.q) || STATE.pred[cur] !== undefined) && st.mission.ok(lastR)){ STATE.ms[cur] = true; }
+  showMission();
+}
+function showMission(){
+  const st = STEPS[cur], c = $('#msCard');
+  if (c){ c.classList.toggle('done', !!STATE.ms[cur]); $('.st', c).textContent = STATE.ms[cur] ? '達成！' : (lastR.msHint ? '未達成（' + lastR.msHint + '）' : '未達成'); }
+  const bar = $('#msbar'); let n = 0, h = 'ミッション ';
+  STEPS.forEach((s, i) => { if (!s.mission) return; if (STATE.ms[i]) n++; h += '<button type="button" data-i="' + i + '" class="' + (STATE.ms[i] ? 'done' : '') + '" title="ステップ ' + (i + 1) + '：' + s.short + (STATE.ms[i] ? '（達成）' : '') + '" aria-label="ステップ ' + (i + 1) + ' のミッション' + (STATE.ms[i] ? '（達成）' : '（未達成）') + '">✓</button>'; });
+  bar.innerHTML = h + '<b>' + n + ' / ' + STEPS.filter(s => s.mission).length + '</b>';
+  for (const b of $('#steps').children) b.classList.toggle('done', !!STATE.ms[Number(b.dataset.i)]);
+}
+function showAnswer_intro(){
+  const st = STEPS[cur], body = $('#ansBody'), p = STATE.pred[cur]; if (!body || !STATE.shown[cur]) return;
+  body.hidden = false;
+  body.innerHTML = '<p><b>' + (p === st.ans ? '予想どおりです。' : '予想とは違いましたね。外れても大丈夫、ここで「なぜ」を確かめれば身につきます。') + '</b></p><p>答え：<b>' + st.ch[st.ans] + '</b></p><p>' + rt(st.why) + '</p>';
+  const bs = $('#choices').children; for (let i = 0; i < bs.length; i++) bs[i].classList.toggle('right', i === st.ans);
+}
+function renderRead_intro(st, i){
+  const r = st.read || {}; let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>';
+  if (i === 0 && typeof PRE !== 'undefined'){
+    h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと 30 秒で読める説明が出ます）';
+    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && L[0] !== SIM_NO && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">くわしくは第' + L[0] + '回のステップ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回のステップ' + p.step + 'を先に見てね</a></p>'; }
+    h += '</div>';
+  }
+  if (r.ana) h += '<h3>① 身近なたとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
+  if (r.what) h += '<h3>② 何が起きているか</h3>' + rt(r.what).split('||').map(p => '<p>' + p + '</p>').join('');
+  if (r.eq) h += '<h3>③ 大事な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
+  if (r.mis) h += '<h3>④ よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
+  if (st.extra) h += '<div id="extra"></div>';
+  if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; if (nx && nx.ready) h += '<p class="nextsim">この回はここまでです。次は　<a class="btn primary" href="' + nx.file + '">第' + nx.no + '回 ' + nx.name + ' →</a></p>'; else h += '<p class="nextsim">この回はここまでです。<a href="00_index.html">目次へ戻る</a></p>'; }
+  h += '<div class="src"><b>出典</b>　' + (st.srcRaw ? '' : 'Radar Handbook 3rd ed.　') + st.src + '</div>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
+  $('#read').innerHTML = h;
+  if (st.extra) $('#extra').innerHTML = st.extra();
+}
+function renderSim_intro(st, i){
+  const sim = $('#sim'); sim.innerHTML = ''; PL = []; PLOTS.length = 0;
+  const unlocked = (st.free && !st.q) || STATE.pred[i] !== undefined;
+  if (st.q){
+    const q = el('div', 'card q', '<span class="lbl">問い</span><p>' + st.q + '</p><div class="ch" id="choices">' + st.ch.map((c, k) => '<button type="button" data-k="' + k + '" aria-pressed="' + (STATE.pred[i] === k) + '">' + c + '</button>').join('') + '</div><div class="hint">まず予想を 1 つ選ぼう（当たり外れは気にしなくて大丈夫）。選ぶと下の操作部が使えるようになります。</div>');
+    sim.appendChild(q);
+    $('#choices', q).addEventListener('click', ev => { const k = ev.target && ev.target.dataset ? ev.target.dataset.k : undefined; if (k === undefined) return; STATE.pred[i] = Number(k); for (const b of $('#choices').children) b.setAttribute('aria-pressed', b.dataset.k === k); $('#opCard').classList.remove('locked'); $('#ansBtn').disabled = false; redraw(); });
+  }
+  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">予想してから触ろう</div><span class="lbl">操作</span><span class="hint" style="margin:0">' + (st.do || 'スライダーを動かして確かめよう') + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
+  op.id = 'opCard'; sim.appendChild(op);
+  for (const c of (st.ctl || [])) buildCtl($('#ctls', op), c);
+  const acts = $('#acts', op);
+  for (const a of (st.acts || [])){
+    const b = el('button', 'btn sm', a.t); b.type = 'button';
+    if (a.play){ b.id = 'playBtn'; b.dataset.t = a.t; b.addEventListener('click', () => { if (playT){ stopPlay(); return; } b.textContent = '■ 止める'; const p = a.play; playT = setInterval(() => { let v = S[p.k] + p.step; if (v > p.max){ if (p.once){ S[p.k] = p.max; stopPlay(); userChanged(); return; } v = p.min; } S[p.k] = v; userChanged(); }, p.ms || 90); }); }
+    else b.addEventListener('click', () => { a.f(); userChanged(); });
+    acts.appendChild(b);
+  }
+  for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
+  if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
+  if (st.q){
+    const a = el('div', 'card ans', '<button type="button" class="btn primary" id="ansBtn"' + (unlocked ? '' : ' disabled') + '>答えを見る</button>　<span class="hint">操作して確かめてから押そう</span><div class="body" id="ansBody" hidden></div>');
+    sim.appendChild(a); $('#ansBtn', a).addEventListener('click', () => { STATE.shown[i] = true; showAnswer(); });
+  }
+}
+function goStep(i){
+  stopPlay(); cur = Math.max(0, Math.min(STEPS.length - 1, i)); const st = STEPS[cur];
+  resetS(st.init || {}); STATE.touched = false; HLKEY = null;
+  renderRead(st, cur); renderSim(st, cur);
+  for (const b of $('#steps').children) b.setAttribute('aria-current', String(Number(b.dataset.i) === cur));
+  $('#prevBtn').disabled = cur === 0; $('#nextBtn').disabled = cur === STEPS.length - 1;
+  redraw(); showAnswer();
+  try { if (location.hash !== '#s' + (cur + 1)) history.replaceState(null, '', '#s' + (cur + 1)); } catch (e) {}
+}
+function highlight(key){
+  clearTimeout(hlT); for (const e of document.querySelectorAll('.flash')) e.classList.remove('flash');
+  let target = null;
+  if (key.indexOf('ctl:') === 0){ target = document.querySelector('#sim .ctl[data-k="' + key.slice(4) + '"]'); HLKEY = null; }
+  else if (key.indexOf('tile:') === 0){ target = document.querySelectorAll('#tiles .tile')[Number(key.slice(5))]; HLKEY = null; }
+  else { HLKEY = key; for (const p of PLOTS) if (p.cfg && p.cfg.marks && p.cfg.marks[key]){ target = p.root; break; } }
+  if (target && target.classList && HLKEY === null) target.classList.add('flash');
+  redrawAll();
+  if (target){ const r = target.getBoundingClientRect(); if (r.top < 50 || r.bottom > innerHeight) target.scrollIntoView({block: 'center', behavior: 'smooth'}); }
+  hlT = setTimeout(() => { HLKEY = null; for (const e of document.querySelectorAll('.flash')) e.classList.remove('flash'); redrawAll(); }, 4000);
+}
+function buildGloss(){
+  const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
+  let h = '<h2>用語集（全回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';
+  h += '<h3>この回（' + SERIES[SIM_NO].label + ' ' + SERIES[SIM_NO].name + '）の用語</h3>' + grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(-1);
+  for (let n = 0; n < SERIES.length; n++) if (n !== SIM_NO && SERIES[n] && GLOSS.some(t => t[0] === n)) h += '<h3>' + (SERIES[n].label || '入門 第' + n + '回') + ' ' + SERIES[n].name + '</h3>' + grp(n);
+  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は、Radar Handbook 3rd ed. の用語を新人向けに言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
+  const toggle = on => { g.hidden = !on; if (on) $('#glFind').focus(); };
+  $('#glBtn').addEventListener('click', () => toggle(g.hidden)); $('#glTab').addEventListener('click', () => toggle(g.hidden)); $('#glClose').addEventListener('click', () => toggle(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
+  $('#glFind').addEventListener('input', e => { const q = e.target.value.trim().toLowerCase(); for (const dt of g.querySelectorAll('dt')){ const hit = !q || (dt.textContent + dt.nextElementSibling.textContent).toLowerCase().indexOf(q) >= 0; dt.hidden = !hit; dt.nextElementSibling.hidden = !hit; } });
+}
+function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); $('#themeBtn').textContent = '表示: ' + (t === 'dark' ? 'ダーク' : 'ライト'); redrawAll(); }
+function boot(){
+  const nav = $('#steps');
+  STEPS.forEach((s, i) => { const b = el('button', '', '<i>' + (i + 1) + '</i>' + s.short); b.type = 'button'; b.dataset.i = i; b.addEventListener('click', () => goStep(i)); nav.appendChild(b); });
+  $('#prevBtn').addEventListener('click', () => { goStep(cur - 1); window.scrollTo(0, 0); });
+  $('#nextBtn').addEventListener('click', () => { goStep(cur + 1); window.scrollTo(0, 0); });
+  $('#msbar').addEventListener('click', e => { const i = e.target && e.target.dataset ? e.target.dataset.i : undefined; if (i !== undefined) goStep(Number(i)); });
+  const onTerm = e => { const a = e.target && e.target.closest ? e.target.closest('a.term') : null; if (a && (e.type === 'click' || e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); highlight(a.dataset.hl); } };
+  $('#read').addEventListener('click', onTerm); $('#read').addEventListener('keydown', onTerm);
+  buildGloss();
+  const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  let theme = mq && mq.matches ? 'dark' : 'light';
+  $('#themeBtn').addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(theme); });
+  document.documentElement.setAttribute('data-theme', theme);
+  const h = /^#s(\d+)$/.exec(location.hash || '');
+  goStep(h ? Number(h[1]) - 1 : 0); applyTheme(theme);
+  window.addEventListener('hashchange', () => { const m = /^#s(\d+)$/.exec(location.hash || ''); if (m && Number(m[1]) - 1 !== cur) goStep(Number(m[1]) - 1); });
+  if (window.ResizeObserver) new ResizeObserver(() => redrawAll()).observe($('#sim')); else window.addEventListener('resize', redrawAll);
+}
+
+/* ============================================================
+   中級シリーズ用の差し替え（make_fw_m.py が、fw_core2.js のうしろにつなぐ。入門の回には入らない）
+   入門との違い：3 択の予想のかわりに、数値入力と判定（ask）、段階的なヒント、計算書（sheet）。
+   ステップ定義に足すもの：
+     ask: [{id, label, unit, ans（数値、または数値を返す関数）, tol, tolType: 'abs'|'rel', hints: [1 回目, 2 回目]}]
+     solve: 解き方（正解したとき、または 3 回外れたときに全部見せる）
+     sheet: 計算書の行を返す関数（省略すると、全ステップ共通の SHEET を使う）。行は {k: 項目, f: 式・根拠, v: 値, u: 単位, st: 決めるステップ, head: 見出し行}
+     read: {what, eq, sym, tbl, cond（この式が使える条件）, fail（崩れる条件）, mis}
+   ============================================================ */
+const MST = {tries: [], ok: [], rev: [], val: [], fb: []};
+const askAns = a => typeof a.ans === 'function' ? a.ans() : a.ans;
+function askParse(s){ s = String(s || '').trim().replace(/[０-９．]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[−－ー]/g, '-').replace(/,/g, ''); return s === '' ? NaN : Number(s); }
+function askOk(a, v){ const t = askAns(a); return isFinite(v) && (a.tolType === 'rel' ? Math.abs(v - t) <= Math.abs(t) * a.tol * (1 + 1e-9) : Math.abs(v - t) <= a.tol * (1 + 1e-9)); }
+const askTol = a => a.tolType === 'rel' ? '±' + fx(a.tol * 100, 0) + '%' : '±' + a.tol;
+function sheetRows(){ const st = STEPS[cur]; return (st.sheet || SHEET)(lastR); }
+function renderSheet(){
+  const host = $('#sheet'); if (!host) return; const st = STEPS[cur], open = !st.ask || MST.ok[cur] || MST.rev[cur];
+  let h = '<div class="tw"><table class="t sheet"><tr><th>項目</th><th>式・根拠</th><th>値</th><th>単位</th></tr>';
+  for (const r of sheetRows()){
+    if (r.head){ h += '<tr class="sh"><td colspan="4">' + r.head + '</td></tr>'; continue; }
+    const s = r.st || 0, shown = s < cur + 1 || (s === cur + 1 && open) || st.free;
+    h += '<tr class="' + (s === cur + 1 ? 'now' : '') + (shown ? '' : ' yet') + '"><td>' + r.k + '</td><td>' + (r.f || '') + '</td><td class="num">' + (shown ? r.v : s === cur + 1 ? '（これから計算）' : '（ステップ ' + s + '）') + '</td><td>' + (shown ? (r.u || '') : '') + '</td></tr>';
+  }
+  host.innerHTML = h + '</table></div>';
+}
+function redraw(){
+  const st = STEPS[cur]; syncCtl();
+  lastR = st.draw(PL) || {};
+  const tl = $('#tiles'); if (tl) tl.innerHTML = tilesHtml(lastR.tiles);
+  if (st.ask){ if (MST.ok[cur]) STATE.ms[cur] = true; }
+  else if (st.mission && !STATE.ms[cur] && STATE.touched && st.mission.ok(lastR)) STATE.ms[cur] = true;
+  renderSheet(); showMission();
+}
+function showAnswer(){}
+function showSolve(){
+  const st = STEPS[cur], b = $('#ansBody'); if (!b) return; const open = MST.ok[cur] || MST.rev[cur];
+  b.hidden = !open; if (open) b.innerHTML = '<p><b>解き方</b></p>' + rt(st.solve || '').split('||').map(p => '<p>' + p + '</p>').join('');
+  const w = $('#ansWait'); if (w) w.hidden = !!open;
+}
+function judge(){
+  const st = STEPS[cur], i = cur, vals = {}, fb = $('#askFb'); let all = true, firstBad = null;
+  for (const a of st.ask){ const e = document.querySelector('#asks input[data-id="' + a.id + '"]'), v = askParse(e.value), ok = askOk(a, v); vals[a.id] = e.value; e.classList.toggle('good', ok); e.classList.toggle('bad', !ok); e.setAttribute('aria-invalid', String(!ok)); if (!ok){ all = false; if (!firstBad) firstBad = a; } }
+  MST.val[i] = vals;
+  if (all){ MST.ok[i] = true; MST.fb[i] = '<p class="okline"><b>正解です。</b>下のスライダーで、条件を変えたときの動き（感度）を確かめよう。</p>'; }
+  else {
+    MST.tries[i] = (MST.tries[i] || 0) + 1; const n = MST.tries[i], hs = firstBad.hints || [];
+    let h = '<p class="ngline"><b>' + (isFinite(askParse(vals[firstBad.id])) ? '「' + firstBad.label + '」が、許容の範囲（' + askTol(firstBad) + '）に入っていません。' : '「' + firstBad.label + '」に、数値を入れてください。') + '</b>（' + n + ' 回目）</p>';
+    for (let k = 0; k < Math.min(n, hs.length, 2); k++) h += '<p class="hintline">ヒント ' + (k + 1) + '：' + rt(hs[k]) + '</p>';
+    if (n >= 3){ MST.rev[i] = true; h += '<p class="hintline">3 回目なので、下に解き方をすべて出しました。確かめてから、もう一度入力してみよう。</p>'; }
+    MST.fb[i] = h;
+  }
+  fb.innerHTML = MST.fb[i];
+  if (MST.ok[i] || MST.rev[i]) $('#opCard').classList.remove('locked');
+  STATE.touched = true; redraw(); showSolve();
+}
+function renderRead(st, i){
+  const r = st.read || {}, para = s => rt(s).split('||').map(p => '<p>' + p + '</p>').join(''); let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>', n = 0; const no = () => '①②③④⑤⑥'[n++];
+  if (i === 0 && typeof PRE !== 'undefined'){
+    h += '<div class="pre"><b>この回に必要な前提知識</b>　' + H + '（入門の回で扱った内容です）';
+    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">くわしくは第' + L[0] + '回のステップ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">入門 第' + p.no + '回のステップ' + p.step + '</a></p>'; }
+    h += '</div>';
+  }
+  if (r.ana) h += '<h3>' + no() + ' たとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
+  if (r.what) h += '<h3>' + no() + ' 考え方</h3>' + para(r.what);
+  if (r.eq) h += '<h3>' + no() + ' 使う式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
+  if (r.tbl) h += r.tbl;
+  if (r.cond) h += '<h3>' + no() + ' この式が使える条件</h3>' + para(r.cond);
+  if (r.fail) h += '<h3>' + no() + ' 崩れる条件</h3>' + para(r.fail);
+  if (r.mis) h += '<h3>' + no() + ' よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
+  if (st.extra) h += '<div id="extra"></div>';
+  if (i === STEPS.length - 1) h += '<p class="nextsim">この回はここまでです。<a href="00_index.html">目次へ戻る</a></p>';
+  h += '<div class="src"><b>出典</b>　' + (st.srcRaw ? '' : 'Radar Handbook 3rd ed.　') + st.src + '</div>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + para(st.memo) + '</details>';
+  $('#read').innerHTML = h;
+  if (st.extra) $('#extra').innerHTML = st.extra();
+}
+function renderSim(st, i){
+  const sim = $('#sim'); sim.innerHTML = ''; PL = []; PLOTS.length = 0;
+  const unlocked = !st.ask || MST.ok[i] || MST.rev[i];
+  if (st.ask){
+    const v = MST.val[i] || {};
+    const q = el('div', 'card q', '<span class="lbl">計算</span><div class="qm">' + rt(st.q).split('||').map(p => '<p>' + p + '</p>').join('') + '</div><div class="asks" id="asks">' + st.ask.map(a => '<label class="ask"><span class="al">' + a.label + '</span><span class="ai"><input type="text" inputmode="decimal" autocomplete="off" data-id="' + a.id + '" value="' + (v[a.id] === undefined ? '' : String(v[a.id]).replace(/"/g, '')) + '" aria-label="' + a.label.replace(/<[^>]*>/g, '') + '"><span class="au">' + (a.unit || '') + '</span><small>許容 ' + askTol(a) + '</small></span></label>').join('') +
+      '</div><button type="button" class="btn primary" id="judgeBtn">判定する</button><div class="hint">手で計算して、数値を入れよう（電卓を使ってよい）。外れたら、ヒントが 1 段ずつ出ます。</div><div id="askFb" class="fb">' + (MST.fb[i] || '') + '</div>');
+    sim.appendChild(q);
+    $('#judgeBtn', q).addEventListener('click', judge);
+    $('#asks', q).addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); judge(); } });
+  }
+  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">計算してから触ろう</div><span class="lbl">' + (st.ask ? '感度を見る' : '操作') + '</span><span class="hint" style="margin:0">' + (st.do || (st.ask ? '答え合わせのあと、条件を変えて、答えがどう動くかを確かめよう' : 'スライダーを動かして確かめよう')) + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
+  op.id = 'opCard'; sim.appendChild(op);
+  for (const c of (st.ctl || [])) buildCtl($('#ctls', op), c);
+  const acts = $('#acts', op);
+  for (const a of (st.acts || [])){ const b = el('button', 'btn sm', a.t); b.type = 'button'; b.addEventListener('click', () => { a.f(); userChanged(); }); acts.appendChild(b); }
+  for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
+  const sh = el('div', 'card sheetc', '<span class="lbl">計算書</span><span class="hint" style="margin:0">ステップが進むたびに、行が埋まります。値は、標準の条件（' + (st.free ? 'このステップでは、今の設定' : 'P<sub>d</sub> 0.9 など') + '）のものです。</span><div id="sheet"></div>'); sim.appendChild(sh);
+  if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
+  if (st.ask){ const a = el('div', 'card ans', '<div class="body" id="ansBody" hidden></div><span class="hint" id="ansWait">解き方は、正解したとき（または 3 回外れたとき）に、ここに出ます。</span>'); sim.appendChild(a); showSolve(); }
+}
+function bootM(){
+  STEPS.forEach((s, i) => { if (s.ask && !s.mission) s.mission = {t: '手で計算した値を入力して、「正解」と判定されること。', ok: () => !!MST.ok[i]}; });
+  boot();
+}
+
+/* ============================================================
+   中級 第1回 検出の計算：ステップの定義（数値入力式。枠組みは fw_m_add.js）
+   ============================================================ */
+function resetS(init){ for (const k in S) delete S[k]; Object.assign(S, DEFAULTS, init); }
+const PRE = ['db', 'prob', {no: 4, step: 3, t: '検出確率と誤警報確率、目標のゆらぎは、'}, {no: 15, step: 4, t: 'レーダ方程式と「検出に要る S/N」は、'}, {no: 16, step: 6, t: '信号の流れの中での判定は、'}];
+const Z = std();
+const SWN = ['ゆらがない', 'Swerling 1', 'Swerling 2', 'Swerling 3', 'Swerling 4'];
+const sg = (v, d) => (v >= 0 ? '+' : MINUS) + Math.abs(v).toFixed(d === undefined ? 2 : d);
+const pfaTxt = x => x % 1 ? sci(Math.pow(10, -x), 1) : '10' + sup(-x);
+const kmT = m => fx(m / 1000, 1) + ' km';
+const NS = [1, 2, 4, 8, 16, 32];
+const CT = {
+  ltavg: {l: '誤報の平均の間隔 T<sub>AVG</sub>', min: 0, max: 4, step: 0.25, f: v => (v < 2 ? fx(Math.pow(10, v), v % 1 ? 1 : 0) + ' 秒' : fx(Math.pow(10, v) / 60, 1) + ' 分'), h: v => '誤報の時間 T_FR = ' + fx(Math.pow(10, v) * Math.LN2, 2) + ' 秒'},
+  cells: {l: '1 回のドウェルで判定するセルの数', seg: [[160, '160'], [1600, '1600'], [16000, '1.6 万'], [160000, '16 万']]},
+  x: {l: '誤警報確率 P<sub>FA</sub>', min: 4, max: 8, step: 0.5, f: v => pfaTxt(v)},
+  pd: {l: '検出確率 P<sub>d</sub>', min: 0.1, max: 0.99, step: 0.01, f: v => fx(v, 2)},
+  sw: {l: '目標のゆらぎ方', seg: [[0, 'ゆらがない'], [1, 'Swerling 1'], [2, '2'], [3, '3'], [4, '4']]},
+  npdi: {l: '足し合わせる CPI の数 N<sub>pdi</sub>', seg: NS.map(n => [n, String(n)])},
+  n: {l: 'ルックの数 N', min: 1, max: 8, step: 1, f: v => fx(v, 0) + ' 回'},
+  m: {l: '要る検出の数 M', min: 1, max: 8, step: 1, f: v => fx(Math.min(v, S.n), 0) + ' 回以上', h: v => v > S.n ? 'N を超えないように、' + S.n + ' として計算' : ''},
+  pl: {l: '1 ルックの検出確率', min: 0.05, max: 0.99, step: 0.01, f: v => fx(v, 2)},
+  ng: {l: 'IPP の中のレンジゲートの数', seg: [[5, '5'], [10, '10'], [20, '20']]},
+  ladj: {l: '損失の見込みの変更', min: -6, max: 6, step: 0.5, f: v => sg(v, 1) + ' dB', h: v => '損失の合計 ' + fx(Z.lt.tot + v, 2) + ' dB'},
+  pavdb: {l: '平均電力の変更', min: -6, max: 10, step: 1, f: v => sg(v, 0) + ' dB', h: v => fx(EX.pav * lin(v) / 1000, 2) + ' kW'},
+  dr: {l: '1 回の走査のあいだに、目標が近づく距離', min: 2, max: 30, step: 1, f: v => fx(v, 0) + ' km'},
+  ltf: {l: 'フレーム時間（同じ方向をもう一度見るまで）', min: 0, max: 2.5, step: 0.05, f: v => fx(Math.pow(10, v), v < 1 ? 1 : 0) + ' 秒', h: v => '1 回の走査のあいだに ' + fx(EX.v * Math.pow(10, v) / 1000, 1) + ' km 近づく'}
+};
+const STEPS = [];
+const FIXE = ['例のレーダ：平均電力 1 kW、利得 33 dB、波長 10 cm、目標 1 m²'];
+/* 計算書：全ステップ共通の行（標準の条件）。st は、その行を決めるステップ */
+function SHEET(){
+  return [
+    {head: '前提（例のレーダ。説明用の値）'},
+    {k: '平均送信電力 P<sub>av</sub>', f: '与える', v: '1.00', u: 'kW', st: 0}, {k: '利得 G<sub>T</sub> = G<sub>R</sub>、波長 λ', f: '有効開口面積 1.6 m²', v: '33.0 dB、10', u: 'cm', st: 0}, {k: '目標 σ<sub>T</sub>', f: '与える', v: '1', u: 'm²', st: 0},
+    {k: '雑音 k·T<sub>s</sub>、帯域幅 B<sub>n</sub>', f: '雑音指数 3 dB、CPI 16 ms', v: sci(KT0 * lin(EX.fn), 2) + ' W/Hz、62.5', u: 'Hz', st: 0}, {k: 'ドウェル T<sub>d</sub>、セル N<sub>r</sub> × N<sub>f</sub>', f: '与える', v: '16 ms、100 × 16', u: '', st: 0}, {k: '誤報の平均の間隔 T<sub>AVG</sub>、検出確率 P<sub>d</sub>', f: '要求として与える', v: '10 秒、0.9', u: '', st: 0},
+    {head: '誤警報'},
+    {k: '誤報の時間 T<sub>FR</sub>', f: 'T<sub>AVG</sub>·ln 2（p.4.44）', v: fx(Z.tfr, 2), u: '秒', st: 1}, {k: 'セルあたりの P<sub>FA</sub>', f: '式4.18（1 ルック）', v: sci(Z.pfa, 1), u: '', st: 1},
+    {head: '必要な S/N（1 つの CPI のあとの値）'},
+    {k: 'η', f: '式4.23 の下の式', v: fx(etaOf(EX.pd, Z.pfa), 3), u: '', st: 2}, {k: 'ゆらがない目標', f: '式4.23、N<sub>pdi</sub> = 1', v: fx(Z.s0, 2), u: 'dB', st: 2},
+    {k: 'Swerling 1 の目標', f: '式4.25、N<sub>pdi</sub> = 1、n<sub>e</sub> = 1', v: fx(Z.s1, 2), u: 'dB', st: 3}, {k: 'ゆらぎの損失', f: '上の 2 行の差', v: fx(Z.fl, 2), u: 'dB', st: 3},
+    {k: '4 個を足すとき（ゆらがない）', f: '式4.23、N<sub>pdi</sub> = 4。1 個あたり', v: fx(Z.s4, 2), u: 'dB', st: 4}, {k: '足し合わせの損失', f: '6.02 dB − 得をした量', v: fx(Z.il, 2), u: 'dB', st: 4},
+    {k: '2-of-3 のドウェルの P<sub>d</sub>', f: '式4.26。1 ルック 0.7', v: fx(Z.pdw, 3), u: '', st: 5}, {k: '2-of-3 のドウェルの誤警報確率', f: '式4.26。1 ルック 10⁻³', v: sci(Z.pfw, 2), u: '', st: 5},
+    {head: '損失と探知距離'},
+    {k: 'エクリプシングとストラドル', f: '式4.17、N = 10', v: fx(db10(eclApprox(EX.ngate)), 2), u: 'dB', st: 6}, {k: '損失の合計 L<sub>T</sub>', f: '14 項目の和（dB）', v: fx(Z.lt.tot, 2), u: 'dB', st: 6},
+    {k: 'R<sub>o</sub>（S/N が 1 になる距離）', f: '式4.16', v: fx(Z.ro / 1000, 1), u: 'km', st: 6}, {k: '探知距離（1 回の P<sub>d</sub> 0.9、ゆらがない）', f: '式4.15、S/N = 13.12 dB', v: fx(Z.r0 / 1000, 1), u: 'km', st: 6}, {k: '探知距離（1 回の P<sub>d</sub> 0.9、Swerling 1）', f: '式4.15、S/N = 21.14 dB', v: fx(Z.r1 / 1000, 1), u: 'km', st: 6},
+    {head: '累積の検出確率'},
+    {k: '5 回のうち 1 回以上（毎回 0.3）', f: '1 − 0.7⁵', v: fx(Z.c5, 3), u: '', st: 7}, {k: '3 回のうち 1 回以上（0.1、0.2、0.3）', f: '式4.27', v: fx(Z.c3, 3), u: '', st: 7},
+    {k: '100 km での 1 回の P<sub>d</sub>（Swerling 1）', f: '式4.15・4.24', v: fx(Z.ps[2], 3), u: '', st: 8}, {k: '100 km までの累積の P<sub>d</sub>（120・110・100 km）', f: '式4.27', v: fx(Z.cum[2], 3), u: '', st: 8}];
+}
+const xsDb = (a, b, d) => { const o = []; for (let v = a; v <= b + 1e-9; v += d) o.push(v); return o; };
+const PDX = xsDb(0.1, 0.99, 0.01);
+
+/* 1 */
+STEPS.push({short: '誤警報を決める', title: '誤警報を決める — 誤報の時間から、セルあたりの P_FA を出す', src: '第4章 §4.6 Range Performance：Probability of False Alarm（p.4.44、式4.18）',
+  q: '誤報は、平均して 10 秒に 1 回まで許す、と決めた。1 回のドウェル（16 ms）で判定するセルは、距離 100 × ドップラ 16 = 1600 個ある。||(1) 誤報の時間 T<sub>FR</sub>（その時間のうちに、1 回以上の誤報が出る確率が 0.5 になる時間）は、何秒か。||(2) セルあたりの誤警報確率 P<sub>FA</sub> は、いくらか。',
+  ask: [{id: 'tfr', label: '(1) 誤報の時間 T<sub>FR</sub>', unit: '秒', ans: Z.tfr, tol: 0.05, tolType: 'abs', hints: ['T<sub>FR</sub> ≈ T<sub>AVG</sub> × ln 2。ln 2 ≈ 0.693。', '10 × 0.693 を計算する。']},
+    {id: 'pfa', label: '(2) セルあたりの P<sub>FA</sub>', unit: '× 10⁻⁶', ans: Z.pfa * 1e6, tol: 0.03, tolType: 'abs', hints: ['式4.18 で 1 ルックなら、P<sub>FA</sub> = T<sub>d</sub>·ln 2 ÷ (N<sub>r</sub>·N<sub>f</sub>·T<sub>FR</sub>)。T<sub>d</sub> = 0.016 秒。', '分子は 0.016 × 0.693 = 0.01109。分母は 100 × 16 × 6.93 = 11090。割り算をして、10⁻⁶ を単位にして答える。']}],
+  solve: 'T<sub>FR</sub> = T<sub>AVG</sub>·ln 2 = 10 × 0.693 = <b>6.93 秒</b>。||P<sub>FA</sub> = T<sub>d</sub>·ln 2 ÷ (N<sub>r</sub>·N<sub>f</sub>·T<sub>FR</sub>) = 0.016 × 0.693 ÷ (1600 × 6.93) = <b>1.0×10⁻⁶</b>。||T<sub>FR</sub> に T<sub>AVG</sub>·ln 2 を入れると ln 2 が消えて、P<sub>FA</sub> = T<sub>d</sub> ÷ (N<sub>r</sub>·N<sub>f</sub>·T<sub>AVG</sub>) = 0.016 ÷ 16000 になります。「1 回のドウェルで出る誤報の数（セルの数 × P<sub>FA</sub>）」が、「ドウェルの時間 ÷ 誤報の平均の間隔」に等しい、という意味です。',
+  read: {
+    what: '検出の計算は、誤警報をどこまで許すかを決めるところから始まります。しきい値は、決めた誤警報確率になるように置くからです。||仕様に書かれるのは、ふつう「誤報は何秒（何分）に 1 回まで」という時間です。一方、式に入れるのは、距離とドップラで区切った [[cellp|1 つのセル]]あたりの確率 P<sub>FA</sub> です。この 2 つを、判定するセルの数でつなぎます。||ハンドブックは、誤報の時間 T<sub>FR</sub> を、Marcum の定義で使っています。「その時間のうちに 1 回以上の誤報が出る確率が 0.5」になる時間で、平均の間隔 T<sub>AVG</sub> の ln 2 倍（約 0.69 倍）です。||答え合わせのあと、誤報の間隔とセルの数を動かしてください。P<sub>FA</sub> は何桁も変わりますが、[[reqc|必要な S/N]] は、P<sub>FA</sub> が 1 桁変わっても 1 dB も変わりません。誤報の要求を 10 倍きびしくしても、探知距離は数 % しか縮まない、ということです。',
+    eq: '<i>P</i><sub>FA</sub> = <i>T</i><sub>d</sub>·ln 2 ÷ ( <i>N</i><sub>r</sub>·<i>N</i><sub>f</sub>·<i>T</i><sub>FR</sub> )<br><i>T</i><sub>FR</sub> ≈ <i>T</i><sub>AVG</sub>·ln 2',
+    sym: '式4.18 で、ルックが 1 回（m = n = 1）の場合です。<i>T</i><sub>d</sub>：1 回のドウェルの時間 [s]。<i>N</i><sub>r</sub>：1 つの IPP（パルスの間隔）で処理する、独立な距離のサンプルの数。<i>N</i><sub>f</sub>：ドップラの通過域の中の、独立なフィルタの数。<i>T</i><sub>FR</sub>：誤報の時間 [s]。<i>T</i><sub>AVG</sub>：誤報の平均の間隔 [s]。',
+    cond: '雑音だけが相手のとき（雑音で性能が決まる領域）。ハンドブックも、この計算は雑音で決まる環境を仮定している、と断っています。||セルどうしの雑音が独立で、どのセルも同じしきい値（雑音の平均に対する倍率）で判定しているとき。',
+    fail: 'クラッタの消え残りや妨害があって、背景がセルごとに違うとき。しきい値を背景に合わせて動かす CFAR が要り、そのぶんの損失が加わります（入門 第4回 ステップ 7・8）。||複数のルックの結果を突き合わせてから誤報とする方式のとき。1 ルックあたりの P<sub>FA</sub> は、もっと大きくてよくなります（式4.18 の一般の形、式4.20・4.21。ステップ 5）。',
+    mis: '「P<sub>FA</sub> = 10⁻⁶ は 100 万回に 1 回だから、誤報はまず出ない」は誤りです。この例では、1 秒間に 10 万個のセルを判定しているので、10 秒に 1 回は誤報が出ます。P<sub>FA</sub> は、判定するセルの数と組にして初めて意味を持ちます。'},
+  hosoku: ['例の値（ドウェル 16 ms、距離 100 × ドップラ 16、誤報は平均 10 秒に 1 回）は、説明のために置いたもの。P_FA がちょうど 10⁻⁶ になるように選んだ', '「誤報がポアソン的に起きるとすると、T_FR の間に 1 回以上起きる確率は 1 − exp(−T_FR/T_AVG) = 0.5」という説明（ハンドブックは T_FR ≈ T_AVG·ln 2 とだけ書いている）', '感度の図の必要 S/N は、P_d = 0.9、N_pdi = 1。ゆらがない目標は式4.23、Swerling 1 は式4.25'],
+  memo: 'つまずきやすい点：「誤報の時間」と「誤報の平均の間隔」の違い（ln 2 倍）。仕様書がどちらで書かれているかを確かめる習慣をつけさせる。||声かけの例：「セルの数が 10 倍になったら、P_FA はどうする？ 必要な S/N は何 dB 変わる？」「誤報を 1 時間に 1 回にしたい。探知距離は何 % 縮む？」',
+  init: {}, ctl: ['ltavg', 'cells'], fixed: [], fixT: ['ドウェルの時間 16 ms', '感度の図：検出確率 0.9、1 つの CPI で判定'], plots: [{h: 250}],
+  sol: {ltavg: 2},
+  draw(P){
+    const tavg = Math.pow(10, S.ltavg), pfa = EX.td / (S.cells * tavg), lx = Math.log10(pfa), xs = [], y0 = [], y1 = [];
+    for (let l = -11; l <= -2.999; l += 0.1){ const p = Math.pow(10, l); xs.push(l); y0.push(db10(snr423(0.9, p, 1))); y1.push(db10(snr425(0.9, p, 1, 1))); }
+    const r0 = db10(snr423(0.9, pfa, 1));
+    P[0].set({title: 'セルあたりの P_FA と、必要な S/N（検出確率 0.9）', xr: [-11, -3], yr: [8, 26], xl: 'セルあたりの誤警報確率 P_FA', yl: '必要な S/N [dB]', xticks: [-11, -10, -9, -8, -7, -6, -5, -4, -3].map(v => [v, '10' + sup(v)]),
+      series: [{name: 'ゆらがない目標（式4.23）', color: 's1', x: xs, y: y0, w: 2.2}, {name: 'Swerling 1（式4.25）', color: 's3', x: xs, y: y1, w: 2}],
+      vl: [{x: -6, color: 'ref', label: '標準 10⁻⁶', row: 0}], pts: lx >= -11 && lx <= -3 ? [{x: lx, y: r0, color: 's2', r: 6, label: fx(r0, 2) + ' dB'}] : [],
+      marks: {cellp: {x0: lx - 0.3, x1: lx + 0.3, t: 'いまの P_FA'}, reqc: {t: '1 桁で 1 dB 未満しか変わらない'}}, tipx: v => '10^' + fx(v, 1), tipy: v => fx(v, 2) + ' dB'});
+    return {tiles: [{k: 'セルあたりの P_FA', v: sci(pfa, 2), s: 'T_FR = ' + fx(tavg * Math.LN2, 2) + ' 秒'}, {k: '必要な S/N（ゆらがない）', v: fx(r0, 2) + ' <small>dB</small>', s: '標準（10⁻⁶）との差 ' + sg(r0 - Z.s0) + ' dB'}, {k: '探知距離の変化', v: sg((Math.pow(10, -(r0 - Z.s0) / 40) - 1) * 100, 1) + ' <small>%</small>', s: '必要 S/N の差を、40 で割って倍率に'}]};
+  }});
+
+/* 2 */
+STEPS.push({short: 'ゆらがない目標', title: 'ゆらがない目標 — η を経て、必要な S/N を出す', src: '§4.6 Probability of Detection（p.4.46、式4.22・4.23）',
+  q: 'P<sub>FA</sub> = 10⁻⁶。目標の強さは、ゆらがない。1 つの CPI だけで判定する（N<sub>pdi</sub> = 1）。検出確率 P<sub>d</sub> = 0.9 に要る S/N を、式4.23 で求めよう。||(1) η は、いくらか。||(2) 必要な S/N は、何 dB か。',
+  ask: [{id: 'eta', label: '(1) η', unit: '', ans: etaOf(0.9, 1e-6), tol: 0.02, tolType: 'abs', hints: ['η は 2 つの項でできている。P<sub>d</sub> > 0.5 なので sign(0.5 − P<sub>d</sub>) = −1 で、2 つの項は足し算になる。1 つ目は √(−0.8·ln[4·P<sub>FA</sub>(1 − P<sub>FA</sub>)])。ln(4×10⁻⁶) ≈ −12.43。', '1 つ目 = √(0.8 × 12.43) = √9.943 ≈ 3.153。2 つ目 = √(−0.8·ln[4 × 0.9 × 0.1]) = √(−0.8 × ln 0.36) ≈ 0.904。']},
+    {id: 'snr', label: '(2) 必要な S/N', unit: 'dB', ans: Z.s0, tol: 0.15, tolType: 'abs', hints: ['N<sub>pdi</sub> = 1 なら、式4.23 は SNR = η² + 2η·√(1/2 − 1/4) = η² + η（倍率）。', 'η² + η = 16.46 + 4.06 = 20.52（倍率）。dB に直すには 10·log₁₀(20.52)。']}],
+  solve: 'η = √(−0.8·ln[4×10⁻⁶]) + √(−0.8·ln 0.36) = 3.153 + 0.904 = <b>4.057</b>。||SNR = η²/1 + (2η/1)·√(1/2 − 1/4) = 16.46 + 4.06 = 20.52 倍 → 10·log₁₀(20.52) = <b>13.12 dB</b>。||入門の第15回・第17回で使った「検出に要る S/N 13 dB」は、この条件（ゆらがない目標、P<sub>d</sub> 0.9、P<sub>FA</sub> 10⁻⁶、1 回の判定）に当たります。厳密に計算すると 13.18 dB（第16回の値）で、式4.23 との差は 0.06 dB です。',
+  read: {
+    what: 'P<sub>FA</sub> が決まると、しきい値が決まります。次は、目標のエコーが、そのしきい値を確率 P<sub>d</sub> で超えるのに要る S/N です。まず、強さがゆらがない目標（ハンドブックは Marcum の目標と呼びます）を扱います。||厳密な P<sub>d</sub> は、Marcum の Q 関数という、手では計算しにくい関数になります。ハンドブックは、P<sub>d</sub> を出す近似式（式4.22）と、その逆の、必要な S/N を出す近似式（式4.23）を載せています。式4.23 は、電卓で計算できます。||計算は 2 段です。まず η を出します。η は、「P<sub>FA</sub> から決まる項」と「P<sub>d</sub> から決まる項」の和（P<sub>d</sub> が 0.5 より大きいとき）で、しきい値と信号の「距離」を、雑音のばらつきを物差しにして測った量に当たります{H}。次に、η から S/N を出します。||ここでの S/N は、整合フィルタとドップラフィルタを通ったあと、[[one|1 つの CPI]] についての値です（入門 第16回の「処理後の S/N」）。||感度の図では、[[apx|式4.22 の曲線]]と、[[ext|厳密な計算]]を重ねています。',
+    eq: 'SNR<sub>reqd</sub> = η<sup>2</sup>/<i>N</i><sub>pdi</sub> + (2η/<i>N</i><sub>pdi</sub>)·√(<i>N</i><sub>pdi</sub>/2 − 1/4)<br>η = √(−0.8·ln[4<i>P</i><sub>FA</sub>(1−<i>P</i><sub>FA</sub>)])<br>　　− sign(0.5−<i>P</i><sub>d</sub>)·√(−0.8·ln[4<i>P</i><sub>d</sub>(1−<i>P</i><sub>d</sub>)])',
+    sym: 'SNR<sub>reqd</sub>：必要な S/N（倍率。1 つの CPI あたり）。<i>N</i><sub>pdi</sub>：位相をそろえずに足す CPI の数（ここでは 1。ステップ 4）。sign(x)：x が正なら +1、負なら −1、0 なら 0。P<sub>d</sub> = 0.5 のとき、2 つ目の項は 0 です。ln は自然対数。',
+    cond: '雑音がガウス分布で、雑音だけが相手のとき。目標の強さが、足し合わせる CPI の間で変わらないとき。||この教材で調べた範囲（P<sub>d</sub> 0.1〜0.99、P<sub>FA</sub> 10⁻⁴〜10⁻⁸、N<sub>pdi</sub> 1〜32）では、式4.23 と厳密な計算の差は −0.19〜+0.23 dB でした。',
+    fail: '目標の強さがゆらぐとき（ステップ 3。同じ P<sub>d</sub> 0.9 でも、8 dB 多く要ることがあります）。||しきい値を、周りのセルから見積もっているとき（CFAR。見積もりのばらつきのぶん、余分に要ります）。||P<sub>d</sub> を出すほうの式4.22 は、原本に印刷されている形のままでは、厳密な計算から大きくずれます（下の「指導者向けメモ」と、最後のステップの照合表）。',
+    mis: '「検出に要る S/N は 13 dB」と、定数のように覚えるのは危険です。13 dB は、ゆらがない目標・P<sub>d</sub> 0.9・P<sub>FA</sub> 10⁻⁶・1 回の判定、という条件の値です。条件を書かずに数字だけを引き継ぐと、あとで合わなくなります。'},
+  hosoku: ['η の意味づけ（「しきい値と信号の距離を、雑音のばらつきを物差しにして測った量」）', '式4.22 は、根号の中の定数を「−1/4」とした形で描いている。原本には「−1/2」と印刷されているが、その形は式4.23 と合わず、厳密な計算からも大きくずれる（P_FA = 10⁻⁶、S/N 10 dB で 0.505。厳密な値は 0.248）。図の点線が、印刷どおりの形', '厳密な計算は、非心カイ二乗分布の級数（入門 第4回と同じ計算）。Marcum の Q 関数の数値積分と一致することを確かめた', '「調べた範囲での差」は、この教材の計算による値。ハンドブックは「それなりに正確」とだけ述べている'],
+  memo: 'つまずきやすい点：sign の向き（P_d > 0.5 では足し算、< 0.5 では引き算）。倍率と dB の取り違え（式4.23 の答えは倍率）。||式4.22 について：原本の印刷では、2 つの根号の中がどちらも「N/2 − 1/2」。式4.23 を P_d について解くと「N/2 − 1/4」になる。印刷どおりだと、N = 1・S/N 10 dB・P_FA 10⁻⁶ で 0.505（厳密には 0.248）。図の点線で確かめられる。断定はできないので、「原本を使うときは、式4.23 と突き合わせること」と伝えるのがよい。||声かけの例：「P_d を 0.5 にすると、η はいくつ？ 必要な S/N は？」「P_d 0.9 と 0.99 で、何 dB 違う？」',
+  init: {}, ctl: ['pd', 'x'], fixed: [], fixT: ['ゆらがない目標、1 つの CPI で判定（N_pdi = 1）'], plots: [{h: 270}],
+  sol: {pd: 0.5},
+  draw(P){
+    const pfa = Math.pow(10, -S.x), xs = xsDb(0, 20, 0.25), ya = [], ye = [], yp = [], T = thrOf(pfa, 1); for (const d of xs){ const s = lin(d); ya.push(pd422(s, pfa, 1)); ye.push(pdNF(1, s, T)); yp.push(pd422print(s, pfa, 1)); }
+    const req = db10(snr423(S.pd, pfa, 1)), ex = snrExact(S.pd, pfa, 1, 0);
+    P[0].set({title: 'S/N と検出確率（ゆらがない目標、N_pdi = 1）', xr: [0, 20], yr: [0, 1.05], xl: 'S/N [dB]（1 つの CPI のあと）', yl: '検出確率 P_d',
+      series: [{name: '厳密な計算', color: 's3', x: xs, y: ye, w: 2.4}, {name: '式4.22（−1/4 とした形）', color: 's1', x: xs, y: ya, w: 1.6}, {name: '式4.22（原本の印刷どおり）', color: 'ref', x: xs, y: yp, w: 1.4, dash: [4, 4]}],
+      hl: [{y: S.pd, color: 'ref'}], vl: [{x: req, color: 's2', label: '式4.23：' + fx(req, 2) + ' dB', row: 6}], pts: [{x: req, y: S.pd, color: 's2', r: 6}],
+      marks: {apx: {t: '近似式（式4.22）'}, ext: {t: '厳密な計算'}, one: {x0: req - 0.6, x1: req + 0.6, t: '必要な S/N'}}, tipx: v => fx(v, 2) + ' dB', tipy: v => fx(v, 3)});
+    return {tiles: [{k: '必要な S/N（式4.23）', v: fx(req, 2) + ' <small>dB</small>', s: 'η = ' + fx(etaOf(S.pd, pfa), 3)}, {k: '厳密な計算', v: fx(ex, 2) + ' <small>dB</small>', s: '近似との差 ' + sg(req - ex) + ' dB'}, {k: '標準（P_d 0.9、10⁻⁶）との差', v: sg(req - Z.s0) + ' <small>dB</small>', s: '距離にして ' + sg((Math.pow(10, -(req - Z.s0) / 40) - 1) * 100, 1) + '%'}]};
+  }});
+
+/* 3 */
+STEPS.push({short: 'ゆらぐ目標', title: 'ゆらぐ目標 — 高い検出確率ほど、ゆらぎが高くつく', src: '§4.6（p.4.46–4.47、式4.24・4.25）',
+  q: 'ステップ 2 と同じ条件（P<sub>FA</sub> = 10⁻⁶、N<sub>pdi</sub> = 1、P<sub>d</sub> = 0.9）で、目標が Swerling 1 のとき（ドウェルごとに、強さが指数分布でゆらぐ）。||自由度 2 のカイ二乗分布では、上側確率は K<sub>m</sub>(x, 2) = exp(−x/2)、逆関数は K<sub>m</sub>⁻¹(p, 2) = −2·ln p になる。||(1) 必要な S/N は、何 dB か。||(2) ゆらがない目標（ステップ 2）より、何 dB 多く要るか（ゆらぎの損失）。',
+  ask: [{id: 's1', label: '(1) Swerling 1 の必要な S/N', unit: 'dB', ans: Z.s1, tol: 0.2, tolType: 'abs', hints: ['Swerling 1 は n<sub>e</sub> = 1。N<sub>pdi</sub> = 1 なら、式4.25 は SNR = K<sub>m</sub>⁻¹(P<sub>FA</sub>, 2) ÷ K<sub>m</sub>⁻¹(P<sub>d</sub>, 2) − 1 になる。', 'K<sub>m</sub>⁻¹(10⁻⁶, 2) = −2·ln(10⁻⁶) = 27.63。K<sub>m</sub>⁻¹(0.9, 2) = −2·ln 0.9 = 0.2107。比は 131.1。1 を引いて、dB に直す。']},
+    {id: 'fl', label: '(2) ゆらぎの損失', unit: 'dB', ans: Z.fl, tol: 0.25, tolType: 'abs', hints: ['ゆらぎの損失 = Swerling 1 の必要 S/N [dB] − ゆらがない目標の必要 S/N [dB]。', 'ステップ 2 の答えは 13.12 dB。(1) の答えから引く。']}],
+  solve: 'SNR = K<sub>m</sub>⁻¹(10⁻⁶, 2) ÷ K<sub>m</sub>⁻¹(0.9, 2) − 1 = 27.63 ÷ 0.2107 − 1 = 130.1 倍 → <b>21.14 dB</b>。||ゆらぎの損失 = 21.14 − 13.12 = <b>8.02 dB</b>。||この場合、式4.24 は P<sub>d</sub> = P<sub>FA</sub><sup>1/(1+SNR)</sup> と書けます。これは近似ではなく、厳密な式です。P<sub>d</sub> = 0.5 で同じ計算をすると 12.77 dB で、ゆらぎの損失は 1.6 dB しかありません。',
+  read: {
+    what: '実際の目標は、向きが少し変わるだけで、エコーの強さが大きく変わります（入門 第10回）。Swerling のモデルは、このゆらぎを 4 つの型で表します。||Swerling 1 と 3 は、ドウェルの中では同じ強さで、ドウェルが変わると独立に変わります。2 と 4 は、CPI ごとに独立に変わります。1 と 2 は、強さが指数分布（自由度 2 のカイ二乗分布）、3 と 4 は、ばらつきの小さい分布（自由度 4）です。式の中では、この違いを n<sub>e</sub> という 1 つの数で表します。||ゆらぐ目標では、強さがたまたま弱い瞬間に当たると、検出できません。高い P<sub>d</sub> を保証するには、弱い瞬間でもしきい値を超えるだけの、大きな平均の S/N が要ります。だから、[[flc|ゆらぎの損失]]は P<sub>d</sub> が高いほど大きくなります。P<sub>d</sub> 0.5 では 1.6 dB、0.9 では 8 dB、0.99 では 17 dB です（Swerling 1）。||逆に、P<sub>d</sub> が低い所（約 0.3 より下）では、ゆらぐ目標のほうが得をします。たまたま強い瞬間があるからです。図で、曲線が[[cross|交わる所]]を確かめてください。',
+    eq: 'SNR = [ ( <i>K</i><sub>m</sub><sup>−1</sup>(<i>P</i><sub>FA</sub>, 2<i>N</i><sub>pdi</sub>) − 2(<i>N</i><sub>pdi</sub> − <i>n</i><sub>e</sub>) )<br>　　÷ <i>K</i><sub>m</sub><sup>−1</sup>(<i>P</i><sub>d</sub>, 2<i>n</i><sub>e</sub>) − 1 ]·<i>n</i><sub>e</sub>/<i>N</i><sub>pdi</sub>',
+    sym: '式4.25 です（式4.24 と合う形。下の「崩れる条件」を参照）。<i>K</i><sub>m</sub>(x, d)：自由度 d のカイ二乗分布で、値が x を超える確率。<i>K</i><sub>m</sub><sup>−1</sup>(p, d)：その逆関数（上側確率が p になる x）。<i>n</i><sub>e</sub>：Swerling 1 は 1、2 は <i>N</i><sub>pdi</sub>、3 は 2、4 は 2·<i>N</i><sub>pdi</sub>。自由度が 2 でないときは、数表か計算ソフトが要ります。',
+    cond: '目標の強さが、Swerling の型のどれかで表せて、ドウェルごと（1・3）または CPI ごと（2・4）に独立に変わるとき。雑音だけが相手のとき。||Swerling 1・N<sub>pdi</sub> = 1 では厳密な式と一致します。この教材で調べた範囲（P<sub>d</sub> 0.1〜0.99、P<sub>FA</sub> 10⁻⁴〜10⁻⁸、N<sub>pdi</sub> 1〜32）での厳密な計算との差は、Swerling 1 で 0〜+0.28 dB、2 で 0.01 dB 未満、3 で −0.11〜+0.34 dB、4 で −0.61〜+0.30 dB でした。',
+    fail: '目標のゆらぎが、CPI の間で「少しだけ」関係を持つとき（1 と 2 の中間）。型を決めつけると、数 dB の差が出ます。||原本の式4.25 は、分子の最初の項が K<sub>m</sub><sup>−1</sup>(P<sub>d</sub>, 2n<sub>e</sub>) と印刷されているように読めます。その形では P<sub>FA</sub> が式から消えてしまい、式4.24 の逆になりません。この教材は、式4.24 を SNR について解いた形（上の式）で計算しています。',
+    mis: '「ゆらいでも、平均の強さが同じなら、検出できる確率も同じ」は誤りです。平均が同じでも、弱い瞬間があるぶん、高い確率での検出は難しくなります。仕様に「P<sub>d</sub> 0.9」と書くか「0.5」と書くかで、ゆらぐ目標では、必要な S/N が 8 dB、探知距離が 1.6 倍も変わります。'},
+  hosoku: ['「強さがたまたま弱い瞬間に当たると検出できない」という説明', 'Swerling 1 の P_d 0.99 でのゆらぎの損失 17 dB、「約 0.3 より下では得をする」は、この教材の計算（式4.23・4.25）による値', '式4.25 の印刷についての注意と、「調べた範囲での差」。厳密な計算は、Swerling 2・4 は閉じた式、1・3 は目標の強さの分布で数値的に平均した', '図は N_pdi = 1。このとき Swerling 1 と 2、3 と 4 は、それぞれ同じ曲線になる'],
+  memo: 'つまずきやすい点：K_m⁻¹ という見慣れない記号。自由度 2 なら −2·ln p で、電卓で計算できることを先に示す。||声かけの例：「P_d 0.5 で同じ計算をしてみよう。損失は何 dB？」「探知距離で言うと、8 dB は何倍？（10^(8/40) ≈ 1.58 倍）」「目標のゆらぎ方が分からないとき、どちらの型で計算書を書く？ 理由は？」',
+  init: {}, ctl: ['pd', 'x'], fixed: [], fixT: ['1 つの CPI で判定（N_pdi = 1）'], plots: [{h: 250}, {h: 200}],
+  sol: {pd: 0.5},
+  draw(P){
+    const pfa = Math.pow(10, -S.x), y0 = [], y1 = [], y3 = [], f1 = [], f3 = []; for (const p of PDX){ const a = db10(snr423(p, pfa, 1)), b = db10(snr425(p, pfa, 1, 1)), c = db10(snr425(p, pfa, 1, 2)); y0.push(a); y1.push(b); y3.push(c); f1.push(b - a); f3.push(c - a); }
+    const a = db10(snr423(S.pd, pfa, 1)), b = db10(snr425(S.pd, pfa, 1, 1)), c = db10(snr425(S.pd, pfa, 1, 2)); let xc = 0.3; for (let i = 1; i < PDX.length; i++) if (f1[i - 1] < 0 && f1[i] >= 0) xc = PDX[i];
+    P[0].set({title: '検出確率と、必要な S/N（N_pdi = 1）', xr: [0.1, 1], yr: [5, 40], xl: '検出確率 P_d', yl: '必要な S/N [dB]', series: [{name: 'ゆらがない（式4.23）', color: 's1', x: PDX, y: y0, w: 2}, {name: 'Swerling 1・2（式4.25）', color: 's2', x: PDX, y: y1, w: 2.2}, {name: 'Swerling 3・4', color: 's3', x: PDX, y: y3, w: 2}],
+      vl: [{x: S.pd, color: 'ref'}], pts: [{x: S.pd, y: a, color: 's1', r: 5, label: fx(a, 1), left: true, below: true}, {x: S.pd, y: Math.min(39.5, b), color: 's2', r: 5, label: fx(b, 1), left: true}], marks: {cross: {x0: xc - 0.05, x1: xc + 0.05, t: 'ここより下では、ゆらぐほうが得'}}, tipx: v => fx(v, 2), tipy: v => fx(v, 2) + ' dB'});
+    P[1].set({title: 'ゆらぎの損失（ゆらがない目標との差）', xr: [0.1, 1], yr: [-4, 20], xl: '検出確率 P_d', yl: 'ゆらぎの損失 [dB]', series: [{name: 'Swerling 1・2', color: 's2', x: PDX, y: f1, w: 2.2}, {name: 'Swerling 3・4', color: 's3', x: PDX, y: f3, w: 2}],
+      hl: [{y: 0, color: 'ref', dash: []}], vl: [{x: S.pd, color: 'ref'}], pts: [{x: S.pd, y: Math.min(19.5, b - a), color: 's2', r: 6, label: fx(b - a, 2) + ' dB', left: true}], marks: {flc: {t: 'P_d が高いほど大きい'}}, tipx: v => fx(v, 2), tipy: v => fx(v, 2) + ' dB'});
+    return {tiles: [{k: 'Swerling 1 の必要 S/N', v: fx(b, 2) + ' <small>dB</small>', s: 'ゆらぎの損失 ' + sg(b - a) + ' dB'}, {k: 'Swerling 3 の必要 S/N', v: fx(c, 2) + ' <small>dB</small>', s: 'ゆらぎの損失 ' + sg(c - a) + ' dB'}, {k: 'ゆらがない目標', v: fx(a, 2) + ' <small>dB</small>'}, {k: '探知距離の比（Swerling 1 ÷ ゆらがない）', v: fx(Math.pow(10, -(b - a) / 40), 2) + ' <small>倍</small>'}]};
+  }});
+
+/* 4 */
+const INT = {};
+function intCurve(pd, pfa){ const key = pd + '/' + pfa; if (!INT[key]){ const o = []; for (let sw = 0; sw <= 4; sw++) o.push(NS.map(n => db10(snrApprox(pd, pfa, n, sw)))); INT[key] = o; } return INT[key]; }
+STEPS.push({short: '足し合わせ', title: '足し合わせ — N 個足しても、N 倍には届かない', src: '§4.6（p.4.46–4.47、式4.23・4.25 の N<sub>pdi</sub>）',
+  q: '4 つの CPI の出力を、位相をそろえずに（検波したあとで）足してから判定する（N<sub>pdi</sub> = 4）。ゆらがない目標、P<sub>FA</sub> = 10⁻⁶、P<sub>d</sub> = 0.9。||(1) 1 つの CPI あたりに要る S/N は、何 dB か。||(2) 「4 個足せば、1 個あたりは 1/4（6.02 dB 少なくて済む）」という理想に、何 dB 届かないか（足し合わせの損失）。',
+  ask: [{id: 's4', label: '(1) 1 つの CPI あたりの必要な S/N', unit: 'dB', ans: Z.s4, tol: 0.15, tolType: 'abs', hints: ['η はステップ 2 と同じ（4.057）。式4.23 に N<sub>pdi</sub> = 4 を入れる：SNR = η²/4 + (2η/4)·√(4/2 − 1/4)。', 'η²/4 = 4.116。(2η/4)·√1.75 = 2.029 × 1.323 = 2.684。和は 6.800（倍率）。dB に直す。']},
+    {id: 'il', label: '(2) 足し合わせの損失', unit: 'dB', ans: Z.il, tol: 0.2, tolType: 'abs', hints: ['実際に得をした量 = 1 個のときの必要 S/N（13.12 dB）− 4 個のときの 1 個あたりの必要 S/N。', '得をした量は 13.12 − 8.32 = 4.80 dB。理想は 10·log₁₀4 = 6.02 dB。']}],
+  solve: 'SNR = η²/4 + (2η/4)·√(4/2 − 1/4) = 4.116 + 2.684 = 6.800 倍 → <b>8.32 dB</b>。||得をした量 = 13.12 − 8.32 = 4.80 dB。理想の 6.02 dB との差 = <b>1.22 dB</b>（足し合わせの損失）。||位相をそろえて足せば（CPI を 4 倍に延ばせば）、6.02 dB をまるごと得ます。そろえずに足すと、雑音どうしも掛け合わさって残るので、少し損をします。',
+  read: {
+    what: '1 つの CPI では S/N が足りないとき、いくつかの CPI の出力を足してから判定します。位相をそろえて足す方法（CPI を延ばす）は、目標のドップラが変わらない間しか使えません。それより長い時間は、検波して位相を捨てたあとの出力を足します（N<sub>pdi</sub>。入門 第4回 ステップ 4、第15回 ステップ 5）。||ゆらがない目標では、N 個を足しても、1 個あたりの必要な S/N は 1/N までは下がりません。この差が、[[ilc|足し合わせの損失]]です。N = 4 で 1.2 dB、N = 16 で 2.8 dB と、N とともに増えます。それでも、足すこと自体は得です。||ゆらぐ目標では、話が変わります。Swerling 2・4（CPI ごとに独立にゆらぐ）では、足し合わせるうちに、弱い瞬間と強い瞬間がならされます。ステップ 3 の「ゆらぎの損失」が減るので、[[sw2|N 倍よりも大きく]]得をすることがあります。Swerling 1・3（ドウェルの中では同じ強さ）では、ならされないので、ゆらぎの損失はそのまま残ります。||CPI ごとに周波数を変えると、ゆらぎが独立になり、Swerling 1 の目標を 2 に近づけられます{H}。',
+    eq: 'SNR<sub>reqd</sub> = η<sup>2</sup>/<i>N</i><sub>pdi</sub> + (2η/<i>N</i><sub>pdi</sub>)·√(<i>N</i><sub>pdi</sub>/2 − 1/4)',
+    sym: '式4.23（ステップ 2 と同じ式）。<i>N</i><sub>pdi</sub>：位相をそろえずに足す CPI の数。SNR<sub>reqd</sub> は、1 つの CPI あたりの値です。1 項目（η²/N）は N に反比例して下がりますが、2 項目は √N に反比例してしか下がりません。N が大きいと 2 項目が効いてきます。ゆらぐ目標は、式4.25 に同じ N<sub>pdi</sub> を入れます。',
+    cond: '足し合わせる CPI の間で、雑音が独立のとき。ゆらがない目標、または Swerling の型のとおりにゆらぐ目標のとき。||厳密な計算との差は、ステップ 2・3 に書いた範囲です（N<sub>pdi</sub> 32 まで）。',
+    fail: '足し合わせている間に、目標がレンジゲートやドップラフィルタをまたいで動くとき（足すセルがずれる）。||目標のゆらぎが、CPI の間で部分的に関係を持つとき（Swerling 1 と 2 の中間）。得をする量は、2 つの型の間になります。',
+    mis: '「位相をそろえずに足しても、ほとんど意味がない」も、「N 個足せば必ず N 倍得をする」も誤りです。ゆらがない目標では N 倍に少し届かず、CPI ごとにゆらぐ目標では N 倍を超えることがあります。どちらになるかは、目標のゆらぎ方で決まります。'},
+  hosoku: ['「雑音どうしも掛け合わさって残るので、少し損をする」という説明', 'N = 16 での足し合わせの損失 2.8 dB は、式4.23 による値', '「CPI ごとに周波数を変えると、ゆらぎが独立になる」という説明（入門 第12回の周波数アジリティと同じ事情。§4.6 には書かれていない）', '下の図の「N 倍に対する損得」は、10·log₁₀N −（N = 1 のときの必要 S/N − N 個のときの 1 個あたりの必要 S/N）。正なら損'],
+  memo: 'つまずきやすい点：「1 個あたりの S/N」と「足したあとの S/N」の区別。式4.23 が返すのは前者。||声かけの例：「N を 4 から 16 にすると、1 個あたりの必要 S/N は何 dB 下がる？ 理想は 6 dB」「Swerling 2 で N = 4 にすると、何 dB 得をする？ なぜ 6 dB を超える？」',
+  init: {npdi: 4}, ctl: ['npdi', 'sw', 'pd'], fixed: [], fixT: ['P_FA = 10⁻⁶'], plots: [{h: 240}, {h: 210}],
+  sol: {sw: 2},
+  draw(P){
+    const pfa = 1e-6, C = intCurve(S.pd, pfa), lx = NS.map(n => Math.log2(n)), i = NS.indexOf(S.npdi), col = ['s1', 's2', 's2', 's3', 's3'], ideal = lx.map(l => C[S.sw][0] - 3.0103 * l), xt = NS.map((n, k) => [k, String(n)]);
+    P[0].set({title: '足し合わせる数と、1 つの CPI あたりの必要な S/N（' + SWN[S.sw] + '）', xr: [-0.2, 5.2], yr: [-6, 24], xl: '足し合わせる CPI の数 N_pdi', yl: '必要な S/N [dB]', xticks: xt,
+      series: [{name: SWN[S.sw], color: 's1', x: lx, y: C[S.sw], w: 2.2, mk: 3}, {name: 'N 倍得をする場合（理想）', color: 'ref', x: lx, y: ideal, dash: [5, 4], w: 1.5}], pts: [{x: lx[i], y: C[S.sw][i], color: 's2', r: 6, label: fx(C[S.sw][i], 2) + ' dB'}], tipx: v => 'N = ' + fx(Math.pow(2, v), 0), tipy: v => fx(v, 2) + ' dB'});
+    const ser = [0, 1, 2, 3, 4].map(sw => ({name: sw === 0 ? 'ゆらがない' : String(sw), color: col[sw], x: lx, y: lx.map((l, k) => 3.0103 * l - (C[sw][0] - C[sw][k])), w: sw === S.sw ? 2.6 : 1.3, dash: sw === 2 || sw === 4 ? [5, 3] : null}));
+    const lossNow = 3.0103 * lx[i] - (C[S.sw][0] - C[S.sw][i]);
+    P[1].set({title: 'N 倍に対する損得（上：損。下：N 倍より得）。点線は Swerling 2・4', xr: [-0.2, 5.2], yr: [-14, 6], xl: '足し合わせる CPI の数 N_pdi', yl: '損失 [dB]', xticks: xt, series: ser, hl: [{y: 0, color: 'ref', dash: []}], pts: [{x: lx[i], y: lossNow, color: 's2', r: 6, label: sg(lossNow) + ' dB'}],
+      marks: {ilc: {y0: 0, y1: 6, t: '足し合わせの損失'}, sw2: {y0: -14, y1: 0, t: 'N 倍より得（ゆらぎがならされる）'}}, tipx: v => 'N = ' + fx(Math.pow(2, v), 0), tipy: v => fx(v, 2) + ' dB'});
+    return {tiles: [{k: '1 つの CPI あたりの必要 S/N', v: fx(C[S.sw][i], 2) + ' <small>dB</small>', s: SWN[S.sw] + '、N = ' + S.npdi}, {k: '得をした量', v: fx(C[S.sw][0] - C[S.sw][i], 2) + ' <small>dB</small>', s: '理想（N 倍）は ' + fx(3.0103 * lx[i], 2) + ' dB'}, {k: 'N 倍に対する損得', v: sg(lossNow) + ' <small>dB</small>', s: lossNow >= 0 ? '足し合わせの損失' : 'N 倍より得'}]};
+  }});
+
+/* 5 */
+STEPS.push({short: 'M-of-N', title: 'M-of-N — 何回かのうち、何回か超えたら「目標あり」', src: '§4.6（p.4.47、式4.26）、p.4.45（式4.20）、第7章 §7.2 Binary Integrator（p.7.7–7.9）',
+  q: '1 つのドウェルを 3 回のルックに分け、3 回のうち 2 回以上で検出したら「目標あり」とする（2-of-3）。ルックどうしは独立とする。||(1) 1 ルックの検出確率が 0.7 のとき、ドウェルの検出確率は、いくらか。||(2) 1 ルックの誤警報確率が 10⁻³ のとき、同じセルで 2 回以上、雑音だけでしきい値を超える確率（ドウェルの誤警報確率）は、いくらか。',
+  ask: [{id: 'pdw', label: '(1) ドウェルの検出確率', unit: '', ans: Z.pdw, tol: 0.005, tolType: 'abs', hints: ['「ちょうど 2 回」の確率と「3 回とも」の確率を足す。ちょうど 2 回は、どの 2 回かで 3 通りある。', 'ちょうど 2 回：3 × 0.7² × 0.3 = 0.441。3 回とも：0.7³ = 0.343。']},
+    {id: 'pfw', label: '(2) ドウェルの誤警報確率', unit: '× 10⁻⁶', ans: Z.pfw * 1e6, tol: 0.05, tolType: 'abs', hints: ['式は (1) と同じ。確率に 10⁻³ を入れる。', 'ちょうど 2 回：3 × (10⁻³)² × 0.999 = 2.997×10⁻⁶。3 回とも：10⁻⁹。']}],
+  solve: 'ドウェルの P<sub>d</sub> = 3 × 0.7² × 0.3 + 0.7³ = 0.441 + 0.343 = <b>0.784</b>。||ドウェルの誤警報確率 = 3 × (10⁻³)² × 0.999 + (10⁻³)³ = <b>3.0×10⁻⁶</b>。||検出確率は 0.7 → 0.78 と少し上がるだけですが、誤警報確率は 10⁻³ → 3×10⁻⁶ と、300 分の 1 になります。だから、1 ルックのしきい値を大きく下げられます（1 ルックの誤警報確率を 10⁻³ まで許せる）。これが、M-of-N で感度を稼げる理由です。',
+  read: {
+    what: 'パルスドップラのレーダは、距離のあいまいさを解くために、1 つのドウェルの中で PRF を変えながら何回か（ルック）観測し、「N 回のうち M 回以上で検出」を条件にすることがよくあります（入門 第3回 ステップ 9）。これは、入門 第4回 ステップ 5 の 2 値積分と同じ考え方です。||1 ルックの確率が p なら、N 回のうち、ちょうど k 回超える確率は、二項分布で書けます。k = M から N まで足したものが、ドウェルの確率です。この式は、検出確率にも、誤警報確率にも、同じように使えます。||大事なのは、誤警報の側です。雑音だけで M 回超えるのは、1 回超えるより、けた違いに起きにくい。だから、ドウェルで許す誤警報確率が同じなら、1 ルックのしきい値を下げられます。式4.20 は、この関係から、1 ルックあたりの P<sub>FA</sub> を出す式です。||[[mopt|下の図]]は、ドウェルで P<sub>d</sub> 0.9・誤警報確率 10⁻⁶ を満たすのに、1 ルックあたりに要る S/N を、M ごとに比べたものです。M には、いちばん得な値があります。',
+    eq: '<i>P</i><sub>d,dwell</sub><br>　= Σ<sub>k = m…n</sub> C(<i>n</i>, <i>k</i>)·<i>P</i><sub>d,look</sub><sup><i>k</i></sup>·(1 − <i>P</i><sub>d,look</sub>)<sup><i>n</i>−<i>k</i></sup>',
+    sym: '式4.26。<i>P</i><sub>d,dwell</sub>：ドウェルの検出確率。<i>P</i><sub>d,look</sub>：1 ルックの検出確率。<i>n</i>：ルックの数。<i>m</i>：要る検出の数。C(<i>n</i>, <i>k</i>) = <i>n</i>! ÷ (<i>k</i>!·(<i>n</i>−<i>k</i>)!)：n 回のうち k 回を選ぶ選び方の数。原本は、二項係数を、上に k、下に n と書いています（p.4.44 に定義があります）。',
+    cond: 'ルックどうしの検出が独立のとき。雑音は、ルックごとに独立です。目標は、ゆらがないか、ルックごとに独立にゆらぐとき（Swerling 2・4 に当たる）。',
+    fail: '目標の強さが、ドウェルの中で変わらないとき（Swerling 1・3）。弱い瞬間に当たると、どのルックでも検出できないので、ルックどうしが独立になりません。ドウェルの P<sub>d</sub> は、強さの分布で平均して求める必要があり、式4.26 に 1 ルックの平均の P<sub>d</sub> を入れた値とは違ってきます{H}。||PRF によって、目標がエクリプシングやブラインド速度に入るルックがあるとき（ルックごとに P<sub>d</sub> が違う）。',
+    mis: '「2 回も超えないといけないのだから、M-of-N は感度を損する」は誤りです。同じ誤警報確率で比べれば、1 ルックのしきい値を下げられるぶん、得をします。ただし、強さを足す方法（ステップ 4）には、少し及びません。'},
+  hosoku: ['「Swerling 1・3 では、ルックどうしが独立にならない」という注意（§4.6 には書かれていない。一般的な事情）', '下の図の計算：ドウェルの確率から、式4.26 を逆に解いて 1 ルックの確率を出し、式4.23（ゆらがない目標、N_pdi = 1）で 1 ルックあたりの必要 S/N を求めた', '第7章の 2 値積分（入門 第4回 ステップ 5）との対応。式4.20 は、距離だけで突き合わせる場合の式で、ドップラの扱いは、ここでは省いた'],
+  memo: 'つまずきやすい点：「ちょうど k 回」を数え落とす（3 回ともを忘れる、通りの数を掛け忘れる）。||声かけの例：「3-of-3 にすると、誤警報確率はどうなる？ 検出確率は？」「N = 8 のとき、いちばん得な M は？（図で 5）」「1-of-N は、何をしていることになる？」',
+  init: {m: 2, n: 3, pl: 0.7}, ctl: ['n', 'm', 'pl'], fixed: [], fixT: ['下の図：ドウェルで P_d 0.9、誤警報確率 10⁻⁶。ゆらがない目標'], plots: [{h: 220}, {h: 220}],
+  sol: {n: 8, m: 5},
+  draw(P){
+    const n = S.n, m = Math.min(S.m, n), xs = xsDb(0, 1, 0.01), ys = xs.map(p => mOfN(m, n, p)), pdw = mOfN(m, n, S.pl), ms = [], rq = [], single = db10(snr423(0.9, 1e-6, 1)); let best = 1;
+    for (let k = 1; k <= n; k++){ ms.push(k); rq.push(db10(snr423(mOfNinv(k, n, 0.9), mOfNinv(k, n, 1e-6), 1))); if (rq[k - 1] < rq[best - 1]) best = k; }
+    P[0].set({title: '1 ルックの確率と、ドウェルの確率（' + m + '-of-' + n + '）', xr: [0, 1], yr: [0, 1.05], xl: '1 ルックの確率', yl: 'ドウェルの確率', series: [{name: m + '-of-' + n, color: 's1', x: xs, y: ys, w: 2.2}, {name: '1 回だけの判定', color: 'ref', x: [0, 1], y: [0, 1], dash: [5, 4], w: 1.3}], pts: [{x: S.pl, y: pdw, color: 's2', r: 6, label: fx(pdw, 3)}], tipx: v => fx(v, 2), tipy: v => fx(v, 3)});
+    P[1].set({title: 'M の選び方と、1 ルックあたりの必要な S/N（N = ' + n + '）', xr: [0.5, n + 0.5], yr: [Math.floor(Math.min(...rq) - 1.5), Math.ceil(Math.max(...rq, single) + 1)], xl: '要る検出の数 M', yl: '必要な S/N [dB]', xticks: ms.map(k => [k, String(k)]), series: [{name: '1 ルックあたりの必要 S/N', color: 's1', x: ms, y: rq, w: 2, mk: 3.5}],
+      hl: [{y: single, label: '1 ルックだけで判定：' + fx(single, 2) + ' dB', color: 'ref', left: true}], pts: [{x: m, y: rq[m - 1], color: 's2', r: 6, label: fx(rq[m - 1], 2) + ' dB'}], marks: {mopt: {x0: best - 0.4, x1: best + 0.4, t: 'いちばん得な M = ' + best}}, tipx: v => 'M = ' + fx(v, 0), tipy: v => fx(v, 2) + ' dB'});
+    return {tiles: [{k: 'ドウェルの確率', v: fx(pdw, 3), s: '1 ルック ' + fx(S.pl, 2) + ' のとき'}, {k: '1 ルックに許せる誤警報確率', v: sci(mOfNinv(m, n, 1e-6), 1), s: 'ドウェルで 10⁻⁶ にするには'}, {k: '1 ルックあたりの必要 S/N', v: fx(rq[m - 1], 2) + ' <small>dB</small>', s: 'いちばん得な M は ' + best + '（' + fx(rq[best - 1], 2) + ' dB）'}]};
+  }});
+
+/* 6 */
+function lossHtml(){
+  let h = '<h3>損失の表（例。値は説明用）　' + H + '</h3><div class="tw"><table class="t"><tr><th>項目</th><th>値 [dB]</th><th>目標だけにかかるか</th></tr>';
+  for (const r of Z.lt.rows) h += '<tr><td>' + r.k + '</td><td>' + (r.k.indexOf('エクリプシング') === 0 ? '（式4.17 で計算）' : fx(r.db, 1)) + '</td><td>' + (r.tgt ? '目標だけ' : '目標にもクラッタにも') + '</td></tr>';
+  h += '</table></div><h3>記号の対応（§4.6 と、入門 第15回の式1.5）</h3><div class="tw"><table class="t"><tr><th>§4.6（式4.15・4.16）</th><th>入門 第15回（式1.5）</th><th>対応</th></tr>' +
+    '<tr><td>SNR（1 つの CPI のあとの値）</td><td>S/N に、位相をそろえた足し合わせ n（E<sub>i</sub> = 1）を入れたもの</td><td>入門 第16回の「処理後の S/N」</td></tr>' +
+    '<tr><td>R<sub>o</sub></td><td>(S/N)<sub>1</sub> = 1 として解いた距離</td><td>S/N が 1 になる距離</td></tr>' +
+    '<tr><td>P<sub>av</sub>、σ<sub>T</sub></td><td>P<sub>av</sub>、σ</td><td>同じ</td></tr>' +
+    '<tr><td>G<sub>T</sub>·G<sub>R</sub>·λ² ÷ (4π)</td><td>G·A<sub>e</sub></td><td>G = 4π·A<sub>e</sub>/λ²（送受で同じアンテナ）</td></tr>' +
+    '<tr><td>k·T<sub>s</sub>（T<sub>s</sub>：システム雑音温度）</td><td>k·T<sub>0</sub>·F<sub>n</sub></td><td>T<sub>s</sub> = T<sub>0</sub>·F<sub>n</sub> と置いた ' + H + '</td></tr>' +
+    '<tr><td>B<sub>n</sub>（ドップラフィルタの帯域幅）</td><td>f<sub>p</sub> ÷ n</td><td>CPI の長さ（n/f<sub>p</sub>）の逆数と置いた ' + H + '</td></tr>' +
+    '<tr><td>L<sub>T</sub>（目標にかかる損失）</td><td>L<sub>s</sub></td><td>§4.6 は、伝搬の影響も損失に入れる（式1.5 の F⁴ に当たる）</td></tr>' +
+    '<tr><td>N<sub>pdi</sub></td><td>「そろえずに足す」数（ステップ 5）</td><td>§4.6 では、足す単位が CPI</td></tr></table></div>';
+  return h;
+}
+const ECL = {};
+function eclCurves(N){ if (!ECL[N]){ const xs = xsDb(6, 30, 0.5), T = thrOf(1e-6, 1), y0 = [], y1 = [], y2 = [], a = db10(eclApprox(N)); for (const d of xs){ y0.push(pdNF(1, lin(d), T)); y1.push(eclPd(d, 1e-6, N)); y2.push(pdNF(1, lin(d - a), T)); } ECL[N] = {xs, y0, y1, y2, a}; } return ECL[N]; }
+const ECLL = {};
+const eclLossC = (pd, N) => { const k = pd + '/' + N; if (ECLL[k] === undefined) ECLL[k] = eclLoss(pd, 1e-6, N); return ECLL[k]; };
+STEPS.push({short: '損失を積む', title: '損失を積む — 1 項目ずつ dB で足して、距離に直す', src: '§4.6 Radar Range Equation・Losses（p.4.39–4.44、式4.15〜4.17、図4.20・4.21）、式4.2 の記号（p.4.16）',
+  q: '読み物の「損失の表」の 14 項目のうち、13 項目の値は与えられていて、その和は 10.3 dB。残りの「エクリプシングとレンジゲートのストラドル」を、式4.17 で求めよう。IPP（パルスの間隔）の中のレンジゲートは N = 10 個。||(1) エクリプシングとストラドルの損失は、何 dB か。||(2) 損失の合計 L<sub>T</sub> は、何 dB か。||(3) 損失を入れないときの R<sub>o</sub> は 449.5 km。ゆらがない目標を P<sub>d</sub> 0.9 で検出できる距離（必要な S/N は 13.12 dB）は、何 km か。',
+  ask: [{id: 'ecl', label: '(1) エクリプシングとストラドル', unit: 'dB', ans: db10(eclApprox(EX.ngate)), tol: 0.1, tolType: 'abs', hints: ['式4.17：損失 = 12N ÷ (7N − 6)（倍率）。N = 10 を入れる。', '120 ÷ 64 = 1.875 倍。dB に直すには 10·log₁₀(1.875)。']},
+    {id: 'lt', label: '(2) 損失の合計 L<sub>T</sub>', unit: 'dB', ans: Z.lt.tot, tol: 0.1, tolType: 'abs', hints: ['dB で書いた損失は、足し算で合計できる。', '10.3 + 2.73。']},
+    {id: 'r0', label: '(3) 探知距離（1 回の P<sub>d</sub> 0.9）', unit: 'km', ans: Z.r0 / 1000, tol: 0.02, tolType: 'rel', hints: ['S/N = (R<sub>o</sub>/R)⁴ なので、dB を 40 で割ると、距離の倍率になる。損失と必要な S/N を合わせた dB だけ、R<sub>o</sub>（損失なし）から縮む。', 'L<sub>T</sub> + 13.12 = 26.15 dB。10^(−26.15/40) = 0.2219。これを 449.5 km に掛ける。']}],
+  solve: 'エクリプシングとストラドル = 12 × 10 ÷ (7 × 10 − 6) = 1.875 倍 → <b>2.73 dB</b>。||L<sub>T</sub> = 10.3 + 2.73 = <b>13.03 dB</b>。||損失を入れた R<sub>o</sub> = 449.5 × 10^(−13.03/40) = 212.3 km。探知距離 = 212.3 × 10^(−13.12/40) = <b>99.8 km</b>（まとめて 449.5 × 10^(−26.15/40) でも同じ）。||Swerling 1 の目標なら、必要な S/N は 21.14 dB なので、212.3 × 10^(−21.14/40) = 62.9 km です。',
+  read: {
+    what: 'ここまでで、必要な S/N が出ました。次は、実際に得られる S/N です。ハンドブックは、S/N が 1 になる距離 R<sub>o</sub> を先に求め、S/N = (R<sub>o</sub>/R)⁴ と書きます。必要な S/N を入れて R について解けば、探知距離です。||R<sub>o</sub> の式（式4.16）は、入門 第15回の式1.5 と同じものを、パルスドップラの流儀の記号で書いたものです。対応は、下の表にまとめました。例のレーダは、第15回の基準のレーダで、損失を入れなければ、R<sub>o</sub> は第15回の式で計算した値と一致します。||損失は、1 項目ずつ dB で書いて、足します。ハンドブックは 14 ほどの項目を挙げ、そのうちどれが「目標だけにかかる」かを区別しています。クラッタの計算には、目標だけにかかる損失を入れないからです。||[[eclc|エクリプシングとストラドル]]の損失は、少し性質が違います。目標の遅れによって、出力が 0 から最大まで変わるので、「平均で何 dB」と 1 つの数で言えるのは、P<sub>d</sub> が 0.5 に近いときだけです。P<sub>d</sub> が高いと、出力が小さくなる遅れが足を引っぱり、損失はずっと大きくなります。図で確かめてください。',
+    eq: 'SNR = (<i>R</i><sub>o</sub>/<i>R</i>)<sup>4</sup><br><i>R</i><sub>o</sub> = [ <i>P</i><sub>av</sub>·<i>G</i><sub>T</sub>·<i>G</i><sub>R</sub>·λ<sup>2</sup>·σ<sub>T</sub><br>　　÷ ( (4π)<sup>3</sup>·<i>k</i>·<i>T</i><sub>s</sub>·<i>B</i><sub>n</sub>·<i>L</i><sub>T</sub> ) ]<sup>1/4</sup>',
+    sym: '式4.15・4.16。<i>R</i><sub>o</sub>：S/N が 1 になる距離 [m]。<i>P</i><sub>av</sub>：平均送信電力 [W]。<i>G</i><sub>T</sub>・<i>G</i><sub>R</sub>：送信・受信の利得。λ：波長 [m]。σ<sub>T</sub>：目標のレーダ断面積 [m²]。<i>k</i>：ボルツマン定数。<i>T</i><sub>s</sub>：システム雑音温度 [K]。<i>B</i><sub>n</sub>：ドップラフィルタの帯域幅 [Hz]。<i>L</i><sub>T</sub>：目標にかかる損失（倍率）。',
+    tbl: null,
+    cond: '目標が、クラッタのないドップラの領域にあって、雑音だけが相手のとき。||損失の項目どうしが独立で、同じものを 2 回数えていないとき。ハンドブックは、すべての損失を数えること、ただし重ねて数えないことに注意を促しています（たとえば、受信の損失を雑音指数に入れたなら、損失の表には入れない）。',
+    fail: '目標が、サイドローブクラッタの領域にあるとき。R<sub>o</sub> を「信号が、クラッタ + 雑音と等しくなる距離」と読み替える必要があります（p.4.48）。||式4.17 を、高い P<sub>d</sub> に使うとき。式4.17 は、ゲートの重なりがなく、パルス圧縮のない四角いパルスを仮定した、P<sub>d</sub> 50% 付近だけの近似です。',
+    mis: '「損失は、合計の dB だけ分かればよい」は誤りです。どの損失が目標だけにかかるか、どの損失が P<sub>d</sub> によって変わるかで、計算の進め方が変わります。計算書には、合計ではなく、1 項目ずつ書きます。'},
+  hosoku: ['損失の表の値（1 項目ずつ）は、説明のために置いたもの。項目の名前と、目標だけにかかるかどうかの区別は、ハンドブックのとおり', 'k·T_s = k·T_0·F_n、B_n = f_p/n と置いて、式1.5 と対応づけたこと。記号の定義（式4.2 の下、p.4.16）には、T_s は「システム雑音温度」、B_n は「ドップラフィルタの帯域幅」とだけある', '例のレーダは、入門 第15回の基準のレーダ（平均 1 kW、有効開口面積 1.6 m²、波長 10 cm、雑音指数 3 dB）を、16 パルス（CPI 16 ms）で使うとしたもの。エクリプシングの計算では、デューティ比 10%（N = 10）とした', '下の図（図4.21 に当たる図）は、p.4.41 の 4 段の手順を、厳密な P_d の曲線で計算したもの。ゲートの重なりなし、最初のゲートは送信でふさがるとした'],
+  memo: 'つまずきやすい点：dB を 40 で割る（距離は 4 乗根）。損失なしの R_o と、損失を入れた R_o の区別。||声かけの例：「損失を 1 dB 減らすと、距離は何 % 伸びる？（約 6%）」「この表で、クラッタの計算に入れない項目はどれ？ 合計は何 dB？」「P_d 0.9 のとき、エクリプシングの損失は、式4.17 の何 dB 増し？」',
+  init: {ng: 10}, ctl: ['pd', 'ng', 'ladj'], fixed: [], fixT: FIXE.concat(['下の図：ゆらがない目標、P_FA = 10⁻⁶']), plots: [{h: 250}],
+  sol: {pd: 0.5},
+  draw(P){
+    const E = eclCurves(S.ng), le = eclLossC(S.pd, S.ng), lt = Z.lt.tot - db10(eclApprox(EX.ngate)) + E.a + S.ladj, ro = roOf(Object.assign({}, EX, {lt})), r = ro * Math.pow(10, -Z.s0 / 40) * 1, req = snrExact(S.pd, 1e-6, 1, 0);
+    P[0].set({title: 'エクリプシングとストラドル：損失を入れない S/N と、検出確率（N = ' + S.ng + ' ゲート）', xr: [6, 30], yr: [0, 1.05], xl: '損失を入れないときの S/N [dB]', yl: '検出確率 P_d',
+      series: [{name: '損失なし', color: 's1', x: E.xs, y: E.y0, w: 2}, {name: '遅れで平均（4 段の手順）', color: 's2', x: E.xs, y: E.y1, w: 2.4}, {name: '式4.17 のぶんだけずらした曲線', color: 'ref', x: E.xs, y: E.y2, dash: [5, 4], w: 1.5}],
+      hl: [{y: S.pd, color: 'ref'}], pts: [{x: req, y: S.pd, color: 's1', r: 5}, {x: Math.min(30, req + le), y: S.pd, color: 's2', r: 6, label: '損失 ' + fx(le, 1) + ' dB', below: true}], marks: {eclc: {y0: S.pd - 0.04, y1: S.pd + 0.04, t: '同じ P_d での、横のずれが損失'}}, tipx: v => fx(v, 1) + ' dB', tipy: v => fx(v, 3)});
+    return {tiles: [{k: 'エクリプシングとストラドル（式4.17）', v: fx(E.a, 2) + ' <small>dB</small>', s: 'N = ' + S.ng + '。P_d によらない'}, {k: '同じ損失（4 段の手順）', v: fx(le, 2) + ' <small>dB</small>', s: 'P_d ' + fx(S.pd, 2) + ' のとき。式4.17 との差 ' + sg(le - E.a, 1) + ' dB'}, {k: '損失の合計 L_T', v: fx(lt, 2) + ' <small>dB</small>', s: '式4.17 を使った場合。R_o = ' + kmT(ro)}, {k: '探知距離（1 回の P_d 0.9）', v: kmT(r), s: 'ゆらがない目標。Swerling 1 なら ' + kmT(ro * Math.pow(10, -Z.s1 / 40))}]};
+  }});
+STEPS[STEPS.length - 1].read.tbl = lossHtml();
+
+/* 7 */
+STEPS.push({short: '累積 (1) 考え方', title: '累積の検出確率 (1) — 「1 回以上」は、「全部はずす」の残り', src: '§4.6（p.4.47–4.48、式4.27、図4.22）',
+  q: 'まず、確率の考え方だけを確かめる。走査（フレーム）ごとの検出は、独立とする。||(1) 1 回の走査の P<sub>d</sub> が、毎回 0.3 のとき。5 回の走査のうち、1 回以上検出する確率は、いくらか。||(2) 目標が近づいてきて、1 回の走査の P<sub>d</sub> が 0.1、0.2、0.3 と上がっていく。この 3 回のうち、1 回以上検出する確率は、いくらか。',
+  ask: [{id: 'c5', label: '(1) 5 回のうち 1 回以上', unit: '', ans: Z.c5, tol: 0.005, tolType: 'abs', hints: ['「1 回以上検出する」= 1 −「5 回とも見逃す」。1 回の走査で見逃す確率は 1 − 0.3 = 0.7。', '5 回とも見逃す確率 = 0.7⁵ = 0.168。']},
+    {id: 'c3', label: '(2) 3 回のうち 1 回以上', unit: '', ans: Z.c3, tol: 0.005, tolType: 'abs', hints: ['式4.27 の 1 行目（積の形）：1 − (1 − 0.1)(1 − 0.2)(1 − 0.3)。', '0.9 × 0.8 × 0.7 = 0.504。']}],
+  solve: '(1) 1 − 0.7⁵ = 1 − 0.168 = <b>0.832</b>。1 回ずつは 0.3 でも、5 回あれば 0.83 になります。||(2) 1 − 0.9 × 0.8 × 0.7 = 1 − 0.504 = <b>0.496</b>。||漸化式でも同じです。1 回目まで：0.1。2 回目まで：0.1 + 0.2 × (1 − 0.1) = 0.28。3 回目まで：0.28 + 0.3 × (1 − 0.28) = 0.496。「それまでに検出できていなかった場合（1 − 前までの累積）に、今回検出する」ぶんを、足していきます。',
+  read: {
+    what: '捜索の性能は、「近づいてくる目標を、ある距離までに 1 回以上検出する確率」で表すことがよくあります。これが累積の検出確率 P<sub>d,cum</sub> です。レーダは走査のたびに目標を照らすので、機会は 1 回ではありません。||「1 回以上当たる」確率は、「全部はずれる」確率を 1 から引いたものです。くじを何回か引いて、1 回でも当たる確率と同じ考え方です。走査ごとの P<sub>d</sub> が変わっても、「全部はずれる」確率は、それぞれの「はずれる」確率の積で書けます。これが式4.27 の 1 行目です。||2 行目は、同じことを、走査を 1 回足すたびに更新する形（漸化式）で書いたものです。3 回ぶんを両方の形で計算した表を、下に載せました。||上の図は、[[ssc|1 回の走査の P<sub>d</sub>]] と[[cumc|累積の P<sub>d</sub>]] を、距離に対して描いたものです（ハンドブックの図4.22 に当たる図）。累積の曲線は、1 回の曲線よりずっと遠くで立ち上がります。',
+    eq: '<i>P</i><sub>d,cum</sub>[<i>k</i>] = 1 − Π<sub><i>i</i> = 1…<i>k</i></sub> ( 1 − <i>P</i><sub>d,ss</sub>[<i>i</i>] )<br>　　　　　= <i>P</i><sub>d,cum</sub>[<i>k</i>−1] + <i>P</i><sub>d,ss</sub>[<i>k</i>]·( 1 − <i>P</i><sub>d,cum</sub>[<i>k</i>−1] )',
+    sym: '式4.27。<i>P</i><sub>d,cum</sub>[<i>k</i>]：k 回目の走査までの、累積の検出確率。<i>P</i><sub>d,ss</sub>[<i>i</i>]：i 回目の走査での、1 回の検出確率。Π は掛け算の記号。原本の 2 行目は、最後が (1 − P<sub>d,cum</sub>[k]) と印刷されているように読めますが、1 行目と合うのは [k−1] です。',
+    tbl: null,
+    cond: '目標が近づいてくるとき（累積の検出確率は、近づく目標だけに定義されます）。||走査ごとの検出が、独立のとき。雑音は走査ごとに独立です。目標のゆらぎも、走査ごとに独立である必要があります（Swerling 1 を「走査ごとに独立」として使うのは、この前提に当たります）。||足し始めるのは、1 回の P<sub>d</sub> が約 5% になる距離からです（ハンドブックの決め方）。',
+    fail: '目標の強さが、何回もの走査にわたって、ほとんど変わらないとき。弱く見える向きのまま近づいてくる目標は、どの走査でも見逃しやすく、「独立」として計算した値より、累積の P<sub>d</sub> は低くなります。||遠ざかる目標や、横切る目標。「ある距離までに」という言い方ができません。',
+    mis: '「1 回の P<sub>d</sub> が 0.9 になる距離」と「累積の P<sub>d</sub> が 0.9 になる距離」は、別のものです。この例では、63 km と 119 km で、2 倍近く違います。仕様書の「探知距離」がどちらを指すのかを、数字を見る前に確かめましょう。'},
+  hosoku: ['くじのたとえ', '上の図の条件：例のレーダ（R_o = 212.3 km）、Swerling 1（走査ごとに独立にゆらぐ）、P_FA = 10⁻⁶、N_pdi = 1。1 回の P_d は式4.24（この場合は厳密な式）。目標が近づく距離は、スライダーで決める', '「よくある誤解」の 63 km と 119 km は、1 回の走査で 2.4 km 近づく場合（近づく速さ 600 m/s、フレーム時間 4 秒）。最初の走査の位置をばらつかせて平均した値', '式4.27 の 2 行目の印刷についての注意'],
+  memo: 'つまずきやすい点：確率を足してしまう（0.1 + 0.2 + 0.3 = 0.6 としてしまう）。「両方で検出する場合」を 2 回数えている。||声かけの例：「1 回の P_d が 0.5 なら、何回で累積 0.9 を超える？（4 回）」「走査の間隔を半分にすると、累積の曲線はどう動く？」「仕様書に『探知距離 100 km』とだけあったら、何を確かめる？」',
+  init: {dr: 10}, ctl: ['dr'], fixed: [], fixT: FIXE.concat(['R_o = 212.3 km、Swerling 1、P_FA = 10⁻⁶']), plots: [{h: 270}],
+  sol: {dr: 4},
+  draw(P){
+    const c = scanCurve(Z.ro, 1e-6, 1, 1, S.dr * 1000, 180e3, 30e3), xs = c.R.map(v => v / 1000), r1 = Z.r1 / 1000, rc = rCum(Z.ro, 1e-6, 1, 1, S.dr * 1000, 0.9) / 1000;
+    P[0].set({title: '距離と検出確率（1 回の走査と、累積）', xr: [30, 180], yr: [0, 1.05], xl: '目標までの距離 [km]（目標は、右から左へ近づく）', yl: '検出確率',
+      series: [{name: '1 回の走査', color: 's1', x: xs, y: c.ps, w: 2, mk: 2.5}, {name: '累積', color: 's2', x: xs, y: c.cu, w: 2.2, mk: 2.5}], hl: [{y: 0.9, color: 'ref'}, {y: 0.05, color: 'ref', label: '5%：ここから足し始める', left: true}],
+      vl: [{x: r1, color: 's1', label: '1 回で 0.9：' + fx(r1, 0) + ' km', row: 1}, {x: rc, color: 's2', label: '累積で 0.9：' + fx(rc, 0) + ' km', row: 3}], marks: {ssc: {t: '1 回の走査の P_d'}, cumc: {t: '累積の P_d'}}, tipx: v => fx(v, 0) + ' km', tipy: v => fx(v, 3)});
+    return {tiles: [{k: '1 回の P_d が 0.9 になる距離', v: fx(r1, 1) + ' <small>km</small>'}, {k: '累積の P_d が 0.9 になる距離', v: fx(rc, 1) + ' <small>km</small>', s: '1 回の走査で ' + S.dr + ' km 近づく場合'}, {k: '2 つの距離の比', v: fx(rc / r1, 2) + ' <small>倍</small>'}]};
+  }});
+STEPS[STEPS.length - 1].read.tbl = (() => { const ps = [0.1, 0.2, 0.3]; let q = 1, c = 0, h = '<h3>式4.27 の 2 つの形（3 回ぶん）</h3><div class="tw"><table class="t"><tr><th>走査</th><th>1 回の P<sub>d</sub></th><th>積の形：1 − Π(1 − P<sub>d</sub>)</th><th>漸化式：前まで + P<sub>d</sub>·(1 − 前まで)</th></tr>'; ps.forEach((p, i) => { const prev = c; q *= 1 - p; c = prev + p * (1 - prev); h += '<tr><td>' + (i + 1) + ' 回目</td><td>' + fx(p, 1) + '</td><td>1 − ' + ps.slice(0, i + 1).map(v => fx(1 - v, 1)).join(' × ') + ' = ' + fx(1 - q, 3) + '</td><td>' + fx(prev, 3) + ' + ' + fx(p, 1) + ' × ' + fx(1 - prev, 3) + ' = ' + fx(c, 3) + '</td></tr>'; }); return h + '</table></div>'; })();
+
+/* 8 */
+STEPS.push({short: '累積 (2) フレーム時間', title: '累積の検出確率 (2) — フレーム時間には、ちょうどよい長さがある', src: '§4.6（p.4.47、式4.27 とその説明）、式4.15・4.24',
+  q: 'Swerling 1 の目標が、まっすぐ近づいてくる。レーダは、目標が 120 km、110 km、100 km にいるときに、1 回ずつ照らした（それより前には照らしていない、とする）。R<sub>o</sub> = 212.3 km、P<sub>FA</sub> = 10⁻⁶、N<sub>pdi</sub> = 1。この条件では、P<sub>d</sub> = P<sub>FA</sub><sup>1/(1+SNR)</sup> と書ける（ステップ 3）。||(1) 100 km での、1 回の P<sub>d</sub> は、いくらか。||(2) 100 km までに、1 回以上検出する確率（累積の P<sub>d</sub>）は、いくらか。',
+  ask: [{id: 'p100', label: '(1) 100 km での 1 回の P<sub>d</sub>', unit: '', ans: Z.ps[2], tol: 0.01, tolType: 'abs', hints: ['S/N = (R<sub>o</sub>/R)⁴ = (212.3 ÷ 100)⁴。P<sub>d</sub> = exp( ln(10⁻⁶) ÷ (1 + SNR) )。ln(10⁻⁶) = −13.82。', 'S/N = 20.31 倍。P<sub>d</sub> = exp(−13.82 ÷ 21.31) = exp(−0.648)。']},
+    {id: 'cum', label: '(2) 100 km までの累積の P<sub>d</sub>', unit: '', ans: Z.cum[2], tol: 0.01, tolType: 'abs', hints: ['120 km と 110 km の P<sub>d</sub> も、同じ式で出す。S/N は 9.80 倍と 13.88 倍。', '1 回の P<sub>d</sub> は 0.278、0.395、0.523。累積 = 1 − (1 − 0.278)(1 − 0.395)(1 − 0.523)。']}],
+  solve: '100 km：S/N = (212.3/100)⁴ = 20.31 倍。P<sub>d</sub> = exp(−13.82 ÷ 21.31) = <b>0.523</b>。||120 km：S/N = 9.80、P<sub>d</sub> = 0.278。110 km：S/N = 13.88、P<sub>d</sub> = 0.395。||累積 = 1 − 0.722 × 0.605 × 0.477 = <b>0.792</b>。||1 回の P<sub>d</sub> は 0.52 でも、その手前の 2 回を合わせると、100 km までに 0.79 の確率で検出できています。実際には、もっと遠くから照らしているので、累積の値は、さらに高くなります。',
+  read: {
+    what: '累積の検出確率は、走査の間隔（フレーム時間）によって変わります。ハンドブックは、フレーム時間には、ちょうどよい長さがある、と述べています。||フレーム時間を短くすると、目標があまり近づかないうちに、何回も照らせます。しかし、同じ時間の中で多くの方向を回るので、1 つの方向にかけるエネルギーが減り、1 回の P<sub>d</sub> が下がります。||フレーム時間を長くすると、1 回の P<sub>d</sub> は上がります。しかし、次に照らすまでに目標が大きく近づくので、機会の数が減り、足し合わせの利点が薄れます。||下の図は、フレーム時間を変えたときの、[[rcc|累積の P<sub>d</sub> が 0.9 になる距離]]です。山の形になり、[[best|頂上]]があります。[[r1c|1 回の P<sub>d</sub> が 0.9 になる距離]]は、フレーム時間を延ばすほど伸びますが、その距離まで近づかれてから、ようやく高い確率で見える、という意味です。||この回の例では、頂上はフレーム時間 40 秒ほどで、山はなだらかです。10〜100 秒の間なら、距離は 1 割ほどしか変わりません。実際のフレーム時間は、追尾の更新など、ほかの要求とあわせて決まります{H}。',
+    eq: 'SNR = (<i>R</i><sub>o</sub>/<i>R</i>)<sup>4</sup>　　<i>R</i><sub>o</sub><sup>4</sup> ∝ <i>T</i><sub>F</sub><br>走査のあいだに近づく距離 = <i>v</i>·<i>T</i><sub>F</sub>',
+    sym: '<i>T</i><sub>F</sub>：フレーム時間 [s]。<i>v</i>：目標が近づく速さ [m/s]。∝ は「比例する」。平均電力と、見て回る範囲が同じなら、1 つの方向にかけるエネルギーは <i>T</i><sub>F</sub> に比例します（入門 第15回 ステップ 8 の式1.6 で、再訪時間が分子にあるのと同じ）。標準は <i>T</i><sub>F</sub> = 4 秒で <i>R</i><sub>o</sub> = 212.3 km、<i>v</i> = 600 m/s。',
+    cond: '目標が、一定の速さで、まっすぐ近づいてくるとき。走査ごとの検出が独立のとき（ステップ 7 の条件）。||フレーム時間を延ばしたぶんのエネルギーを、すべて 1 回の判定の S/N に回せるとき（位相をそろえて足す、とした）。',
+    fail: 'フレーム時間を延ばしても、位相をそろえて足せる時間に限りがあるとき。そろえずに足すと、足し合わせの損失（ステップ 4）のぶん、長いフレームの得が減り、頂上は短いほうへ動きます。||目標のゆらぎが、走査の間で独立でないとき（フレーム時間が短いほど、独立でなくなりやすい）。短いフレームの得が減ります。',
+    mis: '「フレーム時間は、短いほどよい（何回も見られるから）」も、「長いほどよい（1 回の P<sub>d</sub> が上がるから）」も、片方だけを見ています。同じ平均電力の中で、「回数」と「1 回の強さ」に、どう配るかの問題です。'},
+  hosoku: ['モデル：SNR = (R_o/R)⁴、目標は一定の速さ（600 m/s）で近づく。平均電力が同じなら R_o⁴ がフレーム時間に比例する。Swerling 1（走査ごとに独立）、P_FA = 10⁻⁶、N_pdi = 1。数値は説明用', '最初の走査の位置（目標が、どの距離で最初に照らされるか）は、一様にばらつくとして、累積の P_d を平均した。走査が細かいときは、積を積分で近似している', '「頂上は 40 秒ほど」「10〜100 秒の間なら 1 割ほどしか変わらない」は、このモデルでの値。ハンドブックは、最適があることだけを述べている', '「実際のフレーム時間は、ほかの要求とあわせて決まる」という注意（入門 第13回、第17回 ステップ 5）'],
+  memo: 'つまずきやすい点：手計算は 3 回ぶんだけ（120 km より前を照らしていない、という仮定）。感度の図は、1 回の P_d が 5% の距離から、すべての走査を数えている。値が違うのは、そのため。||声かけの例：「フレーム時間を 4 秒から 16 秒にすると、R_o は何倍？（√2 倍）走査のあいだに近づく距離は？」「目標が 2 倍の速さなら、頂上はどちらへ動く？」',
+  init: {}, ctl: ['ltf'], fixed: [], fixT: FIXE.concat(['フレーム時間 4 秒のとき R_o = 212.3 km', '目標：Swerling 1、近づく速さ 600 m/s']), plots: [{h: 240}, {h: 220}],
+  sol: {ltf: 1.6},
+  draw(P){
+    const F = frameCached(Z.ro, 1e-6, 1, 1, EX.v, 0.9), tf = Math.pow(10, S.ltf), ro = roFrame(Z.ro, tf), dr = EX.v * tf, rc = rCum(ro, 1e-6, 1, 1, dr, 0.9) / 1000, r1 = ro * Math.pow(10, -Z.s1 / 40) / 1000; let bi = 0; F.ys.forEach((y, i) => { if (y > F.ys[bi]) bi = i; });
+    P[0].set({title: 'フレーム時間と、検出確率が 0.9 になる距離', xr: [0, 2.5], yr: [0, 200], xl: 'フレーム時間 [秒]', yl: '距離 [km]', xticks: [[0, '1'], [0.301, '2'], [0.699, '5'], [1, '10'], [1.301, '20'], [1.699, '50'], [2, '100'], [2.301, '200']],
+      series: [{name: '累積の P_d が 0.9', color: 's2', x: F.xs, y: F.ys, w: 2.4}, {name: '1 回の P_d が 0.9', color: 's1', x: F.xs, y: F.xs.map(l => roFrame(Z.ro, Math.pow(10, l)) * Math.pow(10, -Z.s1 / 40) / 1000), w: 1.8}],
+      vl: [{x: S.ltf, color: 'ref'}], pts: [{x: S.ltf, y: rc, color: 's2', r: 6, label: fx(rc, 0) + ' km'}, {x: S.ltf, y: r1, color: 's1', r: 5, label: fx(r1, 0) + ' km', below: true}],
+      marks: {rcc: {t: '累積で 0.9 になる距離'}, r1c: {t: '1 回で 0.9 になる距離'}, best: {x0: F.xs[bi] - 0.12, x1: F.xs[bi] + 0.12, t: '頂上：約 ' + fx(Math.pow(10, F.xs[bi]), 0) + ' 秒'}}, tipx: v => fx(Math.pow(10, v), 1) + ' 秒', tipy: v => fx(v, 0) + ' km'});
+    const c = scanCurve(ro, 1e-6, 1, 1, dr, Math.max(260e3, 1.3 * ro), 20e3), xs = c.R.map(v => v / 1000), many = c.R.length > 80;
+    P[1].set({title: 'このフレーム時間での、距離と検出確率', xr: [20, 260], yr: [0, 1.05], xl: '目標までの距離 [km]', yl: '検出確率', series: [{name: '1 回の走査', color: 's1', x: xs, y: c.ps, w: 2, mk: many ? 0 : 2.5}, {name: '累積（ある 1 つの走査の並びの例）', color: 's2', x: xs, y: c.cu, w: 2.2, mk: many ? 0 : 2.5}], hl: [{y: 0.9, color: 'ref'}], tipx: v => fx(v, 0) + ' km', tipy: v => fx(v, 3)});
+    return {tiles: [{k: 'フレーム時間', v: fx(tf, tf < 10 ? 1 : 0) + ' <small>秒</small>', s: '走査のあいだに ' + fx(dr / 1000, 1) + ' km 近づく'}, {k: 'R_o', v: kmT(ro), s: '4 秒のときの ' + fx(ro / Z.ro, 2) + ' 倍'}, {k: '累積の P_d が 0.9 になる距離', v: fx(rc, 1) + ' <small>km</small>', s: '頂上（' + fx(Math.pow(10, F.xs[bi]), 0) + ' 秒）では ' + fx(F.ys[bi], 0) + ' km'}, {k: '1 回の P_d が 0.9 になる距離', v: fx(r1, 1) + ' <small>km</small>'}]};
+  }});
+
+/* 9 */
+function sens(s){      // どの前提が 1 段動くと、探知距離（1 回の Pd）が何 % 動くか
+  const b = calc(s).r1, d = o => (calc(Object.assign({}, s, o)).r1 / b - 1) * 100, i = NS.indexOf(s.npdi);
+  return [['平均電力 +1 dB', d({pavdb: s.pavdb + 1})], ['損失 +1 dB', d({ladj: s.ladj + 1})], ['P_FA を 1/10 に', d({x: s.x + 1})], ['P_d を +0.05', s.pd <= 0.94 ? d({pd: s.pd + 0.05}) : NaN], ['N_pdi を 2 倍に', i < NS.length - 1 ? d({npdi: NS[i + 1]}) : NaN], [s.sw === 0 ? 'Swerling 1 に' : 'ゆらがないに', d({sw: s.sw === 0 ? 1 : 0})]];
+}
+STEPS.push({short: '計算書を 1 枚作る', title: '計算書を 1 枚作る — 前提から、探知距離まで', src: '§4.6 Range Performance（p.4.39–4.48、式4.15〜4.27）', free: true,
+  read: {
+    what: 'ここまでの計算を、1 枚の計算書にまとめます。順番は、(1) 前提（レーダ、目標、誤報の要求、検出確率）、(2) セルあたりの P<sub>FA</sub>、(3) 必要な S/N（ゆらぎ方、足し合わせる数）、(4) 損失の合計と R<sub>o</sub>、(5) 探知距離（1 回の P<sub>d</sub> で決める距離と、累積の P<sub>d</sub> で決める距離）です。||右の操作部で前提を変えると、計算書の値が変わります。上の図は、距離と検出確率、下の図は、[[sensb|感度]]です。前提を 1 段ずつ動かしたときに、探知距離が何 % 変わるかを並べています。||dB で書いた量（電力、損失、必要な S/N）は、1 dB につき、距離が約 6% 動きます。距離が S/N の 4 乗根で効くからです。これに対して、目標のゆらぎ方や検出確率の決め方は、それだけで数 dB、距離で数十 % を動かします。計算書でいちばん先に確かめるべきなのは、多くの場合、電力や損失の 1 dB ではなく、「どの目標のモデルで、どの P<sub>d</sub> を、1 回で言うのか、累積で言うのか」です。||人の計算書を読むときは、最後の数字より先に、前提の行を読みましょう。',
+    eq: '<i>R</i> = <i>R</i><sub>o</sub> × 10<sup>−SNR<sub>reqd</sub>[dB] / 40</sup>',
+    sym: '式4.15 を、距離について解いた形です。<i>R</i>：探知距離。<i>R</i><sub>o</sub>：S/N が 1 になる距離（損失 <i>L</i><sub>T</sub> を含む。式4.16）。SNR<sub>reqd</sub>[dB]：必要な S/N（式4.23 または 4.25）。必要な S/N が 1 dB 増えると、距離は 10<sup>−1/40</sup> = 0.944 倍になります。',
+    cond: '各ステップに書いた条件が、すべて成り立つとき：雑音だけが相手、損失を重ねて数えていない、目標が Swerling の型でゆらぐ、走査ごとの検出が独立、など。',
+    fail: 'クラッタや妨害が相手のとき（入門 第2回・第3回・第12回・第14回）。目標のゆらぎ方が、どの型にも当てはまらないとき。こうした場合、この計算書は、出発点としての目安にとどまります。',
+    mis: '「計算書の最後の数字（探知距離）が合っていれば、それでよい」は誤りです。同じ「100 km」でも、ゆらがない目標の 1 回の P<sub>d</sub> 0.9 と、Swerling 1 の累積の P<sub>d</sub> 0.9 では、レーダに求められる S/N が 10 dB 以上違います。数字は、前提と組にして初めて意味を持ちます。'},
+  hosoku: ['計算書の並べ方と、感度の図の見せ方', '感度の図の「1 段」は、こちらで決めた動かし方（電力と損失は 1 dB、P_FA は 1/10、P_d は +0.05、N_pdi は 2 倍、ゆらぎ方は「ゆらがない」と Swerling 1 の入れ替え）', '累積の P_d で決める距離は、ステップ 8 のモデル（近づく速さ 600 m/s、R_o⁴ がフレーム時間に比例）による。足し合わせる CPI を増やしても、フレーム時間は変わらないとした', '「多くの場合、いちばん先に確かめるべきなのは…」という指針', '例の値は、すべて説明用'],
+  memo: '声かけの例：「この計算書の前提のうち、仕様で決まるものはどれ？ 設計で決めるものは？」「探知距離を 1 割伸ばしたい。どの行を動かす？ 何 dB 要る？」「同じ計算書を、目標のモデルだけ変えて 2 枚作ると、何が言える？」',
+  init: {sw: 1}, ctl: ['sw', 'pd', 'x', 'npdi', 'pavdb', 'ladj', 'ltf'], fixed: [], fixT: FIXE.concat(['損失の表はステップ 6 のもの（合計 13.03 dB）', '近づく速さ 600 m/s']), plots: [{h: 230}, {h: 210}],
+  mission: {t: 'Swerling 1 の目標を、1 回の P_d 0.9 以上で検出できる距離を、80 km 以上にしよう。平均電力は増やさず、損失の見込みも減らさないこと（足し合わせる数などで工夫する）。', ok: r => S.sw === 1 && S.pd >= 0.9 - 1e-9 && S.pavdb <= 0 && S.ladj >= 0 && r.c.r1 >= 80e3}, sol: {npdi: 4},
+  sheet(r){
+    const c = r.c || calc(), pfa = c.pfa;
+    return [{head: '前提（今の設定）'},
+      {k: '平均送信電力 P<sub>av</sub>', f: '与える', v: fx(EX.pav * lin(S.pavdb) / 1000, 2), u: 'kW'}, {k: '利得、波長、目標', f: '有効開口面積 1.6 m²、1 m²', v: '33.0 dB、10 cm', u: ''}, {k: '雑音 k·T<sub>s</sub>、帯域幅 B<sub>n</sub>', f: '雑音指数 3 dB、CPI 16 ms', v: sci(KT0 * lin(EX.fn), 2) + ' W/Hz、62.5', u: 'Hz'},
+      {k: '目標のゆらぎ方', f: '仮定する', v: SWN[S.sw], u: ''}, {k: '検出確率 P<sub>d</sub>', f: '要求', v: fx(S.pd, 2), u: ''}, {k: '足し合わせる CPI の数 N<sub>pdi</sub>', f: '設計で決める', v: String(S.npdi), u: ''}, {k: 'フレーム時間、近づく速さ', f: '設計で決める／仮定する', v: fx(c.tf, c.tf < 10 ? 1 : 0) + ' 秒、600', u: 'm/s'},
+      {head: '誤警報'}, {k: 'セルあたりの P<sub>FA</sub>', f: '式4.18（誤報の時間とセルの数から）', v: pfaTxt(S.x), u: ''},
+      {head: '必要な S/N'}, {k: '必要な S/N（1 つの CPI あたり）', f: S.sw === 0 ? '式4.23' : '式4.25、n<sub>e</sub> = ' + neOf(S.sw, S.npdi), v: fx(c.req, 2), u: 'dB'},
+      {head: '損失と探知距離'}, {k: '損失の合計 L<sub>T</sub>', f: '14 項目の和 + 見込みの変更', v: fx(c.lt, 2), u: 'dB'}, {k: 'R<sub>o</sub>（フレーム時間 4 秒）', f: '式4.16', v: fx(c.ro / 1000, 1), u: 'km'},
+      {k: '探知距離（1 回の P<sub>d</sub> ' + fx(S.pd, 2) + '）', f: '式4.15', v: fx(c.r1 / 1000, 1), u: 'km'}, {k: 'R<sub>o</sub>（今のフレーム時間）', f: 'R<sub>o</sub><sup>4</sup> ∝ フレーム時間', v: fx(c.roF / 1000, 1), u: 'km'}, {k: '探知距離（累積の P<sub>d</sub> ' + fx(S.pd, 2) + '）', f: '式4.27', v: fx(c.rc / 1000, 1), u: 'km'}];
+  },
+  draw(P){
+    const c = calc(), sc = scanCurve(c.roF, c.pfa, S.sw, S.npdi, c.dr, Math.max(300e3, 1.4 * c.roF), 10e3), xs = sc.R.map(v => v / 1000), many = sc.R.length > 80, xmax = Math.max(150, Math.ceil(1.3 * c.rc / 50000) * 50), r1F = c.r1F / 1000;
+    P[0].set({title: '距離と検出確率（今の設定。フレーム時間 ' + fx(c.tf, c.tf < 10 ? 1 : 0) + ' 秒）', xr: [0, xmax], yr: [0, 1.05], xl: '目標までの距離 [km]', yl: '検出確率', series: [{name: '1 回の走査', color: 's1', x: xs, y: sc.ps, w: 2, mk: many ? 0 : 2.5}, {name: '累積', color: 's2', x: xs, y: sc.cu, w: 2.2, mk: many ? 0 : 2.5}],
+      hl: [{y: S.pd, color: 'ref'}], vl: [{x: r1F, color: 's1', label: '1 回：' + fx(r1F, 0) + ' km', row: 1}, {x: c.rc / 1000, color: 's2', label: '累積：' + fx(c.rc / 1000, 0) + ' km', row: 3}], tipx: v => fx(v, 0) + ' km', tipy: v => fx(v, 3)});
+    const sn = sens(S), rects = [], texts = []; sn.forEach((q, i) => { if (!(q[1] === q[1])) { texts.push({s: '—', x: i + 1, y: 4, align: 'center'}); return; } const v = Math.max(-58, Math.min(58, q[1])); rects.push({x0: i + 0.7, x1: i + 1.3, y0: Math.min(0, v), y1: Math.max(0, v), color: v >= 0 ? 's3' : 's2', fill: 0.75, w: 0}); texts.push({s: sg(q[1], 1) + '%', x: i + 1, y: v >= 0 ? Math.min(58, v + 9) : Math.max(-50, v - 2), align: 'center'}); });
+    P[1].set({title: '感度：前提を 1 段動かしたときの、探知距離（1 回の P_d）の変化', xr: [0.4, sn.length + 0.6], yr: [-60, 60], xticks: sn.map((q, i) => [i + 1, q[0]]), yl: '距離の変化 [%]', noHover: true, series: [], rects, texts, hl: [{y: 0, color: 'ref', dash: []}], marks: {sensb: {t: 'dB の量は 1 dB で約 6%'}}});
+    return {c, tiles: [{k: '必要な S/N', v: fx(c.req, 2) + ' <small>dB</small>', s: SWN[S.sw] + '、P_d ' + fx(S.pd, 2) + '、N_pdi ' + S.npdi}, {k: '探知距離（1 回の P_d）', v: kmT(c.r1), s: 'フレーム時間 4 秒の R_o で'}, {k: '探知距離（累積の P_d）', v: kmT(c.rc), s: '今のフレーム時間で。1 回なら ' + kmT(c.r1F)}, {k: '2 つの距離の比', v: fx(c.rc / c.r1F, 2) + ' <small>倍</small>'}]};
+  },
+  extra: () => checkTable(runChecks())});
+
+bootM();
+</script>
+</body>
+</html>

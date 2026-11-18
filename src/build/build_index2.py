@@ -42,6 +42,17 @@ for no,f,name,en,ch,desc,pre,nst in INFO:
 <p class="sym">所要時間の目安：約 %d〜%d 分　／　前提となる回：%s<br>%s</p>
 %s</section>
 '''%('' if ready[no] else ' off',no,name,en,desc,n*5,n*8,pre,(ch[1:] if ch.startswith('!') else 'もとにした章：Radar Handbook 3rd ed. '+ch),act)
+MINFO=[('m01_detection.html','中級 第1回','検出の計算','Detection Performance Calculation','第4章 §4.6 Range Performance（p.4.39–4.48）','誤報の要求から誤警報確率を決め、必要な S/N、損失、探知距離（1 回の検出確率と、累積の検出確率）を、手で計算して計算書にまとめます。','入門 第4回、第15回、第16回')]
+mcards=''
+for f,no,name,en,ch,desc,pre in MINFO:
+    if not (f in D and (DOCS/f).exists()): continue
+    st=D[f]['steps']; n=len(st)
+    li=''.join('<li><a href="%s#s%d">%s</a></li>'%(f,k+1,html.escape(ttl(t['title']))) for k,t in enumerate(st))
+    mcards+='''<section class="card sim"><div class="sim-h"><span class="no">%s</span><h2>%s <small>%s</small></h2></div>
+<p>%s</p>
+<p class="sym">所要時間の目安：約 %d〜%d 分（手計算を含む）　／　前提となる回：%s<br>もとにした章：Radar Handbook 3rd ed. %s</p>
+<p><a class="btn primary" href="%s">%sをはじめる →</a>　<span class="sym">全 %d ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol>%s</ol></details></section>
+'''%(no,name,en,desc,n*10,n*15,pre,ch,f,no,n,li)
 def box(title,body,nums): return '<div><b>%s</b>%s<span class="mapl">%s</span></div>'%(title,body,'　'.join(lk(n,'第%d回'%n) for n in nums))
 body='''
 .wrap{max-width:1180px;margin:0 auto;padding:14px 44px 40px 14px}
@@ -77,7 +88,7 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <body>
 <header class="top">
   <h1>レーダ 入門シミュレータ</h1>
-  <div id="msbar">全 18 回・目次</div>
+  <div id="msbar">入門 18 回・中級 1 回</div>
   <button class="btn sm" id="glBtn" type="button">用語集</button>
   <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
 </header>
@@ -96,9 +107,14 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 </div>
 <p class="sym">受信した信号がたどる処理の順に並べた、おおまかな見取り図です。実際のレーダでは、方式によって使う処理や順番が変わります。</p>
 
-<h2 class="sec">18 回の一覧（上から順に進めるのがおすすめ）</h2>
+<h2 class="sec">入門：18 回の一覧（上から順に進めるのがおすすめ）</h2>
 <div class="cards">
 '''+cards+'''</div>
+
+<h2 class="sec">中級（性能の計算を、自分でやり始める人へ）</h2>
+<p>入門を終えた人のための回です。3 択の予想のかわりに、<b>手で計算した数値を入力</b>します。外れたときは、途中の値のヒントが 1 段ずつ出ます。画面の「計算書」に、前提・式・値が 1 行ずつ埋まっていきます。式が使える条件と、崩れる条件も書いています。</p>
+<div class="cards">
+'''+mcards+'''</div>
 
 <h2 class="sec">1 つのステップの進め方</h2>
 <div class="how">

@@ -27,6 +27,8 @@ python tests/stest.py <ファイル名> 1366 768 light a       # 1 つの回の�
 python tests/stest.py <ファイル名> 820 900 light n        #   狭い画面
 python tests/stest.py <ファイル名> 1366 768 dark d        #   ダーク表示
 python tests/itest.py && python tests/xlink.py            # 目次と、回をまたぐリンク
+python src/build/build_m.py 1                             # 中級 第1回を組み立てる（docs/m01_detection.html）
+python tests/stest.py m01_detection.html 1366 768 light a # 中級のテスト（入門と同じスクリプト）
 ```
 
 テストには Playwright が要る（`pip install playwright`、`playwright install chromium`）。手元の Chrome を使うなら環境変数 `CHROME` に場所を入れる。合格の形は `missions N / N … errors [] | external [] | problem steps []`。
@@ -58,6 +60,20 @@ python tests/itest.py && python tests/xlink.py            # 目次と、回を�
 - 単位を書く。dB には倍率を添える。軸のラベルは日本語。
 - 色を「明るい／暗い」「濃い／薄い」で説明しない。ライトとダークで逆になる。「右の目盛り」「はっきりした灰」のように書く。
 
+## 中級シリーズ（`docs/mNN_*.html`）
+
+入社 5 年目くらいで、性能計算を自分でやり始める人のための回。到達点は「性能計算書を自分で書けて、数字の根拠を説明できる」こと。入門の決まりのうち、下に書いた点だけが違う。
+
+- **ファイル**：`src/episodes/cmNN_core.js`（計算）、`smNN_steps.js`（ステップ。最後は `bootM()`）。組み立ては `src/build/build_m.py`。共通部品は `make_fw_m.py` が `fw_core2.js` + `src/framework/fw_m_add.js` から作る（`src/generated/fw_core_m.js`）。**入門の HTML は 1 バイトも変えない。**
+- **用語は `src/framework/gloss_m.js`**（中級の HTML にだけ入る）。`gloss_add.js` に足すと、入門の全回が変わる。
+- **数値入力式**：各ステップは「前提を読む → 手計算 → 数値を入力 → 答え合わせ → 感度を見る」。3 択の予想は使わない。ステップ定義に `ask: [{id, label, unit, ans, tol, tolType: 'abs'|'rel', hints: [1 回目, 2 回目]}]` と `solve`（解き方）。入力欄は 1〜3 個。外れると、ヒントが 1 段ずつ出て、3 回目で解き方を全部見せる。正しく入力できたら、ミッション達成。
+- **計算書**：`SHEET()`（全ステップ共通）か、ステップの `sheet(r)` が行の配列を返す。行は `{k: 項目, f: 式・根拠, v: 値, u: 単位, st: 決めるステップ}`、見出しは `{head}`。ステップが進むと行が埋まる。
+- **1 ステップ 1 変数の縛りはない。** 手計算の対象は 1 つの量に絞り、スライダーは答え合わせのあとの感度の確認に使う。
+- **読み物は 600〜1200 字**：考え方／使う式（記号を全部説明）／**この式が使える条件**／**崩れる条件**／よくある誤解。たとえ話は必須でない。`read: {what, eq, sym, tbl, cond, fail, mis}`。
+- **照合を厚く**：ハンドブックの式どおりか、近似式と厳密な計算の差、入門の回と同じ条件で同じ値になるか。差を広く調べる計算は `tests/harness/tmNN.js` に置き、範囲と結果を本文と報告に書く。
+- **式は、PDF のページを画像で見て確かめる。** 原本の印刷と合わない所は、断定せず「〜と読める」と書き、印刷どおりの形と、計算に使った形の両方を、照合表（'ref'）と補足に出す。
+- テストは入門と同じ `stest.py`（わざと外した値でヒントが出ること、3 回で解き方が出ること、正しい値で達成になることを確かめる）。
+
 ## 技術の決まり
 
 - **単体の HTML。** 外部ライブラリ、Web フォント、CDN、通信を使わない。回どうしは相対リンク。
@@ -83,6 +99,8 @@ python tests/itest.py && python tests/xlink.py            # 目次と、回を�
 5. `HANDOFF.md` に、分かったこと・決めたことを追記する。
 
 ## 残っている作業
+
+- 中級シリーズの続き（第2回以降。題材は未定）。
 
 - 第9〜12回の、問いの正解の位置を散らす。
 - 第14回：クラッタマップの 4 段階表示（雑音に対する dB で色分け）を入れるか検討。
