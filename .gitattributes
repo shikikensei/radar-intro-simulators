@@ -1,0 +1,3 @@
+# 改行を LF にそろえる（組み立て結果が OS によらず同じになるように）
+* text=auto eol=lf
+*.png binary

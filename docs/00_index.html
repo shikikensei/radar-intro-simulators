@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>レーダ 入門シミュレータ（目次）</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3f2ee; --surface:#fcfcfb; --surface2:#f0efec; --border:#d9d8d2;
+  --text:#0b0b0b; --text2:#52514e; --muted:#77766f; --grid:#e4e3dd; --axis:#a9a8a1;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --ref:#8a8983; --hl:#b4279a;
+  --band:rgba(42,120,214,.10); --band2:rgba(235,104,52,.12); --bandn:rgba(120,119,112,.14); --band3:rgba(27,175,122,.14);
+  --accent:#1c5cab; --accent-bg:#e4eefb; --warn:#8a5a00; --warn-bg:#fdf1d3; --ok:#0a6b0a; --ok-bg:#e2f3e2; --ng:#b02a2a;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111110; --surface:#1a1a19; --surface2:#242423; --border:#3a3a37;
+  --text:#f0efec; --text2:#c3c2b7; --muted:#96958c; --grid:#2d2d2a; --axis:#6a6963;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --ref:#96958c; --hl:#e56bd0;
+  --band:rgba(57,135,229,.16); --band2:rgba(217,89,38,.18); --bandn:rgba(150,149,140,.16); --band3:rgba(25,158,112,.20);
+  --accent:#86b6ef; --accent-bg:#1c2c44; --warn:#f0c869; --warn-bg:#3a2f12; --ok:#5fd05f; --ok-bg:#16301a; --ng:#f08a8a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-size:14px;line-height:1.75;
+  font-family:"Yu Gothic UI","Meiryo UI","Meiryo","Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",system-ui,sans-serif}
+button,select,input{font:inherit;color:inherit}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+header.top h1{font-size:16px;margin:0;font-weight:700;white-space:nowrap}
+#msbar{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:12px;color:var(--text2);overflow:hidden;white-space:nowrap}
+#msbar button{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--axis);background:none;padding:0;cursor:pointer;font-size:10px;line-height:1;color:transparent;flex:none}
+#msbar button.done{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+#msbar b{margin-left:6px;color:var(--text);font-variant-numeric:tabular-nums}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:4px 10px;cursor:pointer;line-height:1.4;white-space:nowrap;text-decoration:none;color:var(--text);display:inline-block}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:700}
+.btn.sm{padding:2px 8px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:default}
+nav#steps{display:flex;flex-wrap:wrap;gap:5px;max-width:1480px;margin:10px auto 0;padding:0 14px}
+nav#steps button{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:2px 10px 2px 3px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+nav#steps button i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--surface2);font-size:11.5px;font-weight:700}
+nav#steps button[aria-current=true]{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:700}
+nav#steps button[aria-current=true] i{background:var(--accent);color:var(--surface)}
+nav#steps button.done i{background:var(--ok);color:var(--surface)}
+.layout{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;max-width:1480px;margin:0 auto;padding:10px 40px 30px 14px;align-items:start}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr)}}
+#read,.card{background:var(--surface);border:1px solid var(--border);border-radius:10px}
+#read{padding:12px 16px 14px;min-width:0}
+#read h2{font-size:18px;margin:0 0 6px;line-height:1.4}
+#read h2 .num{display:inline-block;font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);border-radius:4px;padding:1px 8px;margin-right:8px;vertical-align:3px}
+#read h3{font-size:13px;margin:12px 0 2px;color:var(--accent)}
+#read p{margin:2px 0 6px}
+#read a.term{color:var(--hl);font-weight:700;text-decoration:underline dotted;cursor:pointer}
+.eq{font-family:"Cambria Math","Times New Roman",serif;font-size:17px;margin:6px 0 4px 8px;overflow-x:auto;white-space:nowrap;padding:6px 10px;background:var(--surface2);border-radius:6px}
+.eq i{font-style:italic}
+.sym{font-size:12.5px;color:var(--text2)}
+.mis{border-left:4px solid var(--warn);background:var(--warn-bg);border-radius:0 8px 8px 0;padding:6px 12px;margin:4px 0}
+.src{font-size:12px;color:var(--text2);border-top:1px dashed var(--border);padding-top:6px;margin-top:10px}
+.hosoku{display:inline-block;font-size:11px;font-weight:700;border:1px solid var(--warn);color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:0 5px;margin:0 4px 0 0;line-height:1.5;vertical-align:1px;white-space:nowrap}
+details{border:1px solid var(--border);border-radius:8px;padding:5px 10px;margin:8px 0 0;background:var(--surface)}
+details summary{cursor:pointer;font-weight:700;font-size:12.5px}
+details p{margin:4px 0;font-size:13px}
+.pre{border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin:6px 0 10px;background:var(--surface2)}
+.pre>b{font-size:12.5px}
+.pre details{background:var(--surface);margin:5px 0 0}
+#sim{min-width:0;display:flex;flex-direction:column;gap:10px}
+.card{padding:10px 14px}
+.card .lbl{display:inline-block;font-size:11.5px;font-weight:700;color:var(--surface);background:var(--accent);border-radius:4px;padding:0 8px;margin-right:8px;line-height:1.6}
+.card.q p{margin:4px 0 8px;font-size:15px;font-weight:700}
+.ch{display:flex;flex-wrap:wrap;gap:6px}
+.ch button{border:1.5px solid var(--border);background:var(--surface);border-radius:8px;padding:5px 12px;cursor:pointer;text-align:left;line-height:1.45}
+.ch button:hover{border-color:var(--accent)}
+.ch button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-bg);font-weight:700}
+.ch button.right{border-color:var(--ok);background:var(--ok-bg)}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.card.op{position:relative}
+.card.op.locked>*:not(.lockmsg){opacity:.3;pointer-events:none;filter:grayscale(.4)}
+.lockmsg{display:none;position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:3;background:var(--warn-bg);border:1.5px solid var(--warn);color:var(--warn);font-weight:700;border-radius:8px;padding:6px 16px;white-space:nowrap}
+.card.op.locked .lockmsg{display:block}
+.fixed{display:flex;flex-wrap:wrap;gap:5px;font-size:12px;color:var(--text2);margin-bottom:6px;align-items:center}
+.fixed span{border:1px solid var(--border);border-radius:999px;padding:0 8px;background:var(--surface2);white-space:nowrap;line-height:1.7}
+.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 14px;margin-bottom:6px}
+.ctl{min-width:0;border-radius:6px;padding:2px 6px;border:2px solid transparent}
+.ctl.flash,.tile.flash{border-color:var(--hl);background:color-mix(in srgb,var(--hl) 12%,transparent)}
+.ctl-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 8px;min-width:0}
+.ctl-h label{font-size:13px;font-weight:700;min-width:0;line-height:1.5}
+.ctl-h output{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;color:var(--accent);margin-left:auto}
+.ctl input[type=range]{display:block;width:100%;margin:1px 0 0;accent-color:var(--s1);height:18px}
+.ctl small{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+.ctl .chk{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer}
+.ctl .chk input{accent-color:var(--s1);margin:0}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface);max-width:100%}
+.seg button{border:0;background:none;padding:2px 10px;cursor:pointer;font-size:12.5px;border-left:1px solid var(--border);white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed=true]{background:var(--accent-bg);color:var(--accent);font-weight:700}
+.acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.plotgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.plot{min-width:0;border:1px solid var(--border);border-radius:8px;padding:5px 8px 2px;background:var(--surface)}
+.plot-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 14px;min-height:20px}
+.plot-t{font-size:12.5px;font-weight:700}
+.plot-lg{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;color:var(--text2)}
+.plot-lg span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.plot-lg i{display:inline-block;width:20px;height:0;border-top:2px solid}
+.plot-c{position:relative;width:100%}
+.plot-c canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.plot-c canvas.ov{cursor:crosshair}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11.5px;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap;z-index:5;font-variant-numeric:tabular-nums}
+.tip b{display:block}
+.tip i{display:inline-block;width:12px;height:0;border-top:2px solid;margin-right:5px;vertical-align:middle}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;margin-top:8px}
+.tile{border:2px solid var(--border);border-radius:8px;padding:4px 10px;min-width:0;background:var(--surface)}
+.tile .k{font-size:11.5px;color:var(--text2);line-height:1.4}
+.tile .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.35;overflow-wrap:anywhere}
+.tile .v small{font-size:12px;font-weight:600;color:var(--text2)}
+.tile .s{font-size:11px;color:var(--muted);line-height:1.4;overflow-wrap:anywhere}
+.card.ms{border-left:5px solid var(--s2)}
+.card.ms.done{border-left-color:var(--ok);background:var(--ok-bg)}
+.card.ms p{margin:4px 0 2px}
+.card.ms .st{font-weight:700;color:var(--muted)}
+.card.ms.done .st{color:var(--ok)}
+.card.ans .body{margin-top:8px}
+.card.ans .body p{margin:3px 0}
+.stepnav{display:flex;justify-content:space-between;gap:8px;max-width:1480px;margin:0 auto;padding:0 14px 30px}
+#gloss{position:fixed;right:0;top:0;bottom:0;width:min(400px,92vw);z-index:40;background:var(--surface);border-left:1px solid var(--border);box-shadow:-4px 0 18px rgba(0,0,0,.2);padding:12px 16px;overflow-y:auto}
+#gloss h2{font-size:15px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+#gloss h3{font-size:12.5px;margin:12px 0 2px;color:var(--accent);border-bottom:1px solid var(--border)}
+#gloss dt{font-weight:700;margin-top:7px;font-size:13px}
+#gloss dd{margin:0;font-size:13px;color:var(--text2);line-height:1.6}
+#gloss input{width:100%;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+#glTab{position:fixed;right:0;top:45%;z-index:35;writing-mode:vertical-rl;border:1px solid var(--border);border-right:0;border-radius:8px 0 0 8px;background:var(--accent-bg);color:var(--accent);font-weight:700;padding:10px 4px;cursor:pointer;letter-spacing:.1em}
+table.t{border-collapse:collapse;width:100%;font-size:12.5px;margin:6px 0}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:4px 8px;text-align:left;vertical-align:top}
+table.t th{color:var(--text2);font-weight:700;background:var(--surface2);white-space:nowrap}
+.tw{overflow-x:auto}
+.ok{color:var(--ok);font-weight:700;white-space:nowrap}.ng{color:var(--ng);font-weight:700;white-space:nowrap}.info{color:var(--muted);white-space:nowrap}
+@media print{nav#steps,.stepnav,header.top .btn,#glTab{display:none}}
+
+.wrap{max-width:1180px;margin:0 auto;padding:14px 44px 40px 14px}
+.lead{font-size:15px}
+.wrap h2.sec{font-size:15px;margin:18px 0 6px;color:var(--accent)}
+.wrap p{margin:4px 0 8px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:1000px){.cards{grid-template-columns:minmax(0,1fr)}}
+.sim-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sim-h h2{font-size:18px;margin:0}
+.sim-h h2 small{font-size:12px;color:var(--text2);font-weight:600}
+.no{font-size:12px;font-weight:700;color:var(--surface);background:var(--accent);border-radius:4px;padding:1px 9px}
+.card.sim.off{opacity:.72}.card.sim.off .no{background:var(--muted)}
+.soon{color:var(--muted);font-weight:700}
+.card.sim ol{margin:6px 0 4px;padding-left:26px;columns:2;column-gap:24px;font-size:13px}
+@media (max-width:560px){.card.sim ol{columns:1}}
+.card.sim li{break-inside:avoid}
+.map{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:10px 12px;margin:6px 0}
+.map .row{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:6px 0}
+.map .row>div{flex:1 1 130px;border:1px solid var(--border);border-radius:8px;background:var(--bg);padding:6px 10px;font-size:12.5px;line-height:1.5}
+.map .row>div b{display:block;color:var(--accent);font-size:13px}
+.map .row>i{align-self:center;font-style:normal;color:var(--muted);font-size:18px}
+.map .mapl{display:block;margin-top:3px;font-weight:700}
+.map .cap{font-size:12px;color:var(--text2);font-weight:700;margin:8px 0 0}
+.how{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:1000px){.how{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.how div{border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:6px 12px}
+.how b{display:block}.how b span{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--surface);font-size:12.5px;margin-right:6px}
+ul.pl{margin:4px 0 8px;padding-left:22px}
+@media (max-width:560px){header.top{flex-wrap:wrap}header.top h1{white-space:normal;flex:1 1 100%}.wrap{padding-right:34px}.map .row>i{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>レーダ 入門シミュレータ</h1>
+  <div id="msbar">全 13 回・目次</div>
+  <button class="btn sm" id="glBtn" type="button">用語集</button>
+  <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
+</header>
+<main class="wrap">
+<p class="lead">レーダのしくみを、<b>読み物を読みながら、シミュレータを触って確かめる</b>形で学ぶ、新人向けの教材です。レーダの知識がほとんどなくても、第0回から順に進めれば読めるように作っています。</p>
+<p>内容は Merrill I. Skolnik 編 <i>Radar Handbook</i> 第3版（McGraw-Hill, 2008）にもとづく、一般的な原理の解説です。各ステップに、もとにした章・節と本のページを書いています。たとえ話など、ハンドブックにない説明には <span class="hosoku">補足</span> の印を付けています。特定の装置や社内の仕様には触れていません。第13回だけは、ハンドブックに詳しい記述がない話題なので、公開されている技術誌の記事（<i>Johns Hopkins APL Technical Digest</i>, 2020）をおもな資料にしています。</p>
+
+<h2 class="sec">シリーズの地図（どの回が、レーダのどの部分を扱うか）　<span class="hosoku">補足</span></h2>
+<div class="map">
+ <p class="cap">電波の通り道：送る → 飛ぶ → はね返る</p>
+ <div class="row"><div><b>送信する波形</b>長いパルスに「目印」を付けて送る<span class="mapl"><a href="01_pulse_compression.html">第1回</a></span></div><i>→</i><div><b>アンテナ</b>電波を細いビームにして向ける<span class="mapl"><a href="07_phased_array.html">第7回</a></span></div><i>→</i><div><b>空間</b>大気や海面で、届き方が変わる<span class="mapl"><a href="09_propagation.html">第9回</a></span></div><i>→</i><div><b>目標</b>形や向きで、はね返り方が変わる<span class="mapl"><a href="10_rcs.html">第10回</a></span></div></div>
+ <p class="cap">受信した信号の処理：消す → 決める → 追う</p>
+ <div class="row"><div><b>クラッタを消す</b>動かない物のエコーを取り除く<span class="mapl"><a href="02_mti.html">第2回</a>　<a href="03_pulse_doppler.html">第3回</a>　<a href="06_amti.html">第6回</a></span></div><i>→</i><div><b>「ある／ない」を決める</b>しきい値で検出する。場所ごとの背景を覚える<span class="mapl"><a href="04_detection_cfar.html">第4回</a>　<a href="14_clutter_map.html">第14回</a></span></div><i>→</i><div><b>目標を追う</b>検出点をつないで航跡にする。角度を精密に測る<span class="mapl"><a href="05_tracking.html">第5回</a>　<a href="08_monopulse.html">第8回</a></span></div></div>
+ <p class="cap">全体にかかわること・応用</p>
+ <div class="row"><div><b>基礎</b>距離・dB・レーダ方程式・ドップラ・雑音<span class="mapl"><a href="00_basics.html">第0回</a></span></div><div><b>画像にする</b>動きながら集めた信号で画像を作る<span class="mapl"><a href="11_sar.html">第11回</a></span></div><div><b>妨害から守る</b>妨害の中でも働き続ける工夫<span class="mapl"><a href="12_eccm.html">第12回</a></span></div><div><b>時間を配る</b>捜索と追尾に、ビームの時間を割り当てる<span class="mapl"><a href="13_scheduling.html">第13回</a></span></div></div>
+</div>
+<p class="sym">受信した信号がたどる処理の順に並べた、おおまかな見取り図です。実際のレーダでは、方式によって使う処理や順番が変わります。</p>
+
+<h2 class="sec">13 回の一覧（上から順に進めるのがおすすめ）</h2>
+<div class="cards">
+<section class="card sim"><div class="sim-h"><span class="no">第0回</span><h2>レーダの基礎の基礎 <small>Radar Basics</small></h2></div>
+<p>レーダが距離・方向・速度を知るしくみと、dB・レーダ方程式・雑音という共通の道具を学びます。</p>
+<p class="sym">所要時間の目安：約 50〜80 分　／　前提となる回：なし（ここから始めます）<br>もとにした章：Radar Handbook 3rd ed. 第1章 An Introduction and Overview of Radar</p>
+<p><a class="btn primary" href="00_basics.html">第0回をはじめる →</a>　<span class="sym">全 10 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="00_basics.html#s1">レーダとは</a></li><li><a href="00_basics.html#s2">距離の測り方</a></li><li><a href="00_basics.html#s3">dB とは</a></li><li><a href="00_basics.html#s4">レーダ方程式</a></li><li><a href="00_basics.html#s5">レーダから分かる情報</a></li><li><a href="00_basics.html#s6">I/Q とドップラ</a></li><li><a href="00_basics.html#s7">周波数帯</a></li><li><a href="00_basics.html#s8">雑音と確率分布</a></li><li><a href="00_basics.html#s9">レーダの種類と使われ方</a></li><li><a href="00_basics.html#s10">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第1回</span><h2>パルス圧縮 <small>Pulse Compression</small></h2></div>
+<p>長いパルスで遠くまで届かせながら、細かい距離の違いも見分ける工夫を学びます。</p>
+<p class="sym">所要時間の目安：約 55〜88 分　／　前提となる回：第0回<br>もとにした章：Radar Handbook 3rd ed. 第8章 Pulse Compression Radar</p>
+<p><a class="btn primary" href="01_pulse_compression.html">第1回をはじめる →</a>　<span class="sym">全 11 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="01_pulse_compression.html#s1">なぜパルス圧縮か</a></li><li><a href="01_pulse_compression.html#s2">LFM（チャープ）波形</a></li><li><a href="01_pulse_compression.html#s3">整合フィルタと相関</a></li><li><a href="01_pulse_compression.html#s4">距離分解能</a></li><li><a href="01_pulse_compression.html#s5">雑音の中での検出</a></li><li><a href="01_pulse_compression.html#s6">サイドローブと重み付け</a></li><li><a href="01_pulse_compression.html#s7">ドップラの影響</a></li><li><a href="01_pulse_compression.html#s8">位相符号波形</a></li><li><a href="01_pulse_compression.html#s9">エクリプシング</a></li><li><a href="01_pulse_compression.html#s10">実装のしかた（概要）— ストレッチ処理は、距離を周波数に変える</a></li><li><a href="01_pulse_compression.html#s11">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第2回</span><h2>MTI（移動目標指示） <small>Moving Target Indication</small></h2></div>
+<p>地面や建物などの動かないエコー（クラッタ）を消して、動く目標だけを残す工夫を学びます。</p>
+<p class="sym">所要時間の目安：約 55〜88 分　／　前提となる回：第0回、第1回<br>もとにした章：Radar Handbook 3rd ed. 第2章 MTI Radar</p>
+<p><a class="btn primary" href="02_mti.html">第2回をはじめる →</a>　<span class="sym">全 11 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="02_mti.html#s1">MTI とは</a></li><li><a href="02_mti.html#s2">パルスごとの位相の変化</a></li><li><a href="02_mti.html#s3">2 パルスキャンセラ</a></li><li><a href="02_mti.html#s4">ブラインド速度</a></li><li><a href="02_mti.html#s5">3 パルス以上のキャンセラ</a></li><li><a href="02_mti.html#s6">クラッタの性質</a></li><li><a href="02_mti.html#s7">改善度</a></li><li><a href="02_mti.html#s8">スタガ PRF</a></li><li><a href="02_mti.html#s9">システムの安定度による限界</a></li><li><a href="02_mti.html#s10">発展：クラッタフィルタバンクとクラッタマップ</a></li><li><a href="02_mti.html#s11">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第3回</span><h2>パルスドップラ <small>Pulse Doppler</small></h2></div>
+<p>エコーを速度ごとにふるい分けて、強いクラッタの中から目標を見つける工夫を学びます。</p>
+<p class="sym">所要時間の目安：約 60〜96 分　／　前提となる回：第0回、第2回<br>もとにした章：Radar Handbook 3rd ed. 第4章 Pulse Doppler Radar</p>
+<p><a class="btn primary" href="03_pulse_doppler.html">第3回をはじめる →</a>　<span class="sym">全 12 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="03_pulse_doppler.html#s1">パルスドップラとは</a></li><li><a href="03_pulse_doppler.html#s2">ドップラ周波数と、パルスごとの位相の変化</a></li><li><a href="03_pulse_doppler.html#s3">ドップラフィルタバンク（FFT）— 長く見るほど、速度を細かく分けられる</a></li><li><a href="03_pulse_doppler.html#s4">重み付けとドップラのサイドローブ</a></li><li><a href="03_pulse_doppler.html#s5">距離–ドップラマップ</a></li><li><a href="03_pulse_doppler.html#s6">2 つのあいまいさ</a></li><li><a href="03_pulse_doppler.html#s7">低・中・高 PRF の特徴</a></li><li><a href="03_pulse_doppler.html#s8">航空機搭載でのクラッタ</a></li><li><a href="03_pulse_doppler.html#s9">あいまいさの解消</a></li><li><a href="03_pulse_doppler.html#s10">エクリプシングとブラインドゾーン</a></li><li><a href="03_pulse_doppler.html#s11">発展：位相雑音が、クラッタのない領域の「床」を持ち上げる</a></li><li><a href="03_pulse_doppler.html#s12">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第4回</span><h2>自動検出とCFAR <small>Automatic Detection and CFAR</small></h2></div>
+<p>「目標あり／なし」を機械が決める仕組みと、誤警報を一定に保つ工夫を学びます。</p>
+<p class="sym">所要時間の目安：約 60〜96 分　／　前提となる回：第0回、第3回<br>もとにした章：Radar Handbook 3rd ed. 第7章 7.1・7.2 Automatic Detection</p>
+<p><a class="btn primary" href="04_detection_cfar.html">第4回をはじめる →</a>　<span class="sym">全 12 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="04_detection_cfar.html#s1">自動検出とは</a></li><li><a href="04_detection_cfar.html#s2">雑音と目標の振幅の分布</a></li><li><a href="04_detection_cfar.html#s3">S/N と探知確率</a></li><li><a href="04_detection_cfar.html#s4">積分</a></li><li><a href="04_detection_cfar.html#s5">2 値積分（M-out-of-N）— 強さを足す代わりに、回数を数える</a></li><li><a href="04_detection_cfar.html#s6">固定しきい値の問題</a></li><li><a href="04_detection_cfar.html#s7">セル平均 CFAR</a></li><li><a href="04_detection_cfar.html#s8">CFAR 損失</a></li><li><a href="04_detection_cfar.html#s9">CFAR が苦手な場面と対策</a></li><li><a href="04_detection_cfar.html#s10">クラッタマップ</a></li><li><a href="04_detection_cfar.html#s11">発展：検出をまとめる（プロット抽出）と、2 つの目標の見分け</a></li><li><a href="04_detection_cfar.html#s12">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第5回</span><h2>自動追尾 <small>Automatic Tracking</small></h2></div>
+<p>ばらばらの検出点をつないで航跡にし、目標の位置と速度を推定する方法を学びます。</p>
+<p class="sym">所要時間の目安：約 45〜72 分　／　前提となる回：第0回、第4回<br>もとにした章：Radar Handbook 3rd ed. 第7章 7.3 Automatic Tracking</p>
+<p><a class="btn primary" href="05_tracking.html">第5回をはじめる →</a>　<span class="sym">全 9 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="05_tracking.html#s1">追尾とは</a></li><li><a href="05_tracking.html#s2">追尾処理の流れ</a></li><li><a href="05_tracking.html#s3">航跡の開始</a></li><li><a href="05_tracking.html#s4">ゲートと対応付け</a></li><li><a href="05_tracking.html#s5">α-β フィルタ</a></li><li><a href="05_tracking.html#s6">旋回する目標</a></li><li><a href="05_tracking.html#s7">カルマンフィルタ</a></li><li><a href="05_tracking.html#s8">複数の目標とクラッタ</a></li><li><a href="05_tracking.html#s9">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第6回</span><h2>航空機搭載MTI（AMTI） <small>Airborne MTI</small></h2></div>
+<p>レーダ自身が動くときに、地面のクラッタがどう見え、どう打ち消すかを学びます。</p>
+<p class="sym">所要時間の目安：約 40〜64 分　／　前提となる回：第2回、第3回<br>もとにした章：Radar Handbook 3rd ed. 第3章 Airborne MTI</p>
+<p><a class="btn primary" href="06_amti.html">第6回をはじめる →</a>　<span class="sym">全 8 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="06_amti.html#s1">AMTI とは</a></li><li><a href="06_amti.html#s2">プラットフォームの動きによる拡がり</a></li><li><a href="06_amti.html#s3">高度の影響</a></li><li><a href="06_amti.html#s4">真横での動き補償</a></li><li><a href="06_amti.html#s5">走査による拡がり</a></li><li><a href="06_amti.html#s6">前方での補償</a></li><li><a href="06_amti.html#s7">時空間適応処理（STAP）— 方向と速度を組み合わせて、クラッタを消す</a></li><li><a href="06_amti.html#s8">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第7回</span><h2>フェーズドアレイアンテナ <small>Phased Array Antennas</small></h2></div>
+<p>小さなアンテナを並べ、位相をずらしてビームを電子的に振る方法を学びます。</p>
+<p class="sym">所要時間の目安：約 50〜80 分　／　前提となる回：第0回<br>もとにした章：Radar Handbook 3rd ed. 第13章 Phased Array Radar Antennas</p>
+<p><a class="btn primary" href="07_phased_array.html">第7回をはじめる →</a>　<span class="sym">全 10 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="07_phased_array.html#s1">アレイアンテナとは</a></li><li><a href="07_phased_array.html#s2">アレイファクタ</a></li><li><a href="07_phased_array.html#s3">位相をずらすとビームが向く</a></li><li><a href="07_phased_array.html#s4">グレーティングローブ</a></li><li><a href="07_phased_array.html#s5">走査による広がりと利得の低下</a></li><li><a href="07_phased_array.html#s6">低サイドローブ</a></li><li><a href="07_phased_array.html#s7">移相器のビット数</a></li><li><a href="07_phased_array.html#s8">帯域の影響</a></li><li><a href="07_phased_array.html#s9">複数ビーム・デジタルビーム形成・ヌルの形成</a></li><li><a href="07_phased_array.html#s10">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第8回</span><h2>モノパルス測角と追尾レーダ <small>Monopulse and Tracking Radar</small></h2></div>
+<p>1 回のパルスで角度のずれを測り、1 つの目標を精密に追い続ける方法を学びます。</p>
+<p class="sym">所要時間の目安：約 45〜72 分　／　前提となる回：第5回、第7回<br>もとにした章：Radar Handbook 3rd ed. 第9章 Tracking Radar</p>
+<p><a class="btn primary" href="08_monopulse.html">第8回をはじめる →</a>　<span class="sym">全 9 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="08_monopulse.html#s1">追尾レーダとは</a></li><li><a href="08_monopulse.html#s2">ビームを振って比べる方式</a></li><li><a href="08_monopulse.html#s3">モノパルス</a></li><li><a href="08_monopulse.html#s4">誤差の傾き</a></li><li><a href="08_monopulse.html#s5">サーボと距離の追尾</a></li><li><a href="08_monopulse.html#s6">グリント</a></li><li><a href="08_monopulse.html#s7">低高度のマルチパス</a></li><li><a href="08_monopulse.html#s8">誤差のまとめと低減</a></li><li><a href="08_monopulse.html#s9">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第9回</span><h2>電波の伝わり方（伝搬） <small>Propagation</small></h2></div>
+<p>大気での曲がり方や海面での反射で、見える場所と見えない場所ができる理由を学びます。</p>
+<p class="sym">所要時間の目安：約 35〜56 分　／　前提となる回：第0回<br>もとにした章：Radar Handbook 3rd ed. 第26章 The Propagation Factor, Fp, in the Radar Equation</p>
+<p><a class="btn primary" href="09_propagation.html">第9回をはじめる →</a>　<span class="sym">全 7 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="09_propagation.html#s1">伝搬因子とは</a></li><li><a href="09_propagation.html#s2">大気と屈折</a></li><li><a href="09_propagation.html#s3">電波の見通し距離</a></li><li><a href="09_propagation.html#s4">海面反射による干渉</a></li><li><a href="09_propagation.html#s5">カバレッジ図</a></li><li><a href="09_propagation.html#s6">異常伝搬（ダクト）</a></li><li><a href="09_propagation.html#s7">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第10回</span><h2>レーダ断面積（RCS） <small>Radar Cross Section</small></h2></div>
+<p>目標がレーダからどれくらい大きく見えるか、形や向きでどう変わるかを学びます。</p>
+<p class="sym">所要時間の目安：約 35〜56 分　／　前提となる回：第0回、第4回、第8回<br>もとにした章：Radar Handbook 3rd ed. 第14章 Radar Cross Section</p>
+<p><a class="btn primary" href="10_rcs.html">第10回をはじめる →</a>　<span class="sym">全 7 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="10_rcs.html#s1">RCS とは</a></li><li><a href="10_rcs.html#s2">形と大きさで変わる RCS</a></li><li><a href="10_rcs.html#s3">周波数の領域</a></li><li><a href="10_rcs.html#s4">見る角度で大きく変わる RCS</a></li><li><a href="10_rcs.html#s5">RCS の予測と測定</a></li><li><a href="10_rcs.html#s6">RCS を小さくする考え方</a></li><li><a href="10_rcs.html#s7">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第11回</span><h2>合成開口レーダ（SAR） <small>Synthetic Aperture Radar</small></h2></div>
+<p>動きながら集めた信号を合成して、地面の細かい画像を作る方法を学びます。</p>
+<p class="sym">所要時間の目安：約 40〜64 分　／　前提となる回：第0回、第1回、第7回<br>もとにした章：Radar Handbook 3rd ed. 第17章 Synthetic Aperture Radar</p>
+<p><a class="btn primary" href="11_sar.html">第11回をはじめる →</a>　<span class="sym">全 8 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="11_sar.html#s1">SAR の基本原理</a></li><li><a href="11_sar.html#s2">SAR の種類</a></li><li><a href="11_sar.html#s3">距離方向の分解能</a></li><li><a href="11_sar.html#s4">アジマス方向の分解能</a></li><li><a href="11_sar.html#s5">SAR の重要な要素</a></li><li><a href="11_sar.html#s6">画像の品質</a></li><li><a href="11_sar.html#s7">主要な式のまとめ</a></li><li><a href="11_sar.html#s8">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第12回</span><h2>電子防護（ECCM） <small>Electronic Counter-Countermeasures</small></h2></div>
+<p>妨害を受けてもレーダが働き続けるための考え方を、原理のレベルで学びます。</p>
+<p class="sym">所要時間の目安：約 45〜72 分　／　前提となる回：第0回、第4回、第7回<br>もとにした章：Radar Handbook 3rd ed. 第24章 Electronic Counter-Countermeasures</p>
+<p><a class="btn primary" href="12_eccm.html">第12回をはじめる →</a>　<span class="sym">全 9 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="12_eccm.html#s1">電子戦の全体像と用語</a></li><li><a href="12_eccm.html#s2">妨害の種類の概要</a></li><li><a href="12_eccm.html#s3">ECCM の分類</a></li><li><a href="12_eccm.html#s4">妨害下のレーダ方程式</a></li><li><a href="12_eccm.html#s5">アンテナによる防護 (1)</a></li><li><a href="12_eccm.html#s6">アンテナによる防護 (2)</a></li><li><a href="12_eccm.html#s7">送信機・受信機・信号処理による防護</a></li><li><a href="12_eccm.html#s8">ECCM の効果の評価の考え方</a></li><li><a href="12_eccm.html#s9">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第13回</span><h2>ビームのスケジューリング <small>Beam Scheduling</small></h2></div>
+<p>捜索と追尾が、1 本のビームの時間をどう分け合うか。従来の方式と新しい方式を、同じ条件で動かして比べます。</p>
+<p class="sym">所要時間の目安：約 45〜72 分　／　前提となる回：第0回、第5回、第7回<br>もとにした資料：Smouse ほか「Integrated Air and Missile Defense Resource Management」Johns Hopkins APL Technical Digest 35(2), 2020 の前半（p.99–104）／Radar Handbook 3rd ed. §24.11、§7.3</p>
+<p><a class="btn primary" href="13_scheduling.html">第13回をはじめる →</a>　<span class="sym">全 9 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="13_scheduling.html#s1">時間という資源</a></li><li><a href="13_scheduling.html#s2">要求 → 計画 → 照射</a></li><li><a href="13_scheduling.html#s3">固定タスクと柔軟タスク</a></li><li><a href="13_scheduling.html#s4">従来方式</a></li><li><a href="13_scheduling.html#s5">新方式 (1)</a></li><li><a href="13_scheduling.html#s6">新方式 (2)</a></li><li><a href="13_scheduling.html#s7">2 つの方式を比べる</a></li><li><a href="13_scheduling.html#s8">負荷が限界を超えたら</a></li><li><a href="13_scheduling.html#s9">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第14回</span><h2>クラッタマップ <small>Clutter Map</small></h2></div>
+<p>場所ごとのクラッタの強さを覚えておき、しきい値を場所ごとに決める方法を学びます。</p>
+<p class="sym">所要時間の目安：約 40〜64 分　／　前提となる回：第0回、第2回、第4回<br>もとにした章：Radar Handbook 3rd ed. 第2章 MTI Radar（§2.2、§2.15）、第7章（§7.2 Clutter Mapping）</p>
+<p><a class="btn primary" href="14_clutter_map.html">第14回をはじめる →</a>　<span class="sym">全 8 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="14_clutter_map.html#s1">場所ごとに違う背景</a></li><li><a href="14_clutter_map.html#s2">地図を作る</a></li><li><a href="14_clutter_map.html#s3">しきい値を決める</a></li><li><a href="14_clutter_map.html#s4">地図の損失</a></li><li><a href="14_clutter_map.html#s5">立ち上がり</a></li><li><a href="14_clutter_map.html#s6">遅い目標は消える</a></li><li><a href="14_clutter_map.html#s7">MTD での使い方</a></li><li><a href="14_clutter_map.html#s8">自由実験とまとめ</a></li></ol></details></section>
+</div>
+
+<h2 class="sec">1 つのステップの進め方</h2>
+<div class="how">
+ <div><b><span>1</span>問いを読む</b>右側の一番上に、そのステップの「問い」が出ます。</div>
+ <div><b><span>2</span>予想する</b>選択肢から 1 つ選びます。選ぶまで、操作部は「予想してから触ろう」と薄く表示されます。当たり外れは気にしなくて大丈夫です。</div>
+ <div><b><span>3</span>動かして確かめる</b>スライダーを動かして、グラフの変化を見ます。動かせるのは原則 1 つだけで、ほかの値は「このステップでは固定」と表示されます。</div>
+ <div><b><span>4</span>答えを見る</b>「答えを見る」を押すと、答えと理由が出ます。</div>
+</div>
+<ul class="pl">
+ <li><b>ミッション</b>：各ステップに 1 つ、小さな課題があります。条件を満たすと「達成！」と表示され、画面上部の丸にチェックが付きます（ページを読み込み直すと消えます）。</li>
+ <li><b>読み物</b>：左側に、①身近なたとえ ②何が起きているか ③大事な式 ④よくある誤解 ⑤出典 の順で書いています。<span style="color:var(--hl);font-weight:700;text-decoration:underline dotted">色の付いた用語</span>を押すと、右のグラフの対応する場所が光ります。</li>
+ <li><b>用語集</b>：画面の右端のタブ、または右上の「用語集」ボタンで開きます。どの回でも同じ説明です。</li>
+ <li><b>自由実験</b>：各回の最後のステップでは、全部の値を自由に動かせます。ハンドブックの値との照合表もここにあります。</li>
+ <li>所要時間は、1 ステップ 5〜8 分として見積もった目安です。途中のステップから始めることもできます。</li>
+</ul>
+
+<details><summary>指導者の方へ</summary>
+<p>各ステップの読み物の一番下に「指導者向けメモ」（折りたたみ）があり、新人がつまずきやすい点と声かけの例を書いています。</p>
+<p>「予想」を選ぶ前に、なぜそう思うかを一言で言ってもらうと、答え合わせの効果が上がります。外れた予想を責めず、「どこでそう考えたか」を一緒にたどるのがおすすめです。</p>
+<p>dB、I/Q、ドップラ効果、確率などの前提知識は、第0回で扱います。各回の最初のステップにも、30 秒で読める補足と、第0回の該当ステップへのリンクがあります。</p>
+</details>
+<p class="sym" style="margin-top:14px">動作環境：Microsoft Edge または Google Chrome。インターネット接続は不要です（HTML ファイルをすべて同じフォルダに置いて使います）。乱数は種を固定しているので、同じ操作なら同じ結果になります。</p>
+</main>
+<button id="glTab" type="button" aria-label="用語集を開く">用語集</button>
+<aside id="gloss" hidden aria-label="用語集"></aside>
+<script>
+'use strict';
+/* ============================================================
+   4本共通：用語集と「前提知識」の補足
+   ============================================================ */
+const SERIES = [
+  {no: 0, file: '00_basics.html', name: 'レーダの基礎の基礎', ready: true},
+  {no: 1, file: '01_pulse_compression.html', name: 'パルス圧縮', ready: true},
+  {no: 2, file: '02_mti.html', name: 'MTI（移動目標指示）', ready: true},
+  {no: 3, file: '03_pulse_doppler.html', name: 'パルスドップラ', ready: true},
+  {no: 4, file: '04_detection_cfar.html', name: '自動検出とCFAR', ready: true},
+  {no: 5, file: '05_tracking.html', name: '自動追尾', ready: true},
+  {no: 6, file: '06_amti.html', name: '航空機搭載MTI（AMTI）', ready: true},
+  {no: 7, file: '07_phased_array.html', name: 'フェーズドアレイアンテナ', ready: true},
+  {no: 8, file: '08_monopulse.html', name: 'モノパルス測角と追尾レーダ', ready: true},
+  {no: 9, file: '09_propagation.html', name: '電波の伝わり方（伝搬）', ready: true},
+  {no: 10, file: '10_rcs.html', name: 'レーダ断面積（RCS）', ready: true},
+  {no: 11, file: '11_sar.html', name: '合成開口レーダ（SAR）', ready: true},
+  {no: 12, file: '12_eccm.html', name: '電子防護（ECCM）', ready: true},
+  {no: 13, file: '13_scheduling.html', name: 'ビームのスケジューリング', ready: true},
+  {no: 14, file: '14_clutter_map.html', name: 'クラッタマップ', ready: true}];
+/* [グループ, 日本語（English）, 説明]。グループ −1＝基礎（補足）、0〜13＝各回 */
+const GLOSS = [
+  [-1, 'dB（デシベル）', '比を対数で表す単位。電力が 10 倍で +10 dB、100 倍で +20 dB、半分で約 −3 dB。掛け算が足し算になるので、レーダの計算でよく使う。'],
+  [-1, 'S/N（信号対雑音比、signal-to-noise ratio）', '信号の電力が雑音の電力の何倍かを表す値。大きいほど目標を見つけやすい。'],
+  [-1, 'I/Q（複素信号）', '受信信号を「振幅」と「位相」の両方が分かる形で表したもの。I（同相）と Q（直交）の 2 つの成分を持ち、平面上の矢印（フェーザ）として描ける。'],
+  [-1, '位相（phase）', '波の「1 周期のうちのどこにいるか」を角度で表したもの。360° で 1 周する。'],
+  [-1, 'ドップラ周波数（Doppler frequency）', '目標が近づく・遠ざかることで、エコーの周波数が送信からずれる量。fd = 2v/λ（v は近づく速度、λ は波長）。'],
+  [-1, 'PRF（pulse repetition frequency、パルス繰り返し周波数）', '1 秒間に送るパルスの数。逆数がパルスの間隔。'],
+  [-1, '距離セル／レンジゲート（range cell / range gate）', '受信信号を、距離（遅れ時間）ごとに細かく区切った 1 区画。'],
+  [-1, 'クラッタ（clutter）', '地面・海面・雨など、見たい目標以外からの不要なエコー。'],
+  [-1, 'サイドローブ（sidelobe）', '本来のピーク（主ローブ）の両脇に出る小さな山。強い信号のサイドローブが、弱い信号を隠すことがある。'],
+  [-1, '重み付け（weighting）', 'データの端を小さくするような係数を掛けて、サイドローブを下げる処理。代わりに主ローブが少し広がり、S/N が少し下がる。'],
+  [-1, 'FFT（高速フーリエ変換）', '信号を周波数の成分に分ける計算を、高速に行う方法。'],
+  [1, 'パルス圧縮（pulse compression）', '変調をかけた長いパルスを送り、受信側のフィルタで細いパルスに戻す方法。長いパルスのエネルギーと、短いパルスの距離分解能を両立させる。'],
+  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域 B の積 TB。パルス圧縮比にほぼ等しい。'],
+  [1, 'パルス圧縮比（pulse compression ratio）', '送信パルス幅と、圧縮後のパルス幅の比。およそ TB。'],
+  [1, '距離分解能（range resolution）', '近くにある 2 つの目標を別々に見分けられる最小の距離差。およそ c/(2B)。'],
+  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変える変調。代表的なパルス圧縮波形。'],
+  [1, '整合フィルタ（matched filter）', '送信波形に合わせて作った受信フィルタ。雑音の中の信号に対して、出力のピークの S/N を最大にする。'],
+  [1, '時間サイドローブ（time sidelobe）', '圧縮後のパルスで、主ローブの前後（距離方向）に出る小さな山。'],
+  [1, 'テイラー重み付け（Taylor weighting）', 'LFM の時間サイドローブを下げるための、代表的な周波数領域の重み付け。'],
+  [1, 'ミスマッチ損失（mismatch loss）', '重み付けなどで整合フィルタからわざと外したために生じる S/N の低下。'],
+  [1, '距離ドップラ結合（range-Doppler coupling）', 'LFM で、目標のドップラ周波数によって圧縮後のピークの位置（距離）がずれる現象。'],
+  [1, '位相符号波形（phase-coded waveform）', 'パルスを短いサブパルスに分け、サブパルスごとに位相を切り替える波形。'],
+  [1, 'バーカー符号（Barker code）', 'サイドローブが主ローブの 1/N になる特別な 2 値位相符号。長さは最大 13。'],
+  [1, 'エクリプシング（eclipsing）', '送信中は受信機がオフなので、その間に戻ってきたエコーが欠けること。'],
+  [1, 'ストレッチ処理（stretch processing）', '受信した LFM に参照の LFM を掛け、周波数の違いとして距離を読み取る圧縮方法。'],
+  [2, 'MTI（moving target indication、移動目標指示）', 'パルスごとのエコーの変化を使って、止まっているクラッタを消し、動いている目標を残す処理。'],
+  [2, 'パルスキャンセラ（delay-line canceler）', '1 つ前のパルスのエコーを引き算する MTI フィルタ。固定物のエコーは毎回同じなので消える。'],
+  [2, 'ブラインド速度（blind speed）', 'MTI で目標まで消えてしまう速度。ドップラ周波数が PRF の整数倍になる速度。'],
+  [2, '改善度（improvement factor）', 'MTI によって、信号対クラッタ比がどれだけ良くなったかを表す値（全速度で平均）。'],
+  [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比。'],
+  [2, 'スタガPRF（staggered PRF）', 'パルスの間隔を交互に変えることで、ブラインド速度を高い速度へ追いやる方法。'],
+  [2, 'クラッタのスペクトル拡がり（clutter spectral spread）', '風で揺れる木やアンテナの走査などで、クラッタのドップラが 0 のまわりに幅を持つこと。'],
+  [2, '走査変調（scanning modulation）', 'アンテナが回ることで、クラッタのエコーの強さがパルスごとに変わること。スペクトル拡がりの原因の 1 つ。'],
+  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強さを記憶したもの。しきい値の設定などに使う。'],
+  [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分けて目標を検出する方式。'],
+  [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通すフィルタ。FFT で多数並べて作る。'],
+  [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ分析する 1 かたまりのパルス列。長いほどドップラ分解能が細かい。'],
+  [3, '距離のあいまいさ（range ambiguity）', 'エコーがどの送信パルスのものか区別できず、距離が決まらないこと。PRF が高いほど起きやすい。'],
+  [3, 'ドップラのあいまいさ（Doppler ambiguity）', 'ドップラ周波数が PRF の整数倍だけ違うものと区別できないこと。PRF が低いほど起きやすい。'],
+  [3, 'メインビームクラッタ（mainbeam clutter）', 'アンテナの主ビームが地面に当たって返ってくる強いクラッタ。'],
+  [3, 'サイドローブクラッタ（sidelobe clutter）', 'アンテナのサイドローブを通って、あらゆる方向の地面から返ってくるクラッタ。'],
+  [3, '高度線（altitude line）', '航空機の真下の地面からのクラッタ。ドップラがほぼ 0 の位置に強く出る。'],
+  [3, 'ブラインドゾーン（blind zone）', 'エクリプシングやクラッタのために目標が見えなくなる、距離やドップラの範囲。'],
+  [4, 'しきい値（threshold）', '「これを超えたら目標あり」と判定する基準の値。'],
+  [4, '探知確率（probability of detection、Pd）', '目標があるときに、正しく検出できる確率。'],
+  [4, '誤警報確率（probability of false alarm、Pfa）', '目標がないのに、雑音などで「目標あり」と判定してしまう確率。'],
+  [4, '積分（integration）', '何パルス分かの受信信号を足し合わせて、目標を検出しやすくすること。'],
+  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器。'],
+  [4, '2値積分（binary integration）', 'パルスごとに 0／1 を判定し、N 回のうち M 回以上 1 なら検出とする方法（M-out-of-N）。'],
+  [4, 'CFAR（constant false alarm rate、一定誤警報率）', '背景の強さに合わせてしきい値を自動で変え、誤警報確率を一定に保つ処理。'],
+  [4, 'セル平均CFAR（cell-averaging CFAR）', '注目するセルの周りのセル（参照セル）の平均から背景の強さを推定する CFAR。'],
+  [4, '参照セル（reference cells）', 'CFAR で、背景の強さを推定するために使う周りのセル。'],
+  [4, 'CFAR損失（CFAR loss）', '背景を推定で求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N。'],
+  [4, 'Swerlingモデル（Swerling models）', '目標のエコーの強さのゆらぎ方を表す代表的なモデル（スキャンごとに変わるか、パルスごとに変わるか、など）。']
+];
+/* 前提知識の補足（30秒で読める長さ。すべてハンドブックにない一般知識＝補足） */
+const PREQ = {
+  db: ['dB（デシベル）とは', '大きさの比を、掛け算ではなく足し算で扱うための単位です。電力が 10 倍なら +10 dB、100 倍なら +20 dB、1/2 なら約 −3 dB、1/100 なら −20 dB。レーダでは信号の強さが何桁も変わるので、グラフの縦軸によく使います。このシリーズでは、dB の値の横に「何倍か」も書きます。'],
+  iq: ['I/Q（複素信号）とは', '受信した波の「強さ（振幅）」と「タイミング（位相）」を同時に表す方法です。平面の上に矢印を描き、矢印の長さが振幅、向きが位相です。横方向の成分を I、縦方向の成分を Q と呼びます。矢印がぐるぐる回る速さが、周波数にあたります。'],
+  dop: ['ドップラとは', '救急車が近づくとサイレンが高く聞こえるのと同じで、近づく目標からのエコーは周波数が少し高くなります。このずれがドップラ周波数で、fd = 2v/λ（v は近づく速度、λ は波長）。波長 3 cm で 15 m/s なら 1 kHz です。'],
+  prob: ['確率分布とは', '雑音の大きさは毎回ばらばらで、予測できません。ただし「どのくらいの大きさが、どのくらいの割合で出るか」は決まっています。これを表したグラフが確率分布で、横軸が大きさ、縦軸が出やすさです。ある値より右側の面積が、「その値を超える確率」になります。'],
+  wave: ['パルスとエコー、距離の測り方', 'レーダは短い電波（パルス）を出し、目標からはね返ってきた電波（エコー）を受けます。往復にかかった時間 t から、距離 R = c·t/2（c は光の速さ）が分かります。1 マイクロ秒の遅れが 150 m にあたります。'],
+  fft: ['周波数に分ける（スペクトル）とは', 'どんな信号も、いろいろな周波数の波の足し合わせとして表せます。「どの周波数の成分が、どのくらい入っているか」を表したものがスペクトルで、それを計算する方法が FFT です。'],
+  prf: ['パルスの繰り返しと PRF', 'レーダはパルスを一定の間隔で何度も送ります。1 秒あたりの回数が PRF です。同じ目標のエコーを、パルスごとに 1 つずつ受けることになり、その「パルスごとの変化」を見るのが MTI やパルスドップラです。']
+};
+
+/* ---- 第0回・第5回以降で追加した用語（第1〜4回の用語と説明は上のまま変えていない） ---- */
+const PREQLINK = {db: [0, 3], iq: [0, 6], dop: [0, 6], prob: [0, 8], wave: [0, 2], fft: [3, 3], prf: [0, 9], pow10: null, trig: null, speed: null, track0: [0, 9], cfar0: [4, 1]};
+PREQ.pow10 = ['10 の何乗（指数）と、k・M・G・m・µ', 'レーダでは、とても大きい数と小さい数が一緒に出てきます。10⁶ は 1 の後に 0 が 6 個（100 万）、10⁻⁶ は 100 万分の 1 です。掛け算は指数の足し算になります（10⁶ × 10⁻¹³ = 10⁻⁷）。単位の前の k（キロ）は 10³、M（メガ）は 10⁶、G（ギガ）は 10⁹、m（ミリ）は 10⁻³、µ（マイクロ）は 10⁻⁶ を表します。'];
+PREQ.trig = ['角度と sin・cos', '半径 1 の円の上を点が回るとき、横の位置が cos、縦の位置が sin です。角度が 0° なら (1, 0)、90° なら (0, 1)。1 周は 360°（2π ラジアン）。波は、この回る点の横（または縦）の位置を時間の順に並べたものと考えられます。'];
+PREQ.speed = ['速さ × 時間 ＝ 距離', '速さが分かっていれば、かかった時間から距離が分かります。電波の速さ（光の速さ）は 1 秒に約 30 万 km（3×10⁸ m/s）。1 マイクロ秒（100 万分の 1 秒）で 300 m、1 ミリ秒で 300 km 進みます。'];
+GLOSS.push(
+  [0, 'レーダ（radar）', '電波を出し、物に当たってはね返ってきた電波（エコー）を受けて、物の存在と位置を知る装置。'],
+  [0, '目標（target）', 'レーダが見つけたい物。航空機、船、車、雨雲など。電波をはね返す物なら何でも目標になりうる。'],
+  [0, 'エコー（echo）', '目標に当たってはね返り、レーダに戻ってきた電波。送信した電力に比べてけた違いに弱い。'],
+  [0, '波長（wavelength）', '波の山から次の山までの長さ。光の速さ ÷ 周波数。3 GHz で 10 cm、10 GHz で 3 cm。'],
+  [0, 'パルス幅（pulse width）', '1 回に電波を出している時間の長さ。1 µs なら、空間では 300 m の長さの電波のかたまりになる。'],
+  [0, '尖頭電力と平均電力（peak power / average power）', '尖頭電力はパルスを出している間の電力。平均電力は、出していない時間も含めてならした電力で、尖頭電力 × パルス幅 × PRF。'],
+  [0, 'レーダ方程式（radar equation）', 'レーダの性能（電力、アンテナ、雑音など）と、目標の大きさ・距離から、受信電力や最大探知距離を見積もる式。受信電力は距離の 4 乗に反比例する。'],
+  [0, 'レーダ断面積（RCS、radar cross section）', '目標がレーダから「どれくらい大きく見えるか」を面積 [m²] で表した量。実際の大きさとは一致しない。第10回で詳しく扱う。'],
+  [0, 'アンテナ利得（antenna gain）', 'アンテナが電波を特定の方向にどれだけ集中させるかを表す倍率。全方向に均等に出す場合と比べた値。'],
+  [0, '有効開口面積（effective area）', '受信アンテナが電波を集める「実質的な広さ」[m²]。利得 G とは G = 4π·Ae/λ² の関係がある。'],
+  [0, '最小検出信号（minimum detectable signal）', '検出できる、いちばん弱いエコーの電力。受信機の雑音で決まる。'],
+  [0, '雑音指数（noise figure）', '実際の受信機の雑音が、理想的な受信機の何倍かを表す値。小さいほど良い。'],
+  [0, 'ビーム幅（beamwidth）', 'アンテナが電波を集中させる角度の幅。ふつうは、強さが半分（−3 dB）になる 2 方向の間の角度。アンテナが波長に比べて大きいほど狭い。'],
+  [0, '周波数帯（letter band）', 'レーダの周波数の範囲を表す文字の名前。L 帯（1〜2 GHz）、S 帯（2〜4 GHz）、X 帯（8〜12 GHz）など。'],
+  [0, '監視レーダ（surveillance radar）', '広い範囲を繰り返し見張り、目標を見つけるレーダ。捜索レーダともいう。'],
+  [0, '追尾レーダ（tracking radar）', '目標の動き（航跡）を求めるレーダ。1 つの目標にビームを向け続ける方式と、見張りながら多数の目標を追う方式がある。'],
+  [0, '再訪時間（revisit time）', '監視レーダが同じ方向をもう一度見るまでの時間。アンテナが 1 回転する時間にあたる。']
+);
+PREQ.vec = ['位置・速度・加速度と「g」', '位置が 1 秒あたりどれだけ変わるかが速度、速度が 1 秒あたりどれだけ変わるかが加速度です。まっすぐ同じ速さで進む物は、加速度が 0 です。向きを変える（旋回する）ときは、速さが同じでも横向きの加速度が生じます。加速度の大きさは、重力の加速度 g（約 9.8 m/s²）の何倍かで表すことがよくあります。'];
+PREQLINK.vec = null;
+GLOSS.push(
+  [5, '航跡（track）', '「ここに目標がいて、こう動いている」という、レーダの推定結果。何回分もの検出点をつないで作る。位置と速度を持つ。'],
+  [5, '検出点／プロット（detection / plot）', '1 回のスキャンで、しきい値を超えた信号を 1 つの点（距離と方向）にまとめたもの。目標のほか、誤警報やクラッタも混ざる。'],
+  [5, '航跡ファイル（track file）', '追尾中のすべての航跡について、番号、位置、速度、最後に更新した時刻などを記録した一覧。'],
+  [5, '対応付け（association）', '新しい検出点が、どの航跡のものかを決めること。相関ともいう。'],
+  [5, 'ゲート（gate）', '航跡の予測位置のまわりに設ける範囲。この中に入った検出点だけを、その航跡の候補にする。'],
+  [5, '統計距離（statistical distance）', '検出点と予測位置のずれを、測定の精度で割って数えた距離。精度の良い方向のずれは大きく、粗い方向のずれは小さく数える。'],
+  [5, '最近傍法（nearest neighbor）', '統計距離がいちばん小さい検出点と航跡の組から、順に割り当てていく方法。もっともよく使われる。'],
+  [5, 'GNN（global nearest neighbor）', '検出点と航跡の組み合わせ全体を見て、統計距離の合計などが最小になる割り当てを選ぶ方法。'],
+  [5, '平滑化と予測（filtering / prediction）', '平滑化は、測定のばらつきをならして現在の位置・速度を推定すること。予測は、次の測定の時刻にいる位置を計算すること。'],
+  [5, 'α-βフィルタ（α-β filter）', '予測と測定の差に、決まった重み（α：位置、β：速度）を掛けて修正する、いちばん簡単な追尾フィルタ。'],
+  [5, '追尾ゲイン（tracking gain）', '予測と測定の差を、どれだけ推定に反映するかを決める重み。大きいと測定を重く、小さいと予測を重く見る。'],
+  [5, '遅れ（lag）', '目標が旋回や加速をしたとき、航跡が実際の位置に追いつかずに生じる、かたよった誤差。'],
+  [5, '機動（maneuver）', '目標が、フィルタの前提（等速直線など）から外れた動きをすること。旋回、加速、減速など。'],
+  [5, 'カルマンフィルタ（Kalman filter）', '測定の精度、測定の間隔、想定する機動の大きさから、追尾ゲインを毎回計算するフィルタ。α-βフィルタの重みを自動で変えるものと考えられる。'],
+  [5, '追尾指数（track filtering parameter）', '想定する機動の大きさ、測定の間隔、測定の精度を 1 つにまとめた、単位のない数。大きいほど追尾ゲインが大きくなる。'],
+  [5, '航跡の開始（track initiation）', 'どの航跡にも対応しない検出点から、新しい航跡を作ること。5 回の機会のうち 4 回の検出、のような基準を使う。'],
+  [5, '偽航跡（false track）', '目標ではないものにできてしまった航跡。無関係な誤警報やクラッタがたまたま並んでできるものと、鳥のように興味のない物にできるものがある。'],
+  [5, 'アクティビティ制御（activity control）', '検出点が多すぎる領域で、検出の条件を厳しくして、追尾処理に入れる検出点の数を抑えること。'],
+  [5, '多重仮説追尾（MHT、multiple hypothesis tracking）', '対応付けを 1 つに決めず、複数の可能性（仮説）を並行して追い、後の測定でありそうにないものを捨てていく方法。'],
+  [5, 'PDA／JPDA（probabilistic data association）', 'ゲート内の検出点を 1 つに絞らず、「その航跡のものである確率」で重み付けして、まとめて更新に使う方法。']
+);
+GLOSS.push(
+  [6, 'AMTI（airborne MTI、航空機搭載MTI）', '航空機に載せたレーダで使う MTI。レーダ自身が動くので、地面のクラッタにもドップラが付く点が、地上のレーダと違う。'],
+  [6, 'プラットフォーム（platform）', 'レーダを載せている乗り物。ここでは航空機のこと。'],
+  [6, '対地速度（ground speed）', '地面に対する機体の速さ。クラッタのドップラは、この速度で決まる。'],
+  [6, 'ボアサイト（boresight）', 'アンテナのビームの中心の方向。'],
+  [6, '俯角（depression angle）', '水平から下向きに測った、見下ろす角度。'],
+  [6, 'スラントレンジ（slant range）', 'レーダから地面の点までの、斜めの直線距離。'],
+  [6, 'プラットフォーム運動スペクトル（platform-motion spectrum）', '機体が動くために、ビームの中の方向ごとにクラッタのドップラが少しずつ違い、その結果として広がったクラッタのスペクトル。真横を見たときにいちばん広い。'],
+  [6, 'TACCAR（time-averaged clutter coherent airborne radar）', 'クラッタのエコーの平均的なドップラを測り、それが 0 になるように周波数をずらして、メインビームクラッタを MTI のノッチに合わせる方法。'],
+  [6, '位相中心（phase center）', 'アンテナが電波を出し入れしている「見かけの 1 点」。開口の中での重みの付け方で、位置を動かせる。'],
+  [6, 'DPCA（displaced phase center antenna）', 'パルスごとにアンテナの位相中心をずらして、機体が進んだ分を打ち消し、クラッタからはアンテナが止まっているように見せる方法。'],
+  [6, '和パターンと差パターン（sum / difference pattern）', 'アンテナの左右半分の信号を、足して作るビーム（和）と、引いて作るビーム（差）。差パターンは、中心で 0、左右で符号が反対になる。'],
+  [6, 'ステップ走査補償（step-scan compensation）', 'アンテナが回ることによるエコーの振幅の変化を、差パターンを使って打ち消す方法。ビームを電子的に少し前後に向け、止まっていたように見せる。'],
+  [6, 'CPCT（coincident phase center technique）', '位相中心を開口の前後にもずらして、進行方向の動きによるクラッタの拡がりも打ち消す方法。'],
+  [6, 'STAP（space-time adaptive processing、時空間適応処理）', 'アンテナの素子ごと（空間）、パルスごと（時間）の信号に、受信したデータから計算した重みを掛けて足し合わせ、クラッタや妨害を消す処理。'],
+  [6, '自由度（degrees of freedom）', '適応処理で自由に決められる重みの数。素子の数 × パルスの数が上限。多いほど細かく消せるが、計算と必要なデータが増える。']
+);
+GLOSS.push(
+  [7, 'フェーズドアレイ（phased array）', '小さなアンテナ（素子）をたくさん並べ、素子ごとの位相を変えることで、アンテナを動かさずにビームの向きを変えるアンテナ。'],
+  [7, '素子（radiating element）', 'アレイを作る 1 つ 1 つの小さなアンテナ。'],
+  [7, '開口（aperture）', 'アンテナが電波を出し入れする面。直線アレイでは、素子の数 × 素子の間隔が開口の長さ。'],
+  [7, 'アレイファクタ（array factor）', '素子がどの方向にも同じ強さで出すと仮定したときの、並べ方と位相だけで決まるパターン。'],
+  [7, '素子パターン（element pattern）', '素子 1 個が持つ、方向ごとの強さ。アレイ全体のパターンは、素子パターン × アレイファクタ。'],
+  [7, '移相器（phase shifter）', '素子ごとの信号の位相をずらす部品。ふつうはデジタル制御で、ビット数に応じた刻みでしか設定できない。'],
+  [7, 'ビーム走査（beam scanning）', 'ビームの向きを変えること。フェーズドアレイでは、素子から素子へ一定の量ずつ位相をずらして行う。'],
+  [7, 'グレーティングローブ（grating lobe）', '素子の間隔が広すぎるときに、メインビームと同じ強さで別の方向に現れるビーム。'],
+  [7, '照射分布（illumination function）', '開口の上での振幅の付け方。端を弱くするとサイドローブが下がり、ビームが太くなる。'],
+  [7, '開口効率（aperture efficiency）', '重み付けなどで、一様な照射のときより利得がどれだけ下がるかを表す比。'],
+  [7, '位相の量子化（phase quantization）', '移相器が決まった刻みでしか位相を設定できないために生じる誤差。'],
+  [7, '量子化ローブ（quantization lobe）', '位相や振幅の量子化誤差が規則的に並ぶことで、特定の方向に現れる余分なローブ。'],
+  [7, '開口充填時間（aperture fill time）', '斜めから来たパルスが、アレイの端から端まで行き渡るのにかかる時間。アレイの帯域を決める。'],
+  [7, '時間遅延走査（time-delay scanning）', '位相ではなく時間の遅れでビームを向ける方法。周波数が変わってもビームの向きが変わらない。'],
+  [7, 'サブアレイ（subarray）', 'アレイをいくつかの素子のまとまりに分けたもの。まとまりごとに受信機や時間遅延を持たせる。'],
+  [7, 'デジタルビーム形成（DBF、digital beamforming）', '素子またはサブアレイごとに信号をデジタルにしてから、計算で重みを掛けて足し、ビームを作る方法。複数のビームを同時に作れる。'],
+  [7, 'ヌル（null）', 'パターンの中で、感度がほぼ 0 になる方向。妨害の方向にヌルを向けると、妨害を抑えられる。']
+);
+GLOSS.push(
+  [8, 'モノパルス（monopulse）', '複数のビームで同時に受けた信号を比べて、1 つのパルスだけで目標の角度のずれを求める方式。同時ローブ（simultaneous lobing）ともいう。'],
+  [8, '振幅比較モノパルス（amplitude-comparison monopulse）', '向きを少しずつずらした複数のビームで受けた信号の、振幅の違いから角度のずれを求めるモノパルス。'],
+  [8, '和信号と差信号（sum / difference signals、Σ・Δ）', '複数のビームの信号を足したもの（和、Σ）と引いたもの（差、Δ）。和は目標の検出と距離の測定に、差は角度のずれの測定に使う。'],
+  [8, 'コンパレータ（comparator）', 'ホーン（給電部）の信号を足し引きして、和信号と差信号を作るマイクロ波の回路。'],
+  [8, '角度誤差信号（angle-error signal）', 'アンテナの軸と目標の方向のずれを表す信号。モノパルスでは、差信号を和信号で割って作る。大きさがずれの量、符号がずれの向きを表す。'],
+  [8, '誤差の傾き（error slope、km）', '目標が軸から少しずれたときに、角度誤差信号（Δ/Σ）がどれだけ変わるかを表す値。ビーム幅 1 つぶんのずれに対する変化で表す。大きいほど、雑音に強い。'],
+  [8, 'ビームの開き（beam offset、squint angle）', '角度を測るために、ビームをアンテナの軸からわざとずらす角度。'],
+  [8, '円錐走査（conical scan）', '軸から少しずらしたビームを、軸のまわりに回す方式。エコーの強さの変化（変調）の大きさと位相から、角度のずれを求める。'],
+  [8, 'ローブ切替（sequential lobing）', 'ビームの向きを、いくつかの位置に順番に切り替えて、エコーの強さを比べる方式。'],
+  [8, 'AGC（automatic gain control、自動利得制御）', '信号の強さが変わっても出力が一定になるように、受信機の利得を自動で変えるしくみ。モノパルスでは、和信号で割り算をする役目を持つ。'],
+  [8, 'サーボ（servo）', '誤差信号が 0 になるように、アンテナを自動で動かすしくみ。'],
+  [8, 'サーボ帯域（servo bandwidth）', 'サーボがどのくらい速い変化まで追いかけられるかを表す周波数。広いほど反応が速いが、雑音の影響も受けやすい。'],
+  [8, '捕捉（acquisition）', '追尾を始めるために、目標をビームと距離ゲートの中にとらえること。'],
+  [8, '早期ゲートと後期ゲート（early / late gates）', '距離ゲートを前半と後半に分けたもの。それぞれに入るエコーの量を比べて、ゲートの中心と目標の距離のずれを求める。'],
+  [8, 'グリント（glint、角度雑音）', '目標の中の複数の反射点からのエコーが干渉して、レーダが指す方向がふらつくこと。目標の外を指すこともある。'],
+  [8, 'シンチレーション（scintillation、振幅雑音）', '目標のエコーの強さが、時間とともにゆらぐこと。'],
+  [8, 'マルチパス（multipath）', '電波が、直接の経路と、地面や海面で反射した経路の、2 つ以上の経路で届くこと。'],
+  [8, '像（image）', '地面や海面の反射で、表面の下に目標があるように見えるもの。鏡に映った姿にあたる。'],
+  [8, 'ミリラジアン（mrad）', '角度の単位。1 mrad = 0.001 ラジアン ≈ 0.057°。距離 1 km で幅 1 m に見える角度。']
+);
+GLOSS.push(
+  [9, '伝搬（propagation）', '電波が空間を伝わること。大気や地面・海面の影響で、伝わり方が変わる。'],
+  [9, '自由空間（free space）', '地球や大気の影響がまったくない、理想的な空間。伝わり方を比べるときの基準にする。'],
+  [9, '伝搬因子（propagation factor、F）', '実際の電界の強さを、同じ距離の自由空間での電界の強さで割った値。1 より大きければ自由空間より強く、小さければ弱い。'],
+  [9, '自由空間伝搬損失（free-space path loss）', '自由空間で、電波が球面状に広がるために、距離とともに弱まる量。'],
+  [9, '伝搬損失（propagation loss）', '送信してから受信するまでに電波が弱まる量。自由空間伝搬損失から、伝搬因子のぶんを引いたもの。'],
+  [9, '屈折（refraction）', '電波が、空気の性質の違う所を通るときに、進む向きを変えること。'],
+  [9, '屈折率（index of refraction、n）', '真空中の電波の速さを、その場所での速さで割った値。地表近くの空気では 1.00025〜1.0004。'],
+  [9, '屈折度（refractivity、N）', '屈折率 n から 1 を引いて 100 万倍した値。扱いやすい大きさにするための単位（N 単位）。'],
+  [9, '修正屈折度（modified refractivity、M）', '屈折度 N に、高さに比例する量を足した値。M が高さとともに減る層があれば、そこがダクトになる。'],
+  [9, '標準大気（standard atmosphere）', '気温が高さとともに一定の割合で下がるなどと仮定した、基準の大気。屈折度は 1 km につき 39 ずつ減る。'],
+  [9, '等価地球半径（effective earth radius）', '電波の曲がりを考えるかわりに、地球の半径を大きくして、電波をまっすぐ進むものとして扱う考え方。標準大気では実際の約 4/3 倍。'],
+  [9, 'レーダ水平線（radar horizon）', 'レーダから出た電波が、地球の表面にちょうど接する点。これより先の低い所は、地球の陰になる。'],
+  [9, '見通し距離（line-of-sight range）', 'レーダと目標のあいだを、地球にさえぎられずに電波が届く、いちばん遠い距離。'],
+  [9, '回折（diffraction）', '電波が、障害物の陰に少し回り込むこと。周波数が低いほど回り込みやすい。'],
+  [9, '反射係数（reflection coefficient）', '反射した波の強さ（電界）を、入ってきた波の強さで割った値。なめらかな海面に浅い角度で入ると、1 に近い。'],
+  [9, '直接波と反射波（direct / reflected wave）', 'レーダと目標のあいだをまっすぐ進む波（直接波）と、海面や地面で一度反射して届く波（反射波）。'],
+  [9, 'ローブ（lobe）', '直接波と反射波が強め合って、電波が強くなる角度の範囲。高さの方向に、ヌルと交互に並ぶ。'],
+  [9, 'カバレッジ図（coverage diagram）', '距離と高度の平面の上に、どこで目標が見えるか（電波の強さや探知確率）を描いた図。'],
+  [9, '異常伝搬（anomalous propagation）', '大気が標準の状態と違うために、電波の曲がり方がふつうと違うこと。'],
+  [9, 'サブリフラクション（subrefraction）', '電波がふつうより曲がらない、または上向きに曲がる状態。見通し距離が短くなる。'],
+  [9, 'スーパーリフラクション（superrefraction）', '電波がふつうより強く下向きに曲がる状態。見通し距離が長くなる。'],
+  [9, 'トラッピング（trapping）', '電波の曲がりが地球の丸みより強くなり、電波が大気の層の中に閉じ込められる状態。'],
+  [9, 'ダクト（duct）', '電波が閉じ込められて、遠くまで伝わる大気の層。'],
+  [9, '蒸発ダクト（evaporation duct）', '海面のすぐ上で、水蒸気が高さとともに急に減ることでできるダクト。海の上ではほぼいつも存在する。'],
+  [9, 'レーダホール（radar hole）', 'ダクトのために電波が届きにくくなる領域。ダクトのすぐ上などにできる。'],
+  [9, 'スキップゾーン（skip zone）', '水平線の近くで、ダクトの効果が現れない距離の範囲。']
+);
+GLOSS.push(
+  [10, '散乱（scattering）', '電波が物体に当たって、いろいろな方向へ散らばること。'],
+  [10, '後方散乱（backscattering）', '散乱のうち、電波が来た方向（レーダの方向）へ戻る分。これがレーダのエコーになる。'],
+  [10, 'dBsm', 'RCS を、1 m² を基準にしたデシベルで表した単位。0 dBsm = 1 m²、20 dBsm = 100 m²、−20 dBsm = 0.01 m²。'],
+  [10, 'アスペクト角（aspect angle）', 'レーダから見た目標の向きを表す角度。'],
+  [10, '反射点（scatterer / scattering center）', '目標の表面のうち、エコーを強く返す場所。複雑な目標は、たくさんの反射点の集まりとして考える。'],
+  [10, '鏡面反射（specular reflection）', 'レーダの視線に垂直な面が、鏡のように電波をまっすぐ返す反射。その方向では強いが、少し向きがずれると急に弱くなる。'],
+  [10, 'レイリー領域（Rayleigh region）', '目標が波長より小さい範囲。RCS は周波数の 4 乗に比例して急に変わり、形の細かい違いは効かない。'],
+  [10, '共振領域（resonance region）', '目標が波長と同じくらいの範囲。いくつかの反射の仕組みが干渉して、RCS が大きさ（周波数）とともに波打つ。'],
+  [10, '光学領域（optics region）', '目標が波長よりずっと大きい範囲。光の反射のように考える近似がよく合う。'],
+  [10, 'クリーピング波（creeping wave）', '球などの陰の側を回り込んで戻ってくる波。'],
+  [10, '進行波エコー（traveling-wave echo）', '電波が表面にごく浅い角度で入ったとき、表面に沿って進む波が端で反射して戻るエコー。'],
+  [10, 'コーナーリフレクタ（corner reflector）', '2 枚または 3 枚の平らな板を直角に組み合わせたもの。広い範囲の向きから来た電波を、来た方向へ返す。'],
+  [10, '幾何光学（geometric optics、GO）', '電波を光線として扱い、反射点での面の曲がり方から RCS を求める近似。'],
+  [10, '物理光学（physical optics、PO）', '面の上に流れる電流を近似して足し合わせ、RCS を求める方法。平らな面や、一方向だけ曲がった面に使う。'],
+  [10, 'モーメント法（method of moments）', '面の上の電流についての方程式を、連立 1 次方程式に直して解く方法。厳密だが、大きな目標では計算量が大きい。'],
+  [10, 'バイスタティック（bistatic）', '送信と受信を、離れた別々の場所で行うこと。同じ場所で行う場合はモノスタティックという。'],
+  [10, '遠方界の条件（far-field criterion）', '目標に当たる波を平面の波とみなせる距離の目安。距離 R > 2D²/λ（D は目標の大きさ）。'],
+  [10, 'コンパクトレンジ（compact range）', '反射鏡などで平面の波を作り、短い距離で RCS を測れるようにした屋内の測定設備。'],
+  [10, '電波吸収材（radar-absorbing material、RAM）', '入ってきた電波のエネルギーを吸収して、反射を弱める材料。'],
+  [10, 'サリスバリースクリーン（Salisbury screen）', '金属面の 1/4 波長手前に抵抗の膜を置いた、いちばん簡単な吸収体。設計した周波数の近くだけで効く。'],
+  [10, '形状制御（shaping）', '面や縁の向きを選んで、エコーをレーダの方向からそらす設計のしかた。']
+);
+GLOSS.push(
+  [11, '合成開口レーダ（SAR、synthetic aperture radar）', '小さなアンテナを動かしながら集めた信号を合成して、長いアンテナと同じ細かさの分解能を得るレーダ。地表の画像を作るのに使う。'],
+  [11, '実開口レーダ（RAR、real aperture radar）', 'アンテナそのものの大きさ（ビーム幅）で分解能が決まる、ふつうのレーダ。'],
+  [11, '合成開口（synthetic aperture）', 'プラットフォームが動いた経路を、1 本の長いアンテナとみなしたもの。その長さを合成開口長、目標から見たその角度を合成開口角という。'],
+  [11, 'レンジ方向とクロスレンジ方向（range / crossrange）', 'レーダの視線に沿った方向（レンジ）と、それに垂直で地面に平行な方向（クロスレンジ）。クロスレンジはアジマス方向ともいう。'],
+  [11, 'クロスレンジ分解能（crossrange resolution）', '視線に垂直な方向で、位置をどれだけ細かく決められるか。アジマス分解能ともいう。'],
+  [11, 'ストリップマップ（stripmap SAR）', 'ビームを飛行経路に垂直に向けたまま飛び、帯のような範囲を連続して画像にする方式。'],
+  [11, 'スポットライト（spotlight SAR）', '飛びながらビームを同じ場所に向け続け、その場所を細かい分解能で画像にする方式。'],
+  [11, 'ドップラビームシャープニング（DBS、doppler beam sharpening）', 'ビームの中のエコーをドップラ周波数で分けて、ビーム幅より細かい分解能を得る方法。SAR の最初の呼び名でもある。'],
+  [11, '非集束 SAR（unfocused SAR）', '位相の補正をせずに信号を足し合わせる、初期の SAR。使える合成開口の長さに限りがある。'],
+  [11, '位相履歴（phase history）', 'プラットフォームが動くあいだに、1 つの目標からのエコーの位相がたどる変化。'],
+  [11, 'ファストタイムとスロータイム（fast time / slow time）', '1 つのパルスの中の時間（距離に対応）と、パルスからパルスへの時間（クロスレンジに対応）。'],
+  [11, 'スクイント角（squint angle、SAR の場合）', 'アンテナの向きが、飛行経路に垂直な方向からずれている角度。'],
+  [11, '動揺補償（motion compensation）', 'プラットフォームが理想の直線からずれた分を測り、信号の位相を直す処理。'],
+  [11, 'レンジマイグレーション（range migration）', 'データを集めるあいだに、目標までの距離が変わって、別の距離セルへ移ってしまうこと。'],
+  [11, 'スラントプレーンとグランドプレーン（slant plane / ground plane）', '視線に沿った斜めの面（スラント）と、地面（グランド）。距離分解能は、地面の上ではスラントより粗くなる。'],
+  [11, '点像応答（point spread function / impulse response）', '点の目標 1 つが、画像の上でどう広がって写るかを表すもの。'],
+  [11, '積分サイドローブ比（ISLR、integrated sidelobe ratio）', '点像応答のサイドローブ全体のエネルギーを、メインローブのエネルギーで割った値。'],
+  [11, 'スペックル（speckle）', '一様な地面でも、画素ごとに明るさがばらつく現象。画素の中の多数の散乱体のエコーが干渉して起きる。'],
+  [11, 'マルチルック（multilook）', '同じ場所の画像を何枚か作って明るさを平均し、スペックルを減らす処理。'],
+  [11, '雑音等価 σ⁰（NEσ⁰、noise-equivalent sigma zero）', '受信機の雑音と同じ明るさに写る、地面の反射の強さ。これより暗い地面は雑音に埋もれる。'],
+  [11, '逆合成開口レーダ（ISAR、inverse SAR）', 'レーダではなく目標の動き（回転）を利用して、目標の画像を作る方法。'],
+  [11, '干渉 SAR（InSAR、interferometric SAR）', '2 つのアンテナの信号の位相の差を使って、高さや動きを測る SAR。']
+);
+GLOSS.push(
+  [12, '電子戦（EW、electronic warfare）', '電磁波の利用をめぐる軍事的な活動の全体。相手の電波を探ること、相手の利用を妨げること、自分の利用を守ることを含む。'],
+  [12, '電子支援（ESM、electronic warfare support measures）', '相手が出す電波を探し、傍受し、位置や種類を調べること。新しい用語では ES。'],
+  [12, '電子攻撃（ECM、electronic countermeasures）', '相手のレーダなどが電磁波を有効に使うのを、妨げたり弱めたりすること。新しい用語では EA。'],
+  [12, '電子防護（ECCM、electronic counter-countermeasures）', '相手の電子攻撃があっても、レーダなどが電磁波を有効に使えるようにする、レーダ側の工夫。新しい用語では EP。'],
+  [12, '妨害（jamming）', 'レーダの受信を乱すための電波を出すこと。その装置を妨害機（jammer）という。'],
+  [12, '雑音妨害（noise jamming）', '雑音のような電波でレーダの受信帯域を埋め、目標のエコーを埋もれさせる妨害。狭い帯域に集中するスポット妨害と、広い帯域を覆うバラージ妨害がある。'],
+  [12, '欺まん（deception）', 'にせの信号でレーダに誤った情報（偽の目標、誤った距離・速度・角度）を与えること。'],
+  [12, 'チャフ（chaff）', '空中にまく、金属を付けた細い繊維や箔。レーダから見ると、雨雲のようなクラッタになる。'],
+  [12, 'デコイ（decoy）', '本物の目標のように見せるための、おとりの物体。'],
+  [12, '自己防御妨害とスタンドオフ妨害（SSJ / SOJ）', '目標自身が妨害の電波を出す場合（自己防御、self-screening jammer）と、離れた場所の別の機体が出す場合（スタンドオフ、stand-off jammer）。'],
+  [12, '実効放射電力（ERP、effective radiated power）', '送信電力にアンテナ利得を掛けた値。その方向へどれだけ強く電波を出しているかを表す。'],
+  [12, '妨害対雑音比（J/N、JNR）', '受信機に入る妨害の電力を、受信機の雑音の電力で割った値。'],
+  [12, '信号対妨害比（S/J）', '目標のエコーの電力を、妨害の電力で割った値。'],
+  [12, 'バーンスルー（burn-through）', '目標が近づいて、エコーが妨害より強くなり、妨害の中でも探知できるようになること。その距離をバーンスルー距離という。'],
+  [12, 'サイドローブブランキング（SLB、sidelobe blanking）', '主アンテナと、利得の低い補助アンテナの受信の強さを比べ、サイドローブから入ったと判断した信号を表示・検出から外すしくみ。'],
+  [12, 'サイドローブキャンセラ（SLC、sidelobe canceler）', '補助アンテナで受けた妨害に重みを掛けて、主アンテナの信号から引き、サイドローブから入る妨害を打ち消すしくみ。'],
+  [12, '補助アンテナ（auxiliary antenna）', 'SLB や SLC のために、主アンテナのそばに置く、利得が低くビームの広いアンテナ。'],
+  [12, '妨害消去比（JCR、jammer cancellation ratio）', 'サイドローブキャンセラを使わないときと使ったときの、出力の妨害電力の比。'],
+  [12, '適応アレイ（adaptive array）', '受信した信号に合わせて、素子ごとの重みを自動で変えるアレイアンテナ。妨害の方向にヌルを作る。'],
+  [12, '周波数アジリティ（frequency agility）', '送信周波数を、パルスごと、またはパルスのまとまりごとに切り替えること。'],
+  [12, '周波数ダイバーシティ（frequency diversity）', 'いくつかの違う周波数を、同時に、または組み合わせて使うこと。'],
+  [12, '低被探知性（LPI、low probability of intercept）', '相手の受信機に見つかりにくいように、レーダの電波の出し方を工夫すること。'],
+  [12, 'レーダ警報受信機（RWR、radar warning receiver）', 'レーダの電波を受けて、照らされていることとその方向を知らせる受信機。'],
+  [12, '電波管制（EMCON、emission control）', '位置や意図を知られないように、電波を出す時間・方向・周波数などを管理すること。'],
+  [12, 'ダイナミックレンジ（dynamic range）', '受信機が、ゆがめずに扱える信号の強さの範囲。強い妨害で飽和しないために、広い範囲が必要。']
+);
+GLOSS.push(
+  [13, 'レーダ資源管理（radar resource management）', 'レーダが持つ限られた時間とエネルギーを、捜索・追尾などの仕事にどう割り振るかを決めること。'],
+  [13, 'ドウェル（dwell）', '1 つのビームの位置に対する、1 回の照射（送信と受信のひとまとまり）。スケジューリングの最小の単位。'],
+  [13, 'スケジューラ（scheduler）', '頼まれた仕事（タスク）を、いつ実行するかを決めて、時間の上に並べるしくみ。'],
+  [13, '占有率（occupancy）', 'レーダの時間のうち、照射に使われている割合。'],
+  [13, 'スケジューラの効率（scheduler efficiency）', '（全時間 − すき間の合計）÷ 全時間。すき間なく並べられたかを表す。'],
+  [13, '固定タスク（fixed task）', '実行してほしい時刻が決まっているタスク。追尾の更新など。少しだけ前後にずらせる。'],
+  [13, '柔軟タスク（flexible task）', '実行する時刻は決まっていないが、決まった一巡（パターン）を、ある周期で回し続けたいタスク。捜索など。'],
+  [13, '希望時刻（requested time）', '固定タスクを実行してほしい時刻。'],
+  [13, 'ずれの許容（slack）', '固定タスクの実行を、希望時刻から前後にずらしてよい幅。'],
+  [13, 'フレーム時間（frame time）', '捜索のパターンを一巡するのにかかる時間。空間の同じ場所を、もう一度見るまでの時間にあたる。'],
+  [13, '望みのフレーム時間（DFT、desired frame time）', '柔軟タスクのパターンを一巡させたい周期。'],
+  [13, 'パターンの長さ（PL、pattern length）', '柔軟タスクのパターン 1 巡ぶんの照射の時間の合計。'],
+  [13, 'スケジューリング区間（RSI、radar scheduling interval）', 'スケジューラがタスクを並べる、ひと区切りの時間。従来の方式では、長さが決まっている。'],
+  [13, '可変のスケジューリング区間（DRSI、dynamic RSI）', '固定タスクの終わりから、次の固定タスクの終わりまでを 1 区間とする考え方。区間の長さがそのつど変わる。'],
+  [13, '次の固定タスク（NFT、next fixed task）', '次に実行する固定タスク。これが、可変のスケジューリング区間の終わりを決める。'],
+  [13, '柔軟タスクの遅れ（FTD、flexible task deficit）', '「今の時点で済んでいるはずの量」から「実際に済んだ量」を引いたもの。大きいほど、そのタスクは遅れている。'],
+  [13, '期限の近い順（EDF、earliest-deadline-first）', '期限がいちばん近い仕事から先に実行する、スケジューリングの方法。計算機の処理の順番決めに使われている。'],
+  [13, '貪欲なスケジューラ（greedy scheduler）', '先のことを考えず、その場でいちばん優先度の高いものから順に入れていくスケジューラ。'],
+  [14, 'エリア MTI（area MTI）', 'クラッタの消え残りを場所ごとに記憶しておき、次のスキャンで差し引く（または割る）方法。今はクラッタマップと呼ぶことが多い。'],
+  [14, 'マップセル（map cell）', 'クラッタマップの 1 マス。距離と方位で区切る。分解能のセルいくつかをまとめて 1 マスにすることが多い。'],
+  [14, '再帰フィルタ（recursive filter）', '前の出力に、新しい入力を一定の割合で混ぜて、次の出力にするフィルタ。過去の値を全部しまっておかなくても、平均に近い値が得られる。'],
+  [14, 'フィルタの定数 α', '再帰フィルタで、新しい入力を混ぜる割合（0〜1）。小さいほど、長い期間の平均になる。'],
+  [14, '実効的な平均の回数（Leff）', '再帰フィルタが、同じ重みで何回ぶんを平均したのと同じ落ち着きを持つかを表す数。(2 − α) ÷ α。'],
+  [14, 'クラッタマップ損失（clutter map loss）', '背景の平均を地図から見積もるために、余分に必要になる S/N。平均の回数が少ないほど大きい。'],
+  [14, '立ち上がり（過渡応答、transient response）', '背景が急に変わったとき（新しいクラッタが現れたときなど）に、地図の値が新しい強さになじむまでの様子。'],
+  [14, 'カットオフ速度（cutoff velocity）', 'クラッタマップが目標を背景として覚えはじめる、目標の速さの境目。マップセルの大きさとスキャンの間隔で決まる。'],
+  [14, 'スプレッディング（spreading）', 'マップセルを、その中の受信だけでなく、隣のセルの受信も使って更新すること。クラッタがマスの境目をまたいだときの誤警報を抑える。'],
+  [14, 'ゼロ速度フィルタ（zero-velocity filter）', 'ドップラが 0 に近い成分だけを取り出すフィルタ。止まっているクラッタと、視線を横切る目標が、ここに出る。'],
+  [14, 'MTD（moving target detector）', 'ドップラフィルタバンク、ゼロ速度フィルタ、クラッタマップなどを組み合わせた、目標検出の方式。'],
+  [14, 'スーパークラッタビジビリティ（superclutter visibility）', '点のクラッタの上を飛ぶ目標を、目標のほうがクラッタより強いことを利用して検出できること。'],
+  [14, '点のクラッタ（discrete clutter / point clutter）', '建物や鉄塔のように、1 つのセルに集中して現れる強いクラッタ。']
+);
+
+(function(){
+  const $ = s => document.querySelector(s), g = $('#gloss');
+  const HB = '<span class="hosoku">補足</span>';
+  const grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
+  let h = '<h2>用語集（全回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList"><h3>基礎の用語　' + HB + '</h3>' + grp(-1);
+  for (let n = 0; n < SERIES.length; n++) if (GLOSS.some(t => t[0] === n)) h += '<h3>第' + n + '回 ' + SERIES[n].name + '</h3>' + grp(n);
+  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は、Radar Handbook 3rd ed. の用語を新人向けに言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
+  const toggle = on => { g.hidden = !on; if (on) $('#glFind').focus(); };
+  $('#glBtn').addEventListener('click', () => toggle(g.hidden)); $('#glTab').addEventListener('click', () => toggle(g.hidden)); $('#glClose').addEventListener('click', () => toggle(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
+  $('#glFind').addEventListener('input', e => { const q = e.target.value.trim().toLowerCase(); for (const dt of g.querySelectorAll('dt')){ const hit = !q || (dt.textContent + dt.nextElementSibling.textContent).toLowerCase().indexOf(q) >= 0; dt.hidden = !hit; dt.nextElementSibling.hidden = !hit; } });
+  const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  let theme = mq && mq.matches ? 'dark' : 'light';
+  const apply = () => { document.documentElement.setAttribute('data-theme', theme); $('#themeBtn').textContent = '表示: ' + (theme === 'dark' ? 'ダーク' : 'ライト'); };
+  $('#themeBtn').addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; apply(); }); apply();
+})();
+</script>
+</body>
+</html>

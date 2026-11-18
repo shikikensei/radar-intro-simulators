@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第4回 自動検出とCFAR</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3f2ee; --surface:#fcfcfb; --surface2:#f0efec; --border:#d9d8d2;
+  --text:#0b0b0b; --text2:#52514e; --muted:#77766f; --grid:#e4e3dd; --axis:#a9a8a1;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --ref:#8a8983; --hl:#b4279a;
+  --band:rgba(42,120,214,.10); --band2:rgba(235,104,52,.12); --bandn:rgba(120,119,112,.14); --band3:rgba(27,175,122,.14);
+  --accent:#1c5cab; --accent-bg:#e4eefb; --warn:#8a5a00; --warn-bg:#fdf1d3; --ok:#0a6b0a; --ok-bg:#e2f3e2; --ng:#b02a2a;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111110; --surface:#1a1a19; --surface2:#242423; --border:#3a3a37;
+  --text:#f0efec; --text2:#c3c2b7; --muted:#96958c; --grid:#2d2d2a; --axis:#6a6963;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --ref:#96958c; --hl:#e56bd0;
+  --band:rgba(57,135,229,.16); --band2:rgba(217,89,38,.18); --bandn:rgba(150,149,140,.16); --band3:rgba(25,158,112,.20);
+  --accent:#86b6ef; --accent-bg:#1c2c44; --warn:#f0c869; --warn-bg:#3a2f12; --ok:#5fd05f; --ok-bg:#16301a; --ng:#f08a8a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-size:14px;line-height:1.75;
+  font-family:"Yu Gothic UI","Meiryo UI","Meiryo","Hiragino Sans","Noto Sans JP","Noto Sans CJK JP",system-ui,sans-serif}
+button,select,input{font:inherit;color:inherit}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+header.top h1{font-size:16px;margin:0;font-weight:700;white-space:nowrap}
+#msbar{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:12px;color:var(--text2);overflow:hidden;white-space:nowrap}
+#msbar button{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--axis);background:none;padding:0;cursor:pointer;font-size:10px;line-height:1;color:transparent;flex:none}
+#msbar button.done{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+#msbar b{margin-left:6px;color:var(--text);font-variant-numeric:tabular-nums}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:4px 10px;cursor:pointer;line-height:1.4;white-space:nowrap;text-decoration:none;color:var(--text);display:inline-block}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:700}
+.btn.sm{padding:2px 8px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:default}
+nav#steps{display:flex;flex-wrap:wrap;gap:5px;max-width:1480px;margin:10px auto 0;padding:0 14px}
+nav#steps button{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:2px 10px 2px 3px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+nav#steps button i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--surface2);font-size:11.5px;font-weight:700}
+nav#steps button[aria-current=true]{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:700}
+nav#steps button[aria-current=true] i{background:var(--accent);color:var(--surface)}
+nav#steps button.done i{background:var(--ok);color:var(--surface)}
+.layout{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;max-width:1480px;margin:0 auto;padding:10px 40px 30px 14px;align-items:start}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr)}}
+#read,.card{background:var(--surface);border:1px solid var(--border);border-radius:10px}
+#read{padding:12px 16px 14px;min-width:0}
+#read h2{font-size:18px;margin:0 0 6px;line-height:1.4}
+#read h2 .num{display:inline-block;font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);border-radius:4px;padding:1px 8px;margin-right:8px;vertical-align:3px}
+#read h3{font-size:13px;margin:12px 0 2px;color:var(--accent)}
+#read p{margin:2px 0 6px}
+#read a.term{color:var(--hl);font-weight:700;text-decoration:underline dotted;cursor:pointer}
+.eq{font-family:"Cambria Math","Times New Roman",serif;font-size:17px;margin:6px 0 4px 8px;overflow-x:auto;white-space:nowrap;padding:6px 10px;background:var(--surface2);border-radius:6px}
+.eq i{font-style:italic}
+.sym{font-size:12.5px;color:var(--text2)}
+.mis{border-left:4px solid var(--warn);background:var(--warn-bg);border-radius:0 8px 8px 0;padding:6px 12px;margin:4px 0}
+.src{font-size:12px;color:var(--text2);border-top:1px dashed var(--border);padding-top:6px;margin-top:10px}
+.hosoku{display:inline-block;font-size:11px;font-weight:700;border:1px solid var(--warn);color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:0 5px;margin:0 4px 0 0;line-height:1.5;vertical-align:1px;white-space:nowrap}
+details{border:1px solid var(--border);border-radius:8px;padding:5px 10px;margin:8px 0 0;background:var(--surface)}
+details summary{cursor:pointer;font-weight:700;font-size:12.5px}
+details p{margin:4px 0;font-size:13px}
+.pre{border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin:6px 0 10px;background:var(--surface2)}
+.pre>b{font-size:12.5px}
+.pre details{background:var(--surface);margin:5px 0 0}
+#sim{min-width:0;display:flex;flex-direction:column;gap:10px}
+.card{padding:10px 14px}
+.card .lbl{display:inline-block;font-size:11.5px;font-weight:700;color:var(--surface);background:var(--accent);border-radius:4px;padding:0 8px;margin-right:8px;line-height:1.6}
+.card.q p{margin:4px 0 8px;font-size:15px;font-weight:700}
+.ch{display:flex;flex-wrap:wrap;gap:6px}
+.ch button{border:1.5px solid var(--border);background:var(--surface);border-radius:8px;padding:5px 12px;cursor:pointer;text-align:left;line-height:1.45}
+.ch button:hover{border-color:var(--accent)}
+.ch button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-bg);font-weight:700}
+.ch button.right{border-color:var(--ok);background:var(--ok-bg)}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.card.op{position:relative}
+.card.op.locked>*:not(.lockmsg){opacity:.3;pointer-events:none;filter:grayscale(.4)}
+.lockmsg{display:none;position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:3;background:var(--warn-bg);border:1.5px solid var(--warn);color:var(--warn);font-weight:700;border-radius:8px;padding:6px 16px;white-space:nowrap}
+.card.op.locked .lockmsg{display:block}
+.fixed{display:flex;flex-wrap:wrap;gap:5px;font-size:12px;color:var(--text2);margin-bottom:6px;align-items:center}
+.fixed span{border:1px solid var(--border);border-radius:999px;padding:0 8px;background:var(--surface2);white-space:nowrap;line-height:1.7}
+.ctls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 14px;margin-bottom:6px}
+.ctl{min-width:0;border-radius:6px;padding:2px 6px;border:2px solid transparent}
+.ctl.flash,.tile.flash{border-color:var(--hl);background:color-mix(in srgb,var(--hl) 12%,transparent)}
+.ctl-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 8px;min-width:0}
+.ctl-h label{font-size:13px;font-weight:700;min-width:0;line-height:1.5}
+.ctl-h output{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;color:var(--accent);margin-left:auto}
+.ctl input[type=range]{display:block;width:100%;margin:1px 0 0;accent-color:var(--s1);height:18px}
+.ctl small{display:block;font-size:11.5px;color:var(--muted);line-height:1.4}
+.ctl .chk{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer}
+.ctl .chk input{accent-color:var(--s1);margin:0}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface);max-width:100%}
+.seg button{border:0;background:none;padding:2px 10px;cursor:pointer;font-size:12.5px;border-left:1px solid var(--border);white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed=true]{background:var(--accent-bg);color:var(--accent);font-weight:700}
+.acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.plotgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.plot{min-width:0;border:1px solid var(--border);border-radius:8px;padding:5px 8px 2px;background:var(--surface)}
+.plot-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 14px;min-height:20px}
+.plot-t{font-size:12.5px;font-weight:700}
+.plot-lg{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:12px;color:var(--text2)}
+.plot-lg span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.plot-lg i{display:inline-block;width:20px;height:0;border-top:2px solid}
+.plot-c{position:relative;width:100%}
+.plot-c canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.plot-c canvas.ov{cursor:crosshair}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11.5px;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap;z-index:5;font-variant-numeric:tabular-nums}
+.tip b{display:block}
+.tip i{display:inline-block;width:12px;height:0;border-top:2px solid;margin-right:5px;vertical-align:middle}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;margin-top:8px}
+.tile{border:2px solid var(--border);border-radius:8px;padding:4px 10px;min-width:0;background:var(--surface)}
+.tile .k{font-size:11.5px;color:var(--text2);line-height:1.4}
+.tile .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.35;overflow-wrap:anywhere}
+.tile .v small{font-size:12px;font-weight:600;color:var(--text2)}
+.tile .s{font-size:11px;color:var(--muted);line-height:1.4;overflow-wrap:anywhere}
+.card.ms{border-left:5px solid var(--s2)}
+.card.ms.done{border-left-color:var(--ok);background:var(--ok-bg)}
+.card.ms p{margin:4px 0 2px}
+.card.ms .st{font-weight:700;color:var(--muted)}
+.card.ms.done .st{color:var(--ok)}
+.card.ans .body{margin-top:8px}
+.card.ans .body p{margin:3px 0}
+.stepnav{display:flex;justify-content:space-between;gap:8px;max-width:1480px;margin:0 auto;padding:0 14px 30px}
+#gloss{position:fixed;right:0;top:0;bottom:0;width:min(400px,92vw);z-index:40;background:var(--surface);border-left:1px solid var(--border);box-shadow:-4px 0 18px rgba(0,0,0,.2);padding:12px 16px;overflow-y:auto}
+#gloss h2{font-size:15px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+#gloss h3{font-size:12.5px;margin:12px 0 2px;color:var(--accent);border-bottom:1px solid var(--border)}
+#gloss dt{font-weight:700;margin-top:7px;font-size:13px}
+#gloss dd{margin:0;font-size:13px;color:var(--text2);line-height:1.6}
+#gloss input{width:100%;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+#glTab{position:fixed;right:0;top:45%;z-index:35;writing-mode:vertical-rl;border:1px solid var(--border);border-right:0;border-radius:8px 0 0 8px;background:var(--accent-bg);color:var(--accent);font-weight:700;padding:10px 4px;cursor:pointer;letter-spacing:.1em}
+table.t{border-collapse:collapse;width:100%;font-size:12.5px;margin:6px 0}
+table.t th,table.t td{border-bottom:1px solid var(--border);padding:4px 8px;text-align:left;vertical-align:top}
+table.t th{color:var(--text2);font-weight:700;background:var(--surface2);white-space:nowrap}
+.tw{overflow-x:auto}
+.ok{color:var(--ok);font-weight:700;white-space:nowrap}.ng{color:var(--ng);font-weight:700;white-space:nowrap}.info{color:var(--muted);white-space:nowrap}
+@media print{nav#steps,.stepnav,header.top .btn,#glTab{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="btn sm" href="00_index.html" title="シリーズの目次へ">← 目次</a>
+  <h1>第4回 自動検出とCFAR</h1>
+  <div id="msbar" title="ミッションの達成状況（丸を押すとそのステップへ）"></div>
+  <button class="btn sm" id="glBtn" type="button">用語集</button>
+  <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
+</header>
+<nav id="steps" aria-label="ステップ"></nav>
+<div class="layout">
+  <article id="read" aria-label="読み物"></article>
+  <section id="sim" aria-label="シミュレータ"></section>
+</div>
+<div class="stepnav">
+  <button class="btn" id="prevBtn" type="button">← 前のステップ</button>
+  <button class="btn primary" id="nextBtn" type="button">次のステップ →</button>
+</div>
+<button id="glTab" type="button" aria-label="用語集を開く">用語集</button>
+<aside id="gloss" hidden aria-label="用語集"></aside>
+<script>
+'use strict';
+const SIM_NO = 4;
+'use strict';
+/* ============================================================
+   計算モデル
+   検波は2乗検波（電力）。雑音だけのとき、1パルスの電力は平均 1 の指数分布（振幅ではレイリー分布：p.7.1）。
+   n パルスの積分は、電力をそのまま足す非コヒーレント積分（移動窓：式7.5 の和）。
+   ============================================================ */
+const MINUS = '−';
+const NC = 200;             // 表示する距離セルの数
+const MARG = 40;            // 両端の外側に作っておく余分なセル（CFAR の参照窓が端で欠けないようにする）
+const NT = NC + 2 * MARG;
+const T1CELL = 60;          // 目標1の距離セル
+const SWN = ['ゆらぎなし', 'Swerling 1', 'Swerling 2', 'Swerling 3', 'Swerling 4'];
+const CFARN = {ca: 'セル平均', cens: '大きい2個を除く', min: '平均が小さい側だけ', log: '対数ビデオ', edge: '境目の同じ側だけ'};
+const NCENS = 2;            // 「大きい K 個を除く」検出器で除く個数（p.7.16 の D2 にあたる）
+
+/* 共通設定（全ステップで共有） */
+const DEFAULTS = {pfa: 3, snr: 10, sw: 0, n: 1, M: 1, m: 16, g: 1, cfar: 'ca', cnr: 15, edge: 120, t2: false, t2off: 4, s2: 20, t3: true, s3: 30, seed: 1};
+const cloneDef = () => JSON.parse(JSON.stringify(DEFAULTS));
+const S = cloneDef();
+const db10 = v => 10 * Math.log10(Math.max(v, 1e-300));
+const lin = d => Math.pow(10, d / 10);
+
+/* ---------- 特殊関数 ---------- */
+function lgamma(x){
+  const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.001208650973866179, -0.000005395239384953];
+  let y = x, t = x + 5.5; t -= (x + 0.5) * Math.log(t); let s = 1.000000000190015; for (let j = 0; j < 6; j++) s += c[j] / ++y;
+  return -t + Math.log(2.5066282746310005 * s / x);
+}
+/* 整数 a の正則化上側不完全ガンマ関数 Q(a, x) = e^{−x} Σ_{k<a} x^k/k!：平均1の指数分布 a 個の和が x を超える確率 */
+function gQ(a, x){ if (x <= 0) return 1; let t = Math.exp(-x), s = 0; for (let k = 0; k < a; k++){ s += t; t *= x / (k + 1); } return Math.min(1, s); }
+const _thr = new Map();
+/* 固定しきい値：雑音だけの n パルスの和が T を超える確率が pfa になる T */
+function thresholdFor(n, pfa){
+  const key = n + '/' + pfa; let T = _thr.get(key); if (T !== undefined) return T;
+  let lo = 0, hi = n + 10; while (gQ(n, hi) > pfa) hi *= 1.5;
+  for (let i = 0; i < 80; i++){ const mid = (lo + hi) / 2; if (gQ(n, mid) > pfa) lo = mid; else hi = mid; }
+  T = (lo + hi) / 2; _thr.set(key, T); return T;
+}
+/* ゆらぎなしの目標：1パルスの S/N が s のとき、n パルスの和が T を超える確率（一般化マーカム Q 関数を級数で計算） */
+function pdNF(n, s, T){
+  const lam = n * s; if (!(lam > 0)) return gQ(n, T);
+  if (n + lam - T > 10 * Math.sqrt(n + 2 * lam)) return 1;
+  const k0 = Math.floor(lam), kmax = k0 + Math.ceil(12 * Math.sqrt(lam + 1)) + 30, q = new Float64Array(kmax + 1);
+  let t = Math.exp(-T), acc = 0; for (let j = 0; j < n; j++){ acc += t; t *= T / (j + 1); }
+  for (let k = 0; k <= kmax; k++){ q[k] = acc; acc += t; t *= T / (n + k + 1); }
+  const p0 = Math.exp(-lam + k0 * Math.log(lam) - lgamma(k0 + 1)); let sum = 0, p = p0;
+  for (let k = k0; k <= kmax; k++){ sum += p * q[k]; p *= lam / (k + 1); if (p < 1e-18 && k > k0 + 5) break; }
+  p = p0; for (let k = k0 - 1; k >= 0; k--){ p *= (k + 1) / lam; sum += p * q[k]; if (p < 1e-18) break; }
+  return Math.min(1, sum);
+}
+/* ゆらぎのある目標は、目標の強さの分布で平均する（Swerling 1・3：スキャンごとのゆらぎ）。分位点を使った中点則 */
+const NQ = 256, QS1 = new Float64Array(NQ), QS3 = new Float64Array(NQ);
+for (let j = 0; j < NQ; j++){ const u = (j + 0.5) / NQ; QS1[j] = -Math.log(1 - u); let q = QS1[j] * 0.8 + 0.2;
+  for (let it = 0; it < 60; it++){ const f = 1 - Math.exp(-2 * q) * (1 + 2 * q) - u, d = 4 * q * Math.exp(-2 * q); q = Math.max(1e-9, q - f / Math.max(d, 1e-12)); } QS3[j] = q; }
+function mixSW(sw, s, fn, st){ if (sw === 0) return fn(s); const q = sw === 1 ? QS1 : QS3; let a = 0; if (st){ for (let j = 0; j < NQ; j += st) a += 0.5 * (fn(s * q[j + (st >> 1) - 1]) + fn(s * q[j + (st >> 1)])); return a * st / NQ; } for (let j = 0; j < NQ; j++) a += fn(s * q[j]); return a / NQ; }
+const binom = (n, k) => { let r = 1; for (let i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; };
+/* 固定しきい値 T のときの探知確率。sw：0 ゆらぎなし、1〜4 Swerling モデル。s は1パルスあたりの平均 S/N（線形） */
+function pdFixed(sw, n, s, T){
+  if (!(s > 0)) return gQ(n, T);
+  if (sw === 2) return gQ(n, T / (1 + s));
+  if (sw === 4){ const th = 1 + s / 2, w2 = (th - 1) / th, w1 = 1 / th; let a = 0; for (let k = 0; k <= n; k++) a += binom(n, k) * Math.pow(w2, k) * Math.pow(w1, n - k) * gQ(n + k, T / th); return a; }
+  return mixSW(sw, s, x => pdNF(n, x, T));
+}
+/* Swerling 1 の閉じた式（数値積分の確認用）：n=1 では Pfa^(1/(1+S)) */
+function pdSW1closed(n, s, T){
+  if (n === 1) return Math.exp(-T / (1 + s));
+  const a = 1 + 1 / (n * s); return gQ(n - 1, T) + Math.pow(a, n - 1) * (1 - gQ(n - 1, T / a)) * Math.exp(-T / (1 + n * s));
+}
+function solveSnr(fn, target){            // fn(s) が target になる s [dB]（fn は s について単調増加）
+  let lo = -30, hi = 60; if (fn(lin(hi)) < target) return NaN;
+  for (let i = 0; i < 24; i++){ const mid = (lo + hi) / 2; if (fn(lin(mid)) < target) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
+/* ---------- 2値積分（M-out-of-N）：式7.9、7.10 のまわり ---------- */
+function binTail(N, M, p){ if (M <= 0) return 1; if (p <= 0) return 0; if (p >= 1) return 1; const r = p / (1 - p); let t = binom(N, M) * Math.pow(p, M) * Math.pow(1 - p, N - M), s = 0; for (let k = M; k <= N; k++){ s += t; t *= (N - k) / (k + 1) * r; } return Math.min(1, s); }
+function binP0(N, M, pfa){               // 全体の誤警報確率が pfa になる、1パルスの誤警報確率 P_N
+  let lo = -700, hi = 0; for (let i = 0; i < 80; i++){ const mid = (lo + hi) / 2; if (binTail(N, M, Math.exp(mid)) > pfa) hi = mid; else lo = mid; }
+  return Math.exp((lo + hi) / 2);
+}
+function pd1(sw, s, T1){                 // 1パルスの探知確率（スキャン内で強さが一定のとき、その強さ s に対して）
+  if (sw === 2) return Math.exp(-T1 / (1 + s));
+  if (sw === 4){ const th = 1 + s / 2; return (1 / th) * Math.exp(-T1 / th) + ((th - 1) / th) * gQ(2, T1 / th); }
+  return pdNF(1, s, T1);
+}
+function pdBinary(sw, N, M, s, p0, st){
+  const T1 = -Math.log(p0);
+  if (sw === 2 || sw === 4) return binTail(N, M, pd1(sw, s, T1));
+  return mixSW(sw, s, x => binTail(N, M, pdNF(1, x, T1)), st);
+}
+const _rb = new Map();
+function reqBin(sw, N, pfa, pdT){        // M = 1..N それぞれの所要 S/N [dB]（結果は覚えておく）
+  const key = sw + '/' + N + '/' + pfa + '/' + pdT; let r = _rb.get(key); if (r) return r;
+  r = new Float64Array(N + 1); r[0] = NaN; for (let M = 1; M <= N; M++){ const p0 = binP0(N, M, pfa); r[M] = solveSnr(s => pdBinary(sw, N, M, s, p0, 8), pdT); }
+  if (_rb.size > 40) _rb.clear(); _rb.set(key, r); return r;
+}
+function bestM0(sw, N, pfa, pdT){ const r = reqBin(sw, N, pfa, pdT); let b = 1; for (let M = 2; M <= N; M++) if (r[M] < r[b]) b = M; return {M: b, snr: r[b]}; }
+function bestM(sw, N, pfa, pdT){         // 所要 S/N が最小になる M
+  let b = {M: 1, snr: Infinity}; for (let M = 1; M <= N; M++){ const p0 = binP0(N, M, pfa), v = solveSnr(s => pdBinary(sw, N, M, s, p0), pdT); if (v < b.snr) b = {M, snr: v}; } return b;
+}
+/* ---------- セル平均 CFAR（2乗検波）の厳密な式 ----------
+   注目セル：n パルスの和 Y。参照セル：m 個、それぞれ n パルスの和。判定は Y/n > α × (参照セルの1パルスあたりの平均)。
+   c[a] = P(Gamma(a) > K·Gamma(L))、K = α/m、L = m·n */
+function caTail(K, L, amax){
+  const c = new Float64Array(amax + 1); let t = Math.exp(-L * Math.log1p(K)), acc = 0; const r = K / (1 + K);
+  for (let j = 0; j < amax; j++){ acc += t; c[j + 1] = Math.min(1, acc); t *= (L + j) / (j + 1) * r; if (acc > 1 - 1e-13 && t < 1e-15){ c.fill(1, j + 1); break; } }
+  return c;
+}
+function pfaCA(n, m, alpha){ return caTail(alpha / m, m * n, n)[n]; }
+const _al = new Map();
+function alphaCA(n, m, pfa){
+  const key = n + '/' + m + '/' + pfa; let a = _al.get(key); if (a !== undefined) return a;
+  let lo = 0, hi = 10; while (pfaCA(n, m, hi) > pfa) hi *= 2;
+  for (let i = 0; i < 90; i++){ const mid = (lo + hi) / 2; if (pfaCA(n, m, mid) > pfa) lo = mid; else hi = mid; }
+  a = (lo + hi) / 2; _al.set(key, a); return a;
+}
+/* セル平均 CFAR の探知確率（周囲は一様な雑音）。s は1パルスあたりの平均 S/N（周囲の雑音に対して） */
+function pdCA(sw, n, m, s, alpha){
+  const K = alpha / m, L = m * n;
+  if (!(s > 0)) return caTail(K, L, n)[n];
+  if (sw === 2) return caTail(K / (1 + s), L, n)[n];
+  if (sw === 4){ const th = 1 + s / 2, w2 = (th - 1) / th, w1 = 1 / th, c = caTail(K / th, L, 2 * n); let a = 0; for (let k = 0; k <= n; k++) a += binom(n, k) * Math.pow(w2, k) * Math.pow(w1, n - k) * c[n + k]; return a; }
+  const smax = sw === 0 ? s : s * (sw === 1 ? QS1[NQ - 1] : QS3[NQ - 1]), lamMax = n * smax, kcap = Math.floor(lamMax) + Math.ceil(12 * Math.sqrt(lamMax + 1)) + 30;
+  /* c[a] は a とともに 1 に近づく。1 に達した先は計算しない */
+  let cap = n + 64; const need = n + kcap + 1; let c = caTail(K, L, Math.min(cap, need));
+  while (c.length - 1 < need && c[c.length - 1] < 1 - 1e-12){ cap *= 2; c = caTail(K, L, Math.min(cap, need)); }
+  const last = c.length - 1, cv = a => (a >= last ? c[last] : c[a]);
+  const nf = x => { const lam = n * x; if (!(lam > 0)) return cv(n); const k0 = Math.floor(lam), sd = Math.sqrt(lam + 1);
+    if (cv(n + Math.max(0, Math.floor(lam - 9 * sd))) > 1 - 1e-10) return 1;
+    const kmax = k0 + Math.ceil(12 * sd) + 30, p0 = Math.exp(-lam + k0 * Math.log(lam) - lgamma(k0 + 1)); let sum = 0, p = p0;
+    for (let k = k0; k <= kmax; k++){ sum += p * cv(n + k); p *= lam / (k + 1); if (p < 1e-18 && k > k0 + 5) break; }
+    p = p0; for (let k = k0 - 1; k >= 0; k--){ p *= (k + 1) / lam; sum += p * cv(n + k); if (p < 1e-18) break; }
+    return Math.min(1, sum); };
+  return mixSW(sw, s, nf);
+}
+/* CFAR 損失：同じ Pfa・Pd を得るのに必要な S/N の増加 [dB] */
+function cfarLoss(sw, n, m, pfa, pdT){
+  const T = thresholdFor(n, pfa), a = alphaCA(n, m, pfa);
+  return solveSnr(s => pdCA(sw, n, m, s, a), pdT) - solveSnr(s => pdFixed(sw, n, s, T), pdT);
+}
+
+/* ============================================================
+   CFAR の種類ごとの雑音レベルの推定
+   v：参照セルの値（各セルの n パルスの和 ÷ n）を、手前側 h 個・奥側 h 個の順に並べたもの。戻り値は1パルスあたりの雑音電力の推定値
+   ============================================================ */
+function cfarEst(kind, v, h, tmp){
+  const m = 2 * h; let a = 0, b = 0;
+  if (kind === 'log'){ for (let i = 0; i < m; i++) a += Math.log(v[i]); return Math.exp(a / m); }          // 対数をとってから平均（図7.19）
+  for (let i = 0; i < h; i++){ a += v[i]; b += v[h + i]; }
+  if (kind === 'min') return Math.min(a, b) / h;                                                           // 平均が小さい側の半分だけを使う（p.7.19–7.20）
+  if (kind === 'cens'){ const k = Math.min(NCENS, m - 2); let s = a + b; for (let i = 0; i < m; i++) tmp[i] = v[i];
+    for (let j = 0; j < k; j++){ let ib = 0; for (let i = 1; i < m; i++) if (tmp[i] > tmp[ib]) ib = i; s -= tmp[ib]; tmp[ib] = -1; } return s / (m - k); }   // 大きい K 個を除いて平均（p.7.16）
+  return (a + b) / m;                                                                                      // セル平均（図7.12）
+}
+/* n=1 のときの厳密な式（しきい値の係数 α に対する Pfa） */
+function pfaExact1(kind, m, alpha){
+  if (kind === 'ca') return Math.pow(1 + alpha / m, -m);
+  if (kind === 'min'){ const h = m / 2, T = alpha / h; let s = 0; for (let k = 0; k < h; k++) s += binom(h + k - 1, k) * Math.pow(2 + T, -(h + k)); return 2 * s; }
+  if (kind === 'cens'){ const r = m - Math.min(NCENS, m - 2); let p = 1; for (let j = 1; j <= r; j++) p /= 1 + (alpha / r) * (r - j + 1) / (m - j + 1); return p; }
+  return NaN;
+}
+/* 「平均が小さい側だけ」の厳密な式（一般の n）：Pfa = 2∫ f_A(a)·Q(n, α·a/h)·P(B > a) da。A・B は片側 h 個の参照セルの和（Gamma(h·n)） */
+function pfaMin(n, m, alpha){
+  const h = m / 2, sh = h * n, K = alpha / h, lg = lgamma(sh), NI = 1200, hi = sh + 14 * Math.sqrt(sh) + 20, t0 = Math.log(hi * 1e-9), t1 = Math.log(hi), dt = (t1 - t0) / NI; let acc = 0;
+  for (let i = 0; i <= NI; i++){ const t = t0 + i * dt, a = Math.exp(t), w = i === 0 || i === NI ? 1 : i % 2 ? 4 : 2;
+    acc += w * Math.exp((sh - 1) * t - a - lg) * a * gQ(n, K * a) * gQ(sh, a); }
+  return 2 * acc * dt / 3;
+}
+/* 「大きい2個を除く」の一般の n：重点サンプリング。除かれる 2 個は縮めず、残りだけを μ 倍に縮めて作る（どの 2 個を残すかは対称に混ぜた提案分布として重みを計算） */
+const _cb = new Map();
+function censBase(n, m){
+  const key = n + '/' + m; let b = _cb.get(key); if (b) return b;
+  const NS = 4000, rnd = mulberry32(24680 + 131 * n + 7 * m), e = new Float64Array(NS * m);
+  for (let i = 0; i < NS * m; i++){ let pr = 1; for (let k = 0; k < n; k++) pr *= 1 - rnd(); e[i] = -Math.log(pr); }
+  b = {NS, e}; if (_cb.size > 12) _cb.clear(); _cb.set(key, b); return b;
+}
+function pfaCens(n, m, alpha, force){
+  if (m < 4) return pfaCA(n, m, alpha);
+  if (n === 1 && !force) return pfaExact1('cens', m, alpha);
+  const b = censBase(n, m), r = m - 2, mu = 1 / (1 + alpha / r), nl = n * Math.log(mu), lc = Math.log(m * (m - 1) / 2), sv = new Float64Array(m); let acc = 0;
+  for (let i = 0; i < b.NS; i++){ const o = i * m; let tot = 0, x1 = 0, x2 = 0, ss = 0, s1 = -Infinity, s2 = -Infinity, i1 = -1;
+    for (let j = 0; j < m; j++){ const e = b.e[o + j], x = j < 2 ? e : mu * e, sj = nl + (j < 2 ? e * (1 / mu - 1) : e * (1 - mu));
+      tot += x; if (x > x1){ x2 = x1; x1 = x; } else if (x > x2) x2 = x;
+      sv[j] = sj; ss += sj; if (sj > s1){ s2 = s1; s1 = sj; i1 = j; } else if (sj > s2) s2 = sj; }
+    let A = 0, A2 = 0; for (let j = 0; j < m; j++) if (j !== i1){ const u = Math.exp(sv[j] - s2); A += u; A2 += u * u; }
+    const lw = lc + ss - s1 - s2 - Math.log(A + 0.5 * (A * A - A2) * Math.exp(s2 - s1));
+    acc += Math.exp(lw) * gQ(n, alpha * (tot - x1 - x2) / r); }
+  return acc / b.NS;
+}
+/* 対数ビデオ：W = ln(注目セル) − 平均 ln(参照セル) が ln α を超える確率を、鞍点近似（Lugannani–Rice の式）で求める */
+function digamma(x){ let r = 0; while (x < 8){ r -= 1 / x; x += 1; } const f = 1 / (x * x); return r + Math.log(x) - 0.5 / x - f * (1 / 12 - f * (1 / 120 - f / 252)); }
+function trigamma(x){ let r = 0; while (x < 8){ r += 1 / (x * x); x += 1; } const f = 1 / (x * x); return r + 1 / x + f / 2 + f / x * (1 / 6 - f * (1 / 30 - f / 42)); }
+function erfc(x){ const z = Math.abs(x), t = 2 / (2 + z), ty = 4 * t - 2, c = [-1.3026537197817094, 6.4196979235649026e-1, 1.9476473204185836e-2, -9.561514786808631e-3, -9.46595344482036e-4, 3.66839497852761e-4, 4.2523324806907e-5, -2.0278578112534e-5, -1.624290004647e-6, 1.303655835580e-6, 1.5626441722e-8, -8.5238095915e-8, 6.529054439e-9, 5.059343495e-9, -9.91364156e-10, -2.27365122e-10, 9.6467911e-11, 2.394038e-12, -6.886027e-12, 8.94487e-13, 3.13092e-13, -1.12708e-13, 3.81e-16, 7.106e-15, -1.523e-15, -9.4e-17, 1.21e-16, -2.8e-17];
+  let d = 0, dd = 0; for (let j = c.length - 1; j > 0; j--){ const tmp = d; d = ty * d - dd + c[j]; dd = tmp; } const v = t * Math.exp(-z * z + 0.5 * (c[0] + ty * d) - dd); return x >= 0 ? v : 2 - v; }
+function pfaLog(n, m, alpha){
+  const c = Math.log(alpha), K1 = t => digamma(n + t) - digamma(n - t / m), mean = K1(0), sd = Math.sqrt(trigamma(n) * (1 + 1 / m));
+  if (Math.abs(c - mean) < 0.05 * sd) return 0.5 * (pfaLog(n, m, Math.exp(mean - 0.08 * sd)) + pfaLog(n, m, Math.exp(mean + 0.08 * sd)));   // 平均のすぐ近くは式が 0/0 になるので両側の平均で代用
+  let lo = c > mean ? 0 : -n * (1 - 1e-12), hi = c > mean ? n * m * (1 - 1e-12) : 0; for (let i = 0; i < 70; i++){ const mid = (lo + hi) / 2; if (K1(mid) < c) lo = mid; else hi = mid; }
+  const t = (lo + hi) / 2, K = lgamma(n + t) - lgamma(n) + m * (lgamma(n - t / m) - lgamma(n)), K2 = trigamma(n + t) + trigamma(n - t / m) / m;
+  const r = Math.sign(t) * Math.sqrt(Math.max(0, 2 * (t * c - K))), u = t * Math.sqrt(K2);
+  return Math.max(0, Math.min(1, 0.5 * erfc(r / Math.SQRT2) + Math.exp(-r * r / 2) / Math.sqrt(2 * Math.PI) * (1 / u - 1 / r)));
+}
+const _alk = new Map();
+/* しきい値の係数 α：一様な雑音の中で Pfa が設計値になる値。厳密な式があればそれを使う */
+function alphaFor(kind, n, m, pfa){
+  if (kind === 'ca' || kind === 'edge') return alphaCA(n, m, pfa);
+  const key = kind + '/' + n + '/' + m + '/' + pfa; let a = _alk.get(key); if (a !== undefined) return a;
+  const f = kind === 'min' ? x => pfaMin(n, m, x) : kind === 'cens' ? x => pfaCens(n, m, x) : x => pfaLog(n, m, x);
+  let lo = 0, hi = 10; while (f(hi) > pfa && hi < 1e7) hi *= 2;
+  for (let i = 0; i < 60; i++){ const mid = (lo + hi) / 2; if (f(mid) > pfa) lo = mid; else hi = mid; }
+  a = (lo + hi) / 2; if (_alk.size > 200) _alk.clear(); _alk.set(key, a); return a;
+}
+
+/* ============================================================
+   シミュレーション：距離方向に並んだセルの、検波後の電力（パルスごと）
+   ============================================================ */
+function mulberry32(a){
+  return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+/* 設定から、シミュレーションの条件をまとめる */
+function scenario(o){
+  o = o || S; const n = o.n, tg = [{id: 1, cell: T1CELL, s: lin(o.snr)}];
+  if (o.t2) tg.push({id: 2, cell: T1CELL + o.t2off, s: lin(o.s2)});
+  const c3 = Math.min(o.edge + 25, NC - 8); if (o.t3 && o.cnr > 0) tg.push({id: 3, cell: c3, s: lin(o.s3)});
+  const C = o.cnr > 0 ? lin(o.cnr) : 0, lev = new Float64Array(NT); for (let i = 0; i < NT; i++) lev[i] = 1 + (C > 0 && i - MARG >= o.edge ? C : 0);
+  return {n, sw: o.sw, tg, C, edge: o.edge, lev, m: o.m, g: o.g, M: Math.min(o.M, n), pfa: Math.pow(10, -o.pfa), up: lin(o.up || 0)};   // up：固定しきい値を何倍に上げるか（ステップ6）
+}
+/* 1スキャン分のデータ。P[i*n + k]：セル i の k 番目のパルスの電力。Y[i]：n パルスの和。
+   目標の強さ：sw=0 一定、1・3 スキャンごとに変わる（スキャン内では一定）、2・4 パルスごとに変わる */
+function genScan(sc, seed, out){
+  const n = sc.n, rnd = mulberry32((seed * 2654435761 + 1013904223) | 0), P = out ? out.P : new Float64Array(NT * n), Y = out ? out.Y : new Float64Array(NT);
+  for (let i = 0; i < NT; i++){ let s = 0; const l = sc.lev[i], q = i * n; for (let k = 0; k < n; k++){ const p = -l * Math.log(1 - rnd()); P[q + k] = p; s += p; } Y[i] = s; }
+  const gam2 = () => -0.5 * Math.log((1 - rnd()) * (1 - rnd()));        // 平均1、自由度4のカイ2乗（Swerling 3・4）
+  for (const t of sc.tg){
+    const i = t.cell + MARG, l = sc.lev[i], q = i * n; let s = 0, a = t.s;
+    if (sc.sw === 1) a = -t.s * Math.log(1 - rnd()); else if (sc.sw === 3) a = t.s * gam2();
+    for (let k = 0; k < n; k++){
+      const ak = sc.sw === 2 ? -t.s * Math.log(1 - rnd()) : sc.sw === 4 ? t.s * gam2() : a;
+      const r = Math.sqrt(-l * Math.log(1 - rnd())), u = 2 * Math.PI * rnd(), x = Math.sqrt(ak) + r * Math.cos(u), y = r * Math.sin(u), p = x * x + y * y;   // 目標（一定の振幅）＋複素ガウス雑音
+      P[q + k] = p; s += p;
+    }
+    Y[i] = s;
+  }
+  return {P, Y};
+}
+/* CFAR のしきい値（Y に対する値）を全表示セルについて求める。thr[c]、c は表示セルの番号 */
+function cfarThreshold(sc, Y, kind, thr, est){
+  const n = sc.n, h = sc.m / 2, g = sc.g, m = sc.m, v = new Float64Array(m), tmp = new Float64Array(m);
+  const aFull = alphaFor(kind, n, m, sc.pfa), aHalf = kind === 'edge' && m >= 4 ? alphaCA(n, h, sc.pfa) : aFull, e = sc.edge + MARG, hasEdge = sc.C > 0;
+  thr = thr || new Float64Array(NC);
+  for (let c = 0; c < NC; c++){
+    const i = c + MARG; let z, a = aFull;
+    if (kind === 'edge' && hasEdge && m >= 4 && e > i - g - h && e <= i + g + h){        // 境目が参照窓（ガードを含む）の中にある：注目セルと同じ側の半分だけを使う
+      let s = 0; if (i >= e){ for (let j = 0; j < h; j++) s += Y[i + g + 1 + j]; } else { for (let j = 0; j < h; j++) s += Y[i - g - h + j]; }
+      z = s / (h * n); a = aHalf;
+    } else { for (let j = 0; j < h; j++){ v[j] = Y[i - g - h + j] / n; v[h + j] = Y[i + g + 1 + j] / n; } z = cfarEst(kind === 'edge' ? 'ca' : kind, v, h, tmp); }
+    thr[c] = a * n * z; if (est) est[c] = z;
+  }
+  return thr;
+}
+/* 2値積分：各パルスを第1しきい値 T1 と比べ、超えた回数を数える */
+function binCount(sc, P, T1, cnt){ const n = sc.n; cnt = cnt || new Uint8Array(NC); for (let c = 0; c < NC; c++){ let k = 0; const q = (c + MARG) * n; for (let j = 0; j < n; j++) if (P[q + j] > T1) k++; cnt[c] = k; } return cnt; }
+
+/* ---------- モンテカルロ試行 ----------
+   セルの分類：0 一様な雑音域、1 クラッタ域の内側、2 境目の付近（参照窓に境目がかかる）、3 目標の付近（参照窓に目標がかかる）、4 目標のセル */
+const DETS = ['fixed', 'bin', 'ca', 'cens', 'min', 'log', 'edge'];
+function cellClass(sc){
+  const cls = new Uint8Array(NC), w = sc.m / 2 + sc.g;
+  for (let c = 0; c < NC; c++){ cls[c] = sc.C > 0 && c >= sc.edge ? 1 : 0; if (sc.C > 0 && c >= sc.edge - w && c < sc.edge + w) cls[c] = 2; }
+  for (const t of sc.tg) for (let c = Math.max(0, t.cell - w); c <= Math.min(NC - 1, t.cell + w); c++) cls[c] = 3;
+  for (const t of sc.tg) cls[t.cell] = 4;
+  return cls;
+}
+function mcNew(sc, dets){
+  const acc = {sc, dets: dets || DETS, trials: 0, cls: cellClass(sc), ncls: [0, 0, 0, 0, 0], det: {}, fa: {}, T: thresholdFor(sc.n, sc.pfa) * (sc.up || 1), p0: binP0(sc.n, sc.M, sc.pfa), buf: {P: new Float64Array(NT * sc.n), Y: new Float64Array(NT)}, thr: new Float64Array(NC), cnt: new Uint8Array(NC)};
+  for (let c = 0; c < NC; c++) acc.ncls[acc.cls[c]]++;
+  for (const d of acc.dets){ acc.det[d] = sc.tg.map(() => 0); acc.fa[d] = [0, 0, 0, 0]; }
+  acc.T1 = -Math.log(acc.p0); return acc;
+}
+function mcRun(acc, nTrials, seedBase){
+  const sc = acc.sc;
+  for (let t = 0; t < nTrials; t++){
+    const d = genScan(sc, (seedBase || 100000) + acc.trials, acc.buf), Y = d.Y;
+    for (const k of acc.dets){
+      let hit;
+      if (k === 'fixed'){ const T = acc.T; hit = c => Y[c + MARG] > T; }
+      else if (k === 'bin'){ const cnt = binCount(sc, d.P, acc.T1, acc.cnt), M = sc.M; hit = c => cnt[c] >= M; }
+      else { const thr = cfarThreshold(sc, Y, k, acc.thr); hit = c => Y[c + MARG] > thr[c]; }
+      const fa = acc.fa[k]; for (let c = 0; c < NC; c++){ const cl = acc.cls[c]; if (cl < 4 && hit(c)) fa[cl]++; }
+      sc.tg.forEach((tg, i) => { if (hit(tg.cell)) acc.det[k][i]++; });
+    }
+    acc.trials++;
+  }
+  return acc;
+}
+/* 二項分布の割合の 95% 信頼区間（ウィルソンの方法） */
+function wilson(k, n){ if (!(n > 0)) return [NaN, NaN]; const z = 1.959964, p = k / n, d = 1 + z * z / n, c = p + z * z / (2 * n), e = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)); return [k <= 0 ? 0 : Math.max(0, (c - e) / d), k >= n ? 1 : Math.min(1, (c + e) / d)]; }
+
+/* ---------- 理論値（モンテカルロと比べるための値） ---------- */
+const DETN = {fixed: '固定しきい値', bin: '2値積分（固定しきい値）', ca: 'セル平均 CFAR', cens: 'CFAR：大きい2個を除く', min: 'CFAR：平均が小さい側だけ', log: 'CFAR：対数ビデオ', edge: 'CFAR：境目の同じ側だけ'};
+function pfaKind(kind, n, m, alpha){ return kind === 'min' ? pfaMin(n, m, alpha) : kind === 'cens' ? pfaCens(n, m, alpha) : kind === 'log' ? pfaLog(n, m, alpha) : pfaCA(n, m, alpha); }
+/* 目標 t の参照窓（ガードの外側 m 個）が一様か：ほかの目標も、クラッタの境目も入っていない */
+function tgClean(sc, t){
+  const w = sc.m / 2 + sc.g, i = t.cell + MARG, l = sc.lev[i];
+  for (let j = i - w; j <= i + w; j++) if (sc.lev[j] !== l) return false;
+  for (const u of sc.tg) if (u !== t && Math.abs(u.cell - t.cell) <= w && Math.abs(u.cell - t.cell) > sc.g) return false;
+  return true;
+}
+function theory(sc, det){
+  const n = sc.n, T = thresholdFor(n, sc.pfa) * (det === 'fixed' ? (sc.up || 1) : 1), C = sc.C, r = {pfa: [sc.pfa, NaN], pd: []};
+  if (det === 'fixed'){ r.pfa[0] = gQ(n, T);
+    if (C > 0) r.pfa[1] = gQ(n, T / (1 + C));
+    for (const t of sc.tg){ const l = sc.lev[t.cell + MARG]; r.pd.push(pdFixed(sc.sw, n, t.s / l, T / l)); }
+  } else if (det === 'bin'){
+    const p0 = binP0(n, sc.M, sc.pfa), T1 = -Math.log(p0);
+    if (C > 0) r.pfa[1] = binTail(n, sc.M, Math.exp(-T1 / (1 + C)));
+    for (const t of sc.tg){ const l = sc.lev[t.cell + MARG]; r.pd.push(pdBinary(sc.sw, n, sc.M, t.s / l, Math.exp(-T1 / l))); }
+  } else {
+    const a = alphaFor(det, n, sc.m, sc.pfa); if (C > 0) r.pfa[1] = sc.pfa;
+    for (const t of sc.tg){
+      const l = sc.lev[t.cell + MARG], s = t.s / l;
+      if (!tgClean(sc, t)) r.pd.push(NaN);
+      else if (det === 'ca' || det === 'edge') r.pd.push(pdCA(sc.sw, n, sc.m, s, a));
+      else if (n === 1 && (sc.sw === 1 || sc.sw === 2)) r.pd.push(pfaKind(det, 1, sc.m, a / (1 + s)));   // n=1 で目標の電力が指数分布のとき：Pd は Pfa の式で α を α/(1+S/N) に置き換えたもの
+      else r.pd.push(NaN);
+    }
+  }
+  return r;
+}
+
+/* ---------- クラッタマップ（式7.17、7.18）----------
+   マップ S_i = K·S_{i−1} + X_i（セルごと、スキャンごと）。しきい値 T = A·S_{i−1}。X は n パルスの和。
+   雑音だけのとき S = Σ_j K^j X_j なので、E[exp(−u·S)] = Π_j (1 + u·K^j)^{−n}。
+   q_i = E[e^{−A·S}(A·S)^i / i!] を漸化式で求め、Qc[i] = Σ_{l≤i} q_l とすると、Pfa = Qc[n−1]、ゆらぎなしの Pd = Σ_k Poisson(k; n·S/N)·Qc[n−1+k] */
+function cmTable(K, A, n, imax){
+  const J = Math.ceil(Math.log(1e-14 / Math.max(A, 1e-9)) / Math.log(K)) + 2, p = new Float64Array(imax + 1), c = []; let lnL = 0;
+  for (let j = 0; j < Math.max(J, 8); j++){ const a = A * Math.pow(K, j); lnL -= n * Math.log1p(a); c.push(a / (1 + a)); }
+  for (const cj of c){ let pw = 1; for (let r = 1; r <= imax; r++){ pw *= cj; if (pw < 1e-300) break; p[r] += n * pw; } }
+  const d = new Float64Array(imax + 1), Qc = new Float64Array(imax + 1); d[0] = 1; const L = Math.exp(lnL); Qc[0] = L;
+  for (let i = 1; i <= imax; i++){ let s = 0; for (let r = 1; r <= i; r++) s += p[r] * d[i - r]; d[i] = s / i; Qc[i] = Math.min(1, Qc[i - 1] + L * d[i]); if (!isFinite(d[i])){ for (let k = i; k <= imax; k++) Qc[k] = 1; break; } }
+  return Qc;
+}
+function cmPfa(K, A, n){ return cmTable(K, A, n, n)[n - 1]; }
+const _cma = new Map();
+function cmA(K, n, pfa){
+  const key = K + '/' + n + '/' + pfa; let a = _cma.get(key); if (a !== undefined) return a;
+  let lo = 0, hi = 1; while (cmPfa(K, hi, n) > pfa && hi < 1e6) hi *= 2;
+  for (let i = 0; i < 60; i++){ const mid = (lo + hi) / 2; if (cmPfa(K, mid, n) > pfa) lo = mid; else hi = mid; }
+  a = (lo + hi) / 2; if (_cma.size > 100) _cma.clear(); _cma.set(key, a); return a;
+}
+function cmPd(sw, K, A, n, s){
+  if (sw === 2){ return cmPfa(K, A / (1 + s), n); }                                                  // パルスごとに指数分布：雑音の式で A を A/(1+S/N) に
+  const smax = sw === 0 ? s : sw === 1 ? s * 14 : s * 9, imax = Math.ceil(n * smax + 12 * Math.sqrt(n * smax) + 40) + n, mAS = n * A / (1 - K), cap = Math.ceil(mAS + 12 * (Math.sqrt(mAS) + A * Math.sqrt(n / (1 - K * K))) + 30) + n, Qc = cmTable(K, A, n, Math.min(imax, cap));   // i が大きいところでは Qc は 1 になるので、表はそこまでで打ち切る
+  const f = x => { const mu = n * x; if (mu <= 0) return Qc[n - 1]; if (n - 1 + mu - 10 * Math.sqrt(mu) >= Qc.length - 1) return Qc[Qc.length - 1]; let k0 = Math.floor(mu), pk = Math.exp(-mu + k0 * Math.log(mu) - lgamma(k0 + 1)), acc = 0, q = pk;
+    for (let k = k0; k >= 0 && q > 1e-17; k--){ acc += q * Qc[Math.min(n - 1 + k, Qc.length - 1)]; q *= k / mu; }
+    q = pk * mu / (k0 + 1); for (let k = k0 + 1; q > 1e-17 && k < k0 + 40000; k++){ acc += q * Qc[Math.min(n - 1 + k, Qc.length - 1)]; q *= mu / (k + 1); } return Math.min(1, acc); };
+  if (sw === 4){                                                                                       // パルスごとに自由度4のカイ2乗：目標＋雑音の和は Gamma(n+k)·θ（θ = 1+S/2）の二項混合になる
+    const th = 1 + s / 2, pb = (s / 2) / th, Q2 = cmTable(K, A / th, n, 2 * n); let a = 0;
+    for (let k = 0; k <= n; k++) a += binom(n, k) * Math.pow(pb, k) * Math.pow(1 - pb, n - k) * Q2[n + k - 1];
+    return a; }
+  return mixSW(sw, s, f);
+}
+
+/* ---------- プロット抽出（隣り合う検出のまとめと重心）の小さなモデル（ステップ11）----------
+   距離方向に、パルス幅あたり SPC 個のサンプル。受信パルスの形はガウス形（電力の半値幅＝パルス幅）。2つの目標の位相差は毎回ランダム */
+const SPC = 2, NM = 64;
+function mergeScan(o, seed, out){
+  const rnd = mulberry32((seed * 2246822519 + 374761393) | 0), P = out || new Float64Array(NM), re = new Float64Array(NM), im = new Float64Array(NM);
+  for (let i = 0; i < NM; i++){ const r = Math.sqrt(-Math.log(1 - rnd())), u = 2 * Math.PI * rnd(); re[i] = r * Math.cos(u); im[i] = r * Math.sin(u); }
+  for (const t of o.tg){ const a = Math.sqrt(t.s), ph = 2 * Math.PI * rnd(), c = Math.cos(ph), s = Math.sin(ph);
+    for (let i = 0; i < NM; i++){ const x = (i - t.pos) / SPC, g = Math.exp(-2 * Math.LN2 * x * x); if (g > 1e-6){ re[i] += a * g * c; im[i] += a * g * s; } } }
+  for (let i = 0; i < NM; i++) P[i] = re[i] * re[i] + im[i] * im[i];
+  return P;
+}
+/* しきい値を超えたセルの連なりを 1 つのプロットにまとめ、電力で重みを付けた重心を求める */
+function extractPlots(P, T){
+  const out = []; let i = 0;
+  while (i < NM){ if (P[i] > T){ let j = i, sw = 0, sx = 0; while (j < NM && P[j] > T){ sw += P[j]; sx += P[j] * j; j++; } out.push({i0: i, i1: j - 1, c: sx / sw}); i = j; } else i++; }
+  return out;
+}
+function mergeTargets(sepPw, s1, s2){ const p1 = NM / 2 - sepPw * SPC / 2; return [{pos: p1, s: s1}, {pos: p1 + sepPw * SPC, s: s2}]; }
+/* 2 目標が 2 つのプロットとして分かれて出る割合 */
+function mergeProb(sepPw, s1, s2, T, trials, seed0){
+  const o = {tg: mergeTargets(sepPw, s1, s2)}, P = new Float64Array(NM), lo = o.tg[0].pos - 1.5 * SPC, hi = o.tg[1].pos + 1.5 * SPC; let two = 0, one = 0;
+  for (let t = 0; t < trials; t++){ mergeScan(o, (seed0 || 5000) + t, P); const pl = extractPlots(P, T).filter(q => q.c >= lo && q.c <= hi); if (pl.length >= 2) two++; else if (pl.length === 1) one++; }
+  return {two: two / trials, one: one / trials};
+}
+
+/* ---------- 1スキャン分のデータに検出器をあてる ---------- */
+function evalDet(sc, d, det, upDb){
+  const hits = new Uint8Array(NC), r = {hits, thr: null, est: null, cnt: null};
+  if (det === 'fixed'){ const T = thresholdFor(sc.n, sc.pfa) * (sc.up || 1); r.thr = new Float64Array(NC).fill(T); for (let c = 0; c < NC; c++) hits[c] = d.Y[c + MARG] > T ? 1 : 0; }
+  else if (det === 'bin'){ const p0 = binP0(sc.n, sc.M, sc.pfa), T1 = -Math.log(p0); r.cnt = binCount(sc, d.P, T1); r.T1 = T1; r.p0 = p0; for (let c = 0; c < NC; c++) hits[c] = r.cnt[c] >= sc.M ? 1 : 0; }
+  else { r.est = new Float64Array(NC); r.thr = cfarThreshold(sc, d.Y, det, null, r.est); for (let c = 0; c < NC; c++) hits[c] = d.Y[c + MARG] > r.thr[c] ? 1 : 0; }
+  let det_ = 0, miss = 0, fa = 0; const isT = new Uint8Array(NC); for (const t of sc.tg) isT[t.cell] = 1;
+  for (let c = 0; c < NC; c++){ if (isT[c]){ if (hits[c]) det_++; else miss++; } else if (hits[c]) fa++; }
+  r.nDet = det_; r.nMiss = miss; r.nFa = fa; r.isT = isT; return r;
+}
+/* ---------- パルスの並び（ステップ4・5）：1つの距離セルを、アンテナが目標を横切る間のパルスごとに見たもの ----------
+   目標はパルス p0 から n 個のパルスの間だけ見える（ビームの形は平らとする＝補足）。spike：干渉パルス（1発だけ非常に大きい） */
+const NPS = 96;
+function pulseSeq(o, seed){
+  const rnd = mulberry32((seed * 40503 + 12345) | 0), x = new Float64Array(NPS), n = o.n, p0 = Math.round(NPS / 2 - n / 2), s = lin(o.snr);
+  for (let i = 0; i < NPS; i++) x[i] = -Math.log(1 - rnd());
+  const gam2 = () => -0.5 * Math.log((1 - rnd()) * (1 - rnd())); let a = s; if (o.sw === 1) a = -s * Math.log(1 - rnd()); else if (o.sw === 3) a = s * gam2();
+  for (let k = 0; k < n; k++){ const ak = o.sw === 2 ? -s * Math.log(1 - rnd()) : o.sw === 4 ? s * gam2() : a, r = Math.sqrt(-Math.log(1 - rnd())), u = 2 * Math.PI * rnd(), re = Math.sqrt(ak) + r * Math.cos(u), im = r * Math.sin(u); x[p0 + k] = re * re + im * im; }
+  if (o.spike) x[Math.round(NPS * 0.2)] = lin(o.spikeDb || 30);
+  return {x, p0, spikeAt: o.spike ? Math.round(NPS * 0.2) : -1};
+}
+function movingSum(x, n){ const y = new Float64Array(x.length); let s = 0; for (let i = 0; i < x.length; i++){ s += x[i]; if (i >= n) s -= x[i - n]; y[i] = s; } return y; }   // 式7.5：S_i = S_{i−1} + x_i − x_{i−n}
+function movingCount(x, n, T1){ const y = new Float64Array(x.length); let s = 0; for (let i = 0; i < x.length; i++){ if (x[i] > T1) s++; if (i >= n && x[i - n] > T1) s--; y[i] = s; } return y; }
+
+/* クラッタマップのモンテカルロ：1 つのセルを何スキャンも追う。雑音だけのスキャンの誤警報と、「そのスキャンだけ目標がいた場合」の検出を数える。
+   続けたスキャンはマップを通じて互いに相関があるので、数えるスキャンの間に L スキャンをはさむ（L はマップの記憶が 2% まで薄れるスキャン数）*/
+function cmMcNew(K, n, pfa, sw, s){ const A = cmA(K, n, pfa), st = {trials: 0, K, n, A, sw, s, pfa, rnd: mulberry32(424242), S: 0, fa: 0, det: 0, L: Math.ceil(Math.log(0.02) / Math.log(K))}; for (let i = 0; i < 300; i++) st.S = K * st.S + cmNoise(st); return st; }
+function cmNoise(st){ let pr = 1; for (let k = 0; k < st.n; k++) pr *= 1 - st.rnd(); return -Math.log(pr); }
+function cmMcRun(st, N){
+  const rnd = st.rnd, n = st.n, s = st.s, sw = st.sw, gam2 = () => -0.5 * Math.log((1 - rnd()) * (1 - rnd()));
+  for (let i = 0; i < N; i++){
+    for (let j = 0; j < st.L; j++) st.S = st.K * st.S + cmNoise(st);
+    const x = cmNoise(st); let y = 0, a = s; if (sw === 1) a = -s * Math.log(1 - rnd()); else if (sw === 3) a = s * gam2();
+    for (let k = 0; k < n; k++){ const ak = sw === 2 ? -s * Math.log(1 - rnd()) : sw === 4 ? s * gam2() : a, r = Math.sqrt(-Math.log(1 - rnd())), u = 2 * Math.PI * rnd(), re = Math.sqrt(ak) + r * Math.cos(u), im = r * Math.sin(u); y += re * re + im * im; }
+    const T = st.A * st.S; if (x > T) st.fa++; if (y > T) st.det++; st.S = st.K * st.S + x; st.trials++;
+  }
+  return st;
+}
+
+
+/* ============================================================
+   照合（ステップ12 で表示）：ハンドブックの式・表・図の値と、このシミュレータの計算値・モンテカルロの結果を比べる
+   st：'ok' 一致、'info' 条件の違いなどで差がある（備考に理由）、'ng' 不一致
+   ============================================================ */
+const TAB71 = {1: {3: 15.3, 5: 7.7, 10: 3.5}, 3: {2: 7.8, 3: 5.1, 5: 3.1, 10: 1.4}, 10: {1: 6.3, 2: 3.3, 3: 2.2, 5: 1.3, 10: 0.7}, 30: {1: 3.6, 2: 2.0, 3: 1.4, 5: 1.0, 10: 0.5}, 100: {1: 2.4, 2: 1.4, 3: 1.0, 5: 0.6, 10: 0.3}};
+let _t71 = null;
+function table71(){            // 表7.1 の条件（Pfa = 10⁻⁶、PD = 0.9、ゆらぎなし）での CFAR 損失の計算値
+  if (_t71) return _t71; _t71 = {};
+  for (const n of [1, 3, 10, 30, 100]){ _t71[n] = {}; for (const m of [1, 2, 3, 5, 10]) if (TAB71[n][m] !== undefined) _t71[n][m] = cfarLoss(0, n, m, 1e-6, 0.9); }
+  return _t71;
+}
+function runChecks(){
+  const R = [], f1 = v => fx(v, 1), f2 = v => fx(v, 2), f3 = v => fx(v, 3);
+  const add = (grp, item, ref, calc, st, note) => R.push({grp, item, ref, calc, st, note: note || ''});
+  const inCI = (k, n, th) => { const p = k / n, sd = Math.sqrt(Math.max(th * (1 - th), 1e-12) / n); return Math.abs(p - th) <= 3 * sd + 0.5 / n; };   // 判定は 3σ（偶然で外れるのは 0.3% ほど）
+  const ciTxt = (k, n) => { const w = wilson(k, n); return fP(k / n) + '（95% 区間 ' + fP(w[0]) + '〜' + fP(w[1]) + '、' + k + ' / ' + n + '）'; };
+
+  /* --- しきい値と誤警報確率 --- */
+  { const rnd = mulberry32(20240501), N = 200000;
+    for (const pn of [0.1, 1e-3]){ const T = Math.sqrt(-2 * Math.log(pn)); let k = 0; for (let i = 0; i < N; i++) if (Math.sqrt(-2 * Math.log(1 - rnd())) > T) k++;
+      add('しきい値と P_fa', '式7.10：P_N = ' + fP(pn) + ' のときのしきい値 T = σ√(−2 ln P_N) = ' + f3(T) + ' σ。レイリー分布の乱数がこれを超える割合', fP(pn), ciTxt(k, N), inCI(k, N, pn) ? 'ok' : 'ng', '式7.10（p.7.8）。乱数 20 万個、シード固定'); }
+    const n = 8, pfa = 1e-2, T = thresholdFor(n, pfa), N2 = 100000; let k = 0; for (let i = 0; i < N2; i++){ let pr = 1; for (let j = 0; j < n; j++) pr *= 1 - rnd(); if (-Math.log(pr) > T) k++; }
+    add('しきい値と P_fa', '8 パルスの和（2 乗検波）で P_fa = 10⁻² になるしきい値を計算し、乱数で超える割合を数える', fP(pfa), ciTxt(k, N2), inCI(k, N2, pfa) ? 'ok' : 'ng', '補足（しきい値の計算の自己確認）。乱数 10 万個'); }
+
+  /* --- S/N と探知確率 --- */
+  { const r = (n, pfa, pd, sw) => solveSnr(s => pdFixed(sw || 0, n, s, thresholdFor(n, pfa)), pd);
+    let v = r(10, 1e-10, 0.5); add('S/N と P_D', '図7.9：10 パルスの非コヒーレント積分、P_fa = 10⁻¹⁰、P_D = 0.5 に必要な S/N', '約 5 dB（図の読み取り）', f2(v) + ' dB', Math.abs(v - 5) <= 0.7 ? 'ok' : 'info', '図7.9（p.7.9）。読み取りの誤差は ±0.5 dB 程度');
+    v = r(10, 1e-10, 0.9); add('S/N と P_D', '図7.10：同じ条件で P_D = 0.9', '約 6.8 dB（図の読み取り）', f2(v) + ' dB', Math.abs(v - 6.8) <= 0.7 ? 'ok' : 'info', '図7.10（p.7.10）');
+    v = r(1, 1e-6, 0.9); add('S/N と P_D', '1 パルス、P_fa = 10⁻⁶、P_D = 0.9、ゆらぎなしに必要な S/N', '13.2 dB（一般に知られた値）', f2(v) + ' dB', Math.abs(v - 13.2) <= 0.1 ? 'ok' : 'ng', '補足（ハンドブックのこの抜粋にはない、一般的な値との確認）');
+    const s = lin(10), a = Math.pow(1e-3, 1 / (1 + s)), b = pdFixed(1, 1, s, thresholdFor(1, 1e-3));
+    add('S/N と P_D', '1 パルス、Swerling 1、S/N 10 dB、P_fa = 10⁻³：閉じた式 P_D = P_fa^(1/(1+S/N)) と、数値積分による計算', f3(a) + '（閉じた式）', f3(b), Math.abs(a - b) < 2e-3 ? 'ok' : 'ng', '補足（計算方法の自己確認）');
+    v = r(1, 1e-6, 0.5); add('S/N と P_D', '図7.5：1 パルス、P_fa = 10⁻⁶、P_D = 0.5 に必要な S/N', '約 13 dB（図の読み取り。走査レーダ、ビーム中心の S/N）', f2(v) + ' dB', 'info', '図7.5（p.7.6）は走査中のアンテナパターンによる変化を含む曲線。このシミュレータは全パルス同じ強さなので、ビーム形状損失（1.6 dB、p.7.3）の分だけ小さい値になる'); }
+
+  /* --- 2値積分 --- */
+  { let v = binTail(9, 7, 0.1); add('2 値積分', '1 パルスが 1 になる確率 0.1 で「9 回中 7 回」としたときの誤警報確率', '約 10⁻⁶（p.7.12）', fP(v), v > 3e-7 && v < 5e-6 ? 'ok' : 'ng', '二項分布で計算すると 3.0×10⁻⁶。ハンドブックは「約 10⁻⁶」としており、桁は一致');
+    const parts = [], pen = []; for (const N of [4, 8, 10, 16, 30]){ const r = reqBin(0, N, 1e-6, 0.9); let b = 1; for (let M = 2; M <= N; M++) if (r[M] < r[b]) b = M; const m0 = Math.round(1.5 * Math.sqrt(N)); parts.push('N=' + N + '：最適 ' + b + '、1.5√N→' + m0 + '（差 ' + f2(r[m0] - r[b]) + ' dB）'); pen.push(r[m0] - r[b]); }
+    add('2 値積分', '式7.9：M = 1.5√N としたときの、最適な M との所要 S/N の差（P_fa = 10⁻⁶、P_D = 0.9、ゆらぎなし）', '0.2 dB 以内（p.7.7–7.8）', parts.join('、'), Math.max.apply(null, pen) <= 0.2 ? 'ok' : 'info', 'N が 10 以下では 0.2 dB 以内。N = 16 で 0.2 dB、N = 30 で 0.4 dB と、N が大きいと差が広がる。このシミュレータ（2 乗検波・全パルス同じ強さ）では最適な M が 1.5√N より大きめに出る');
+    const N = 30, rb = reqBin(0, N, 1e-6, 0.9); let b = 1; for (let M = 2; M <= N; M++) if (rb[M] < rb[b]) b = M; const mw = solveSnr(s => pdFixed(0, N, s, thresholdFor(N, 1e-6)), 0.9);
+    add('2 値積分', '移動窓に対する 2 値積分の損失（N = 30、最適な M、P_fa = 10⁻⁶、P_D = 0.9）', '約 2 dB（N が大きいとき、p.7.7）', f2(rb[b] - mw) + ' dB', 'info', 'このシミュレータの条件では 1.0〜1.2 dB。ハンドブックの値は概数で、検波方式やビーム形状などの条件が違うとみられる');
+    const p0 = binP0(5, 3, 1e-6), T16 = thresholdFor(16, p0), bt = solveSnr(s => binTail(5, 3, pdNF(16, s, T16)), 0.9), m80 = solveSnr(s => pdFixed(0, 80, s, thresholdFor(80, 1e-6)), 0.9);
+    add('2 値積分', 'バッチ処理：80 パルスを 16 個ずつ足して「5 回中 3 回」。80 パルスの移動窓との差（P_fa = 10⁻⁶、P_D = 0.9）', '約 0.5 dB（p.7.11）', f2(bt - m80) + ' dB', 'info', 'このシミュレータの条件（全パルス同じ強さ）では約 1 dB。差の向き（移動窓よりわずかに悪い）は一致'); }
+
+  /* --- CFAR --- */
+  { const t = table71(); let mx = 0, cnt = 0, within = 0, worst = '';
+    for (const n of [1, 3, 10, 30, 100]){ const parts = [], refs = []; for (const m of [1, 2, 3, 5, 10]) if (t[n][m] !== undefined){ const d = t[n][m] - TAB71[n][m]; cnt++; if (Math.abs(d) <= 0.2) within++; if (Math.abs(d) > mx){ mx = Math.abs(d); worst = n + ' パルス・参照セル ' + m; } parts.push(m + ' 個：' + f2(t[n][m])); refs.push(m + ' 個：' + f1(TAB71[n][m])); }
+      const dmax = Math.max.apply(null, [1, 2, 3, 5, 10].filter(m => t[n][m] !== undefined).map(m => Math.abs(t[n][m] - TAB71[n][m])));
+      add('CFAR 損失', '表7.1：積分 ' + n + ' パルスの CFAR 損失 [dB]（P_fa = 10⁻⁶、P_D = 0.9）', refs.join('、'), parts.join('、'), dmax <= 0.2 ? 'ok' : 'info', dmax <= 0.2 ? '表7.1（p.7.12）。差は最大 ' + f2(dmax) + ' dB' : '1 パルス・参照セル 3 個だけ ' + f2(dmax) + ' dB の差（表 15.3、計算 ' + f2(t[1][3]) + '）。ほかの 2 つは 0.05 dB 以内。表の元になった計算の条件（検波方式など）の違いか、表の数値の丸めとみられる'); }
+    add('CFAR 損失', '表7.1 全体（22 個の値）', '—', '差 0.2 dB 以内 ' + within + ' / ' + cnt + ' 個、最大の差 ' + f2(mx) + ' dB（' + worst + '）', within >= cnt - 1 ? 'ok' : 'info', 'ゆらぎなし・2 乗検波・セル平均として計算');
+    const a = alphaCA(6, 16, 1e-6), q = (sw, pd) => solveSnr(s => pdCA(sw, 6, 16, s, a), pd);
+    let v5 = q(0, 0.5), v95 = q(0, 0.95); add('CFAR 損失', '図7.15：セル平均 CFAR、6 パルス、参照セル 16 個、P_fa = 10⁻⁶、ゆらぎなし。P_D = 0.5／0.95 に必要な S/N', '約 5.9 dB／約 8.0 dB（図の読み取り）', f2(v5) + ' dB／' + f2(v95) + ' dB', Math.abs(v5 - 5.9) <= 0.4 && Math.abs(v95 - 8.0) <= 0.4 ? 'ok' : 'info', '図7.15（p.7.14）');
+    v5 = q(2, 0.5); const v9 = q(2, 0.9); add('CFAR 損失', '図7.16：同じ条件で、パルスごとにレイリーゆらぎする目標（Swerling 2）。P_D = 0.5／0.9', '約 6.2 dB／約 9.2 dB（図の読み取り）', f2(v5) + ' dB／' + f2(v9) + ' dB', Math.abs(v5 - 6.2) <= 0.4 && Math.abs(v9 - 9.2) <= 0.4 ? 'ok' : 'info', '図7.16（p.7.15）');
+    const lossK = (kind, m) => { const al = alphaFor(kind, 1, m, 1e-6); let lo = -10, hi = 60; for (let i = 0; i < 40; i++){ const mid = (lo + hi) / 2; if (pfaKind(kind, 1, m, al / (1 + lin(mid))) < 0.5) lo = mid; else hi = mid; } return (lo + hi) / 2 - db10(Math.log(1e-6) / Math.log(0.5) - 1); };
+    const l1 = lossK('ca', 10), l2 = lossK('log', 16), l3 = lossK('log', 10);
+    add('CFAR 損失', '式7.16：対数ビデオの CFAR は、参照セルを 1.65M − 0.65 個にすればリニアの M 個と同じ損失。M = 10 → 16 個（1 パルス、Swerling 1、P_fa = 10⁻⁶、P_D = 0.5）', '同じ損失', 'セル平均 10 個：' + f2(l1) + ' dB、対数 16 個：' + f2(l2) + ' dB（対数 10 個なら ' + f2(l3) + ' dB）', Math.abs(l1 - l2) <= 0.5 ? 'ok' : 'info', '式7.16（p.7.17）。対数ビデオの P_fa は鞍点近似で計算'); }
+
+  /* --- クラッタマップ --- */
+  { const K = 7 / 8; add('クラッタマップ', 'K = 7/8 のとき、過去のスキャンに掛かる重みの合計 1/(1−K)', '過去 8 スキャンの平均に相当（p.7.19）', f1(1 / (1 - K)), 'ok', '式7.18（p.7.18）');
+    const st = cmMcNew(K, 1, 1e-3, 0, lin(12)); cmMcRun(st, 100000); const pd = cmPd(0, K, st.A, 1, st.s);
+    add('クラッタマップ', 'K = 7/8、設計 P_fa = 10⁻³ としたしきい値係数で、雑音だけのスキャンの誤警報の割合', fP(1e-3), ciTxt(st.fa, st.trials), inCI(st.fa, st.trials, 1e-3) ? 'ok' : 'ng', '補足（係数 A の計算の確認）。10 万回（間に 30 スキャンずつはさんで独立にしたもの）、シード固定');
+    add('クラッタマップ', '同じ条件で、S/N 12 dB・ゆらぎなしの目標が現れたスキャンの P_D', f3(pd) + '（このシミュレータの理論式）', ciTxt(st.det, st.trials), inCI(st.det, st.trials, pd) ? 'ok' : 'ng', '補足');
+    const A = cmA(K, 1, 1e-6), rc = solveSnr(s => cmPd(0, K, A, 1, s), 0.9), rf = solveSnr(s => pdFixed(0, 1, s, thresholdFor(1, 1e-6)), 0.9);
+    add('クラッタマップ', 'K = 7/8 のクラッタマップの損失（1 パルス、P_fa = 10⁻⁶、P_D = 0.9）と、参照セル 15 個のセル平均 CFAR の損失', '—', f2(rc - rf) + ' dB と ' + f2(cfarLoss(0, 1, 15, 1e-6, 0.9)) + ' dB', 'info', '補足：推定のばらつきで見ると、K = 7/8 は独立なサンプル (1+K)/(1−K) = 15 個の平均に近い'); }
+
+  /* --- 分解能 --- */
+  { const T = thresholdFor(1, 1e-4), p = [2, 2.5, 3].map(sp => mergeProb(sp, 100, 100, T, 3000).two);
+    add('分解能', '同じ強さ（S/N 20 dB）の 2 目標が、2 つのプロットに分かれる割合：間隔 2.0／2.5／3.0 パルス幅', '2.5 パルス幅になるまで 0.9 を超えない（図7.22、p.7.20）', f2(p[0]) + '／' + f2(p[1]) + '／' + f2(p[2]), p[0] < 0.9 && p[1] > 0.8 ? 'ok' : 'info', '補足：ガウス形のパルス、固定しきい値（P_fa = 10⁻⁴）、隣り合う検出をまとめるだけの簡単なモデル。各 3,000 回'); }
+
+  /* --- モンテカルロと理論値 --- */
+  { const run = (mod, dets, N, label) => { const o = Object.assign(cloneDef(), mod), sc = scenario(o), acc = mcNew(sc, dets); mcRun(acc, N);
+      for (const d of dets){ const th = theory(sc, d);
+        add('モンテカルロ', label + '：' + DETN[d] + ' の P_D（目標1）', f3(th.pd[0]), ciTxt(acc.det[d][0], N), inCI(acc.det[d][0], N, th.pd[0]) ? 'ok' : 'ng', N + ' 回');
+        add('モンテカルロ', label + '：' + DETN[d] + ' の P_fa（雑音だけの領域）', fP(th.pfa[0]), ciTxt(acc.fa[d][0], acc.ncls[0] * N), inCI(acc.fa[d][0], acc.ncls[0] * N, th.pfa[0]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[0] + ' セル');
+        if (sc.C > 0 && d !== 'bin') add('モンテカルロ', label + '：' + DETN[d] + ' の P_fa（クラッタの内側）', fP(th.pfa[1]), ciTxt(acc.fa[d][1], acc.ncls[1] * N), inCI(acc.fa[d][1], acc.ncls[1] * N, th.pfa[1]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[1] + ' セル'); } };
+    run({}, ['fixed', 'ca'], 4000, '初期設定（1 パルス、S/N 10 dB、P_fa 10⁻³）');
+    run({n: 8, M: 5, snr: 3, sw: 1, cnr: 0}, ['fixed', 'bin', 'ca'], 3000, '8 パルス・Swerling 1・S/N 3 dB'); }
+  return R;
+}
+
+/* ============================================================
+   画面まわりの共通部品
+   ============================================================ */
+const $ = (s, r) => (r || document).querySelector(s);
+function el(tag, cls, html){ const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
+function fx(v, d){ if (!isFinite(v)) return '—'; const s = Math.abs(v).toFixed(d); return (v < 0 && Number(s) !== 0 ? MINUS : '') + s; }
+const H = '<span class="hosoku">補足</span>';
+let HLKEY = null;
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function toDb(mag, ref){ const o = new Float64Array(mag.length), r = ref || 1; for (let i = 0; i < mag.length; i++) o[i] = 20 * Math.log10(Math.max(mag[i] / r, 1e-7)); return o; }
+function maxIn(arr, i0, i1){ let m = 0; i0 = Math.max(0, i0 | 0); i1 = Math.min(arr.length - 1, i1 | 0); for (let i = i0; i <= i1; i++) if (arr[i] > m) m = arr[i]; return m; }
+
+/* ---------- canvas グラフ ---------- */
+const PLOTS = [];
+function niceStep(span, target){
+  const raw = span / Math.max(1, target), p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p;
+}
+function tickFmt(step){ const d = Math.max(0, -Math.floor(Math.log10(step) + 1e-9)); return v => fx(v, Math.min(d, 6)); }
+class Plot {
+  constructor(host, o){
+    this.o = Object.assign({h: 200}, o || {});
+    this.root = el('div', 'plot', '<div class="plot-h"><span class="plot-t"></span><span class="plot-lg"></span></div>' +
+      '<div class="plot-c" style="height:' + this.o.h + 'px"><canvas></canvas><canvas class="ov"></canvas><div class="tip" hidden></div></div>');
+    host.appendChild(this.root);
+    this.tEl = $('.plot-t', this.root); this.lgEl = $('.plot-lg', this.root); this.box = $('.plot-c', this.root);
+    this.cv = this.box.children[0]; this.ov = this.box.children[1]; this.tip = this.box.children[2];
+    this.ov.addEventListener('pointermove', e => this.hover(e));
+    this.ov.addEventListener('pointerleave', () => { this.tip.hidden = true; this.clearOv(); });
+    PLOTS.push(this);
+  }
+  set(cfg){ this.cfg = cfg; this.draw(); }
+  col(k){ return cssv('--' + (k || 's1')); }
+  draw(){
+    const cfg = this.cfg; if (!cfg) return;
+    const W = this.box.clientWidth, Hh = this.o.h; if (W < 60) return;
+    const dpr = window.devicePixelRatio || 1;
+    for (const c of [this.cv, this.ov]){ c.width = Math.round(W * dpr); c.height = Math.round(Hh * dpr); }
+    const g = this.cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh);
+    const m = {l: 56, r: cfg.heat ? 66 : 14, t: 16, b: cfg.xl ? 38 : 22}, pw = W - m.l - m.r, ph = Hh - m.t - m.b;
+    let xr = cfg.xr; const yr = cfg.yr;
+    if (cfg.equal){ const c0 = (xr[0] + xr[1]) / 2, half = (yr[1] - yr[0]) / 2 * pw / ph; xr = [c0 - half, c0 + half]; }
+    this.xr = xr;
+    const X = v => m.l + (v - xr[0]) / (xr[1] - xr[0]) * pw, Y = v => m.t + (1 - (v - yr[0]) / (yr[1] - yr[0])) * ph;
+    this.geo = {m, pw, ph, W, Hh, X, Y};
+    this.tEl.textContent = cfg.title || '';
+    this.lgEl.innerHTML = cfg.series.filter(s => s.name && !s.noLegend).map(s =>
+      '<span><i style="border-top-color:' + this.col(s.color) + ';border-top-style:' + (s.dash ? 'dashed' : s.noLine ? 'dotted' : 'solid') + '"></i>' + s.name + '</span>').join('');
+    const cText = cssv('--text2'), cMuted = cssv('--muted'), cGrid = cssv('--grid'), cAxis = cssv('--axis');
+    g.font = '11px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
+    /* 帯 */
+    for (const b of (cfg.bands || [])){
+      const x0 = Math.max(m.l, X(b.x0)), x1 = Math.min(m.l + pw, X(b.x1)); if (x1 <= x0) continue;
+      g.fillStyle = cssv('--' + (b.color || 'band')); g.fillRect(x0, m.t, x1 - x0, ph);
+      if (b.label){ g.fillStyle = cText; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(b.label, Math.min(Math.max((x0 + x1) / 2, m.l + 40), m.l + pw - 40), m.t + 3 + (b.row || 0) * 13); }
+    }
+    const halo = !!cfg.heat, cSurf = cssv('--surface');
+    const ft = (str, x, y) => { if (halo){ g.save(); g.lineWidth = 3; g.lineJoin = 'round'; g.strokeStyle = cSurf; g.strokeText(str, x, y); g.restore(); } g.fillText(str, x, y); };
+    /* 濃淡図（距離–ドップラマップなど）。行・列が画素より多いときは最大値でまとめる（ピークを落とさない） */
+    if (cfg.heat){
+      const hm = cfg.heat, dark = document.documentElement.getAttribute('data-theme') === 'dark', pr = Math.max(1, Math.ceil(hm.rows / Math.max(1, ph))), pc = Math.max(1, Math.ceil(hm.cols / Math.max(1, pw)));
+      const R = Math.ceil(hm.rows / pr), Cc = Math.ceil(hm.cols / pc), off = document.createElement('canvas'); off.width = Cc; off.height = R;
+      const og = off.getContext('2d'), img = og.createImageData(Cc, R), nn = heatRGB(-1, dark);
+      for (let r = 0; r < R; r++) for (let c = 0; c < Cc; c++){
+        let v = -Infinity, any = false;
+        for (let a = r * pr; a < Math.min(hm.rows, (r + 1) * pr); a++) for (let b = c * pc; b < Math.min(hm.cols, (c + 1) * pc); b++){ const z = hm.db[a * hm.cols + b]; if (z === z){ any = true; if (z > v) v = z; } }
+        const rgb = any ? heatRGB((v - hm.zmin) / (hm.zmax - hm.zmin), dark) : nn, o = ((R - 1 - r) * Cc + c) * 4;
+        img.data[o] = rgb[0]; img.data[o + 1] = rgb[1]; img.data[o + 2] = rgb[2]; img.data[o + 3] = 255;
+      }
+      og.putImageData(img, 0, 0);
+      g.save(); g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip(); g.imageSmoothingEnabled = false;
+      g.drawImage(off, X(hm.x0), Y(hm.y1), X(hm.x1) - X(hm.x0), Y(hm.y0) - Y(hm.y1)); g.restore();
+      /* 色の凡例 */
+      const bx = m.l + pw + 10, bw = 10; for (let i = 0; i < ph; i++){ const rgb = heatRGB(1 - i / (ph - 1), dark); g.fillStyle = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')'; g.fillRect(bx, m.t + i, bw, 1.5); }
+      g.strokeStyle = cAxis; g.lineWidth = 1; g.strokeRect(bx + 0.5, m.t + 0.5, bw, ph);
+      g.fillStyle = cMuted; g.textAlign = 'left'; g.textBaseline = 'middle';
+      const zs = hm.zticks || (() => { const st = niceStep(hm.zmax - hm.zmin, 5), a = []; for (let v = Math.ceil(hm.zmin / st) * st; v <= hm.zmax + 1e-9; v += st) a.push([v, fx(v, 0)]); return a; })();
+      for (const z of zs) g.fillText(z[1], bx + bw + 4, m.t + (1 - (z[0] - hm.zmin) / (hm.zmax - hm.zmin)) * ph);
+      if (hm.zl){ g.fillStyle = cText; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillText(hm.zl, W - 2, Hh - 3); }
+    }
+    /* 目盛と格子 */
+    const xs = niceStep(xr[1] - xr[0], Math.max(3, Math.floor(pw / 90))), ys = niceStep(yr[1] - yr[0], Math.max(2, Math.floor(ph / 34)));
+    const xf = cfg.xfmt || tickFmt(xs), yf = cfg.yfmt || tickFmt(ys);
+    g.lineWidth = 1; g.strokeStyle = cfg.heat ? 'rgba(0,0,0,0)' : cGrid; g.fillStyle = cMuted;
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    if (cfg.xticks){
+      for (const tk of cfg.xticks){ if (tk[0] < xr[0] - 1e-9 || tk[0] > xr[1] + 1e-9) continue;
+        const px = Math.round(X(tk[0])) + 0.5; g.globalAlpha = tk[1] ? 1 : 0.5; g.beginPath(); g.moveTo(px, m.t); g.lineTo(px, m.t + ph); g.stroke(); g.globalAlpha = 1; if (tk[1]) g.fillText(tk[1], px, m.t + ph + 5); }
+    } else for (let v = Math.ceil(xr[0] / xs - 1e-9) * xs; v <= xr[1] + xs * 1e-6; v += xs){
+      const px = Math.round(X(v)) + 0.5; g.beginPath(); g.moveTo(px, m.t); g.lineTo(px, m.t + ph); g.stroke(); g.fillText(xf(v), px, m.t + ph + 5);
+    }
+    g.textAlign = 'right'; g.textBaseline = 'middle';
+    if (cfg.yticks){
+      for (const tk of cfg.yticks){ if (tk[0] < yr[0] - 1e-9 || tk[0] > yr[1] + 1e-9) continue;
+        const py = Math.round(Y(tk[0])) + 0.5; g.globalAlpha = tk[1] ? 1 : 0.5; g.beginPath(); g.moveTo(m.l, py); g.lineTo(m.l + pw, py); g.stroke(); g.globalAlpha = 1; if (tk[1]) g.fillText(tk[1], m.l - 6, py); }
+    } else for (let v = Math.ceil(yr[0] / ys - 1e-9) * ys; v <= yr[1] + ys * 1e-6; v += ys){
+      const py = Math.round(Y(v)) + 0.5; g.beginPath(); g.moveTo(m.l, py); g.lineTo(m.l + pw, py); g.stroke(); g.fillText(yf(v), m.l - 6, py);
+    }
+    g.strokeStyle = cAxis; g.strokeRect(m.l + 0.5, m.t + 0.5, pw, ph);
+    g.fillStyle = cText; g.textAlign = 'center'; g.textBaseline = 'bottom';
+    if (cfg.xl) g.fillText(cfg.xl, m.l + pw / 2, Hh - 3);
+    if (cfg.yl){ g.save(); g.translate(11, m.t + ph / 2); g.rotate(-Math.PI / 2); g.textBaseline = 'middle'; g.fillText(cfg.yl, 0, 0); g.restore(); }
+    /* 系列 */
+    g.save(); g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip();
+    const ylo = yr[0] - (yr[1] - yr[0]), yhi = yr[1] + (yr[1] - yr[0]);
+    const cl = v => v < ylo ? ylo : v > yhi ? yhi : (v === v ? v : ylo);
+    for (const s of cfg.series){
+      const col = this.col(s.color);
+      g.strokeStyle = col; g.lineWidth = s.w || 1.8; g.setLineDash(s.dash || []); g.globalAlpha = s.alpha || 1; g.lineJoin = 'round';
+      if (s.stem || s.mk){          /* 棒（ステム）と点の表示：パルスごとのサンプルなど */
+        const n = s.x ? s.x.length : s.y.length, xa = i => s.x ? s.x[i] : s.x0 + i * s.dx, y0 = Y(cl(s.base || 0));
+        if (s.stem){ g.beginPath(); for (let i = 0; i < n; i++){ const px = X(xa(i)); g.moveTo(px, y0); g.lineTo(px, Y(cl(s.y[i]))); } g.stroke(); }
+        if (s.mk){ g.fillStyle = col; for (let i = 0; i < n; i++){ g.beginPath(); g.arc(X(xa(i)), Y(cl(s.y[i])), s.mk, 0, 2 * Math.PI); g.fill(); } }
+        if (s.stem || s.noLine){ g.globalAlpha = 1; g.setLineDash([]); continue; }
+      }
+      g.beginPath();
+      let fx0 = null, fx1 = null;
+      if (s.x){
+        for (let i = 0; i < s.x.length; i++){ const px = X(s.x[i]), py = Y(cl(s.y[i])); if (i){ if (s.step) g.lineTo(px, Y(cl(s.y[i - 1]))); g.lineTo(px, py); } else g.moveTo(px, py); }
+        if (s.x.length){ fx0 = X(s.x[0]); fx1 = X(s.x[s.x.length - 1]); }
+      } else {
+        const n = s.y.length, i0 = Math.max(0, Math.floor((xr[0] - s.x0) / s.dx) - 1), i1 = Math.min(n - 1, Math.ceil((xr[1] - s.x0) / s.dx) + 1);
+        if (i1 > i0){
+          fx0 = X(s.x0 + i0 * s.dx); fx1 = X(s.x0 + i1 * s.dx);
+          if (i1 - i0 > pw * 3){            /* 点が多いときは画素列ごとの最小・最大で描く（ピークを落とさない） */
+            let cur = -1e9, lo = 0, hi = 0, first = 0, last = 0, started = false;
+            const flush = () => { if (cur < -1e8) return; if (!started){ g.moveTo(cur, Y(first)); started = true; } else g.lineTo(cur, Y(first)); g.lineTo(cur, Y(lo)); g.lineTo(cur, Y(hi)); g.lineTo(cur, Y(last)); };
+            for (let i = i0; i <= i1; i++){
+              const px = Math.round(X(s.x0 + i * s.dx)), v = cl(s.y[i]);
+              if (px !== cur){ flush(); cur = px; lo = hi = first = last = v; } else { if (v < lo) lo = v; if (v > hi) hi = v; last = v; }
+            }
+            flush();
+          } else {
+            for (let i = i0; i <= i1; i++){ const px = X(s.x0 + i * s.dx), py = Y(cl(s.y[i])); if (i === i0) g.moveTo(px, py); else g.lineTo(px, py); }
+          }
+        }
+      }
+      g.stroke();
+      if (s.fill && fx0 !== null){ g.lineTo(fx1, Y(s.base || 0)); g.lineTo(fx0, Y(s.base || 0)); g.closePath(); g.globalAlpha = s.fill; g.fillStyle = col; g.fill(); }
+      g.globalAlpha = 1; g.setLineDash([]);
+    }
+    for (const a of (cfg.arrows || [])){      /* ベクトル（矢印） */
+      const x0 = X(a.x0 || 0), y0 = Y(a.y0 || 0), x1 = X(a.x1), y1 = Y(a.y1), ang = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0), h = Math.min(9, L * 0.4);
+      g.strokeStyle = g.fillStyle = this.col(a.color); g.lineWidth = a.w || 2; g.globalAlpha = a.alpha || 1; g.setLineDash(a.dash || []);
+      g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]);
+      g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - h * Math.cos(ang - 0.4), y1 - h * Math.sin(ang - 0.4)); g.lineTo(x1 - h * Math.cos(ang + 0.4), y1 - h * Math.sin(ang + 0.4)); g.closePath(); g.fill(); g.globalAlpha = 1;
+    }
+    for (const r of (cfg.rects || [])){      /* 枠（あいまいなし領域など） */
+      const x0 = X(r.x0), x1 = X(r.x1), y0 = Y(r.y1), y1 = Y(r.y0);
+      if (r.fill){ g.globalAlpha = r.fill; g.fillStyle = this.col(r.color); g.fillRect(x0, y0, x1 - x0, y1 - y0); g.globalAlpha = 1; }
+      if (r.w !== 0){ g.strokeStyle = this.col(r.color); g.lineWidth = r.w || 1.5; g.setLineDash(r.dash || []); g.strokeRect(x0, y0, x1 - x0, y1 - y0); g.setLineDash([]); }
+    }
+    g.restore();
+    /* 補助線 */
+    let row = 0;
+    for (const h of (cfg.hl || [])){
+      if (h.y < yr[0] || h.y > yr[1]) continue;
+      const py = Math.round(Y(h.y)) + 0.5; g.strokeStyle = this.col(h.color || 'ref'); g.lineWidth = 1; g.setLineDash(h.dash || [4, 3]);
+      g.beginPath(); g.moveTo(m.l, py); g.lineTo(m.l + pw, py); g.stroke(); g.setLineDash([]);
+      if (h.label){ g.fillStyle = cText; g.textAlign = h.left ? 'left' : 'right'; g.textBaseline = 'bottom'; ft(h.label, h.left ? m.l + 5 : m.l + pw - 5, py - 2); }
+    }
+    for (const v of (cfg.vl || [])){
+      if (v.x < xr[0] || v.x > xr[1]) continue;
+      const px = Math.round(X(v.x)) + 0.5; g.strokeStyle = this.col(v.color || 'ref'); g.lineWidth = v.w || 1; g.setLineDash(v.dash || [4, 3]);
+      g.beginPath(); g.moveTo(px, m.t); g.lineTo(px, m.t + ph); g.stroke(); g.setLineDash([]);
+      if (v.label){
+        const tw = g.measureText(v.label).width, right = px + 4 + tw < m.l + pw;
+        g.fillStyle = cText; g.textAlign = right ? 'left' : 'right'; g.textBaseline = 'top';
+        ft(v.label, right ? px + 4 : px - 4, m.t + 3 + (v.row !== undefined ? v.row : row++ % 3) * 13);
+      }
+    }
+    for (const p of (cfg.pts || [])){
+      if (p.x < xr[0] || p.x > xr[1] || p.y < yr[0] - 1e-9 && p.clipY || p.y > yr[1] + 1e-9 && p.clipY) continue;
+      const px = X(p.x), py = Y(Math.min(Math.max(p.y, yr[0]), yr[1]));
+      if (p.shape === 'x'){ const r = p.r || 4; for (const pass of [0, 1]){ g.lineWidth = pass ? 2 : 4.5; g.strokeStyle = pass ? this.col(p.color) : cSurf; g.lineCap = 'round'; g.beginPath(); g.moveTo(px - r, py - r); g.lineTo(px + r, py + r); g.moveTo(px + r, py - r); g.lineTo(px - r, py + r); g.stroke(); } g.lineCap = 'butt'; }
+      else if (p.hollow){ g.lineWidth = 4; g.strokeStyle = cSurf; g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.lineWidth = 2; g.strokeStyle = this.col(p.color); if (p.dash) g.setLineDash(p.dash); g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.setLineDash([]); }
+      else { g.fillStyle = this.col(p.color); g.strokeStyle = cSurf; g.lineWidth = 2; g.beginPath(); g.arc(px, py, p.r || 4.5, 0, 2 * Math.PI); g.fill(); g.stroke(); }
+      if (p.label){ const dxl = (p.hollow ? (p.r || 7) + 3 : 7); g.fillStyle = cText; g.textAlign = p.left ? 'right' : 'left'; g.textBaseline = p.below ? 'top' : 'bottom'; ft(p.label, px + (p.left ? -dxl : dxl), py + (p.below ? 3 : -3)); }
+    }
+    /* 吹き出し（矢印つきの短い注記）：{x, y, t, dx, dy}。dx・dy は点から吹き出しまでのずれ [px] */
+    g.font = 'bold 11.5px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
+    for (const nt of (cfg.notes || [])){
+      if (nt.x < xr[0] || nt.x > xr[1]) continue;
+      const px = X(nt.x), py = Y(Math.min(Math.max(nt.y, yr[0]), yr[1])), tw = g.measureText(nt.t).width + 12, dx = nt.dx === undefined ? 30 : nt.dx, dy = nt.dy === undefined ? -28 : nt.dy;
+      let bx = dx >= 0 ? px + dx : px + dx - tw, by = py + dy - 10; bx = Math.max(m.l + 2, Math.min(m.l + pw - tw - 2, bx)); by = Math.max(m.t + 2, Math.min(m.t + ph - 22, by));
+      const ex = Math.max(bx, Math.min(bx + tw, px)), ey = by + 10 < py ? by + 20 : by, ang = Math.atan2(py - ey, px - ex), cA = cssv('--accent');
+      g.strokeStyle = cA; g.fillStyle = cA; g.lineWidth = 1.5; g.beginPath(); g.moveTo(ex, ey); g.lineTo(px - 5 * Math.cos(ang), py - 5 * Math.sin(ang)); g.stroke();
+      g.beginPath(); g.moveTo(px - 3 * Math.cos(ang), py - 3 * Math.sin(ang)); g.lineTo(px - 10 * Math.cos(ang - 0.4), py - 10 * Math.sin(ang - 0.4)); g.lineTo(px - 10 * Math.cos(ang + 0.4), py - 10 * Math.sin(ang + 0.4)); g.closePath(); g.fill();
+      g.fillStyle = cssv('--accent-bg'); g.strokeStyle = cA; g.lineWidth = 1.2; g.beginPath(); g.rect(bx + 0.5, by + 0.5, tw, 20); g.fill(); g.stroke();
+      g.fillStyle = cssv('--text'); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(nt.t, bx + 6, by + 11);
+    }
+    /* 読み物の用語をクリックしたときの強調：marks = {キー: {x0, x1, y0, y1, t}} のうち、いま選ばれているキーだけ描く */
+    const mk = cfg.marks && HLKEY ? cfg.marks[HLKEY] : null;
+    if (mk){
+      const x0 = Math.max(m.l, X(mk.x0 === undefined ? xr[0] : mk.x0)), x1 = Math.min(m.l + pw, X(mk.x1 === undefined ? xr[1] : mk.x1)), y0 = Math.max(m.t, Y(mk.y1 === undefined ? yr[1] : mk.y1)), y1 = Math.min(m.t + ph, Y(mk.y0 === undefined ? yr[0] : mk.y0));
+      const a0 = Math.min(x0, x1) - 3, b0 = Math.min(y0, y1) - 3, ww = Math.max(8, Math.abs(x1 - x0) + 6), hh = Math.max(8, Math.abs(y1 - y0) + 6), cH = cssv('--hl');
+      g.fillStyle = cH; g.globalAlpha = 0.16; g.fillRect(a0, b0, ww, hh); g.globalAlpha = 1; g.strokeStyle = cH; g.lineWidth = 3; g.strokeRect(a0, b0, ww, hh);
+      if (mk.t){ const tw = g.measureText(mk.t).width + 12, bx = Math.max(m.l + 2, Math.min(m.l + pw - tw - 2, a0 + ww / 2 - tw / 2)), by = b0 > m.t + 26 ? b0 - 24 : Math.min(m.t + ph - 22, b0 + hh + 4);
+        g.fillStyle = cH; g.fillRect(bx, by, tw, 20); g.fillStyle = '#fff'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(mk.t, bx + 6, by + 11); }
+    }
+    g.font = '11px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
+    for (const t of (cfg.texts || [])){
+      g.fillStyle = cText; g.textAlign = t.align || 'left'; g.textBaseline = 'top'; ft(t.s, t.px !== undefined ? m.l + t.px * pw : X(t.x), t.y !== undefined ? Y(t.y) : m.t + 3 + (t.row || 0) * 13);
+    }
+  }
+  clearOv(){ const g = this.ov.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, this.ov.width, this.ov.height); }
+  hover(e){
+    const cfg = this.cfg, geo = this.geo; if (!cfg || !geo || cfg.noHover) return;
+    const rc = this.ov.getBoundingClientRect(), px = e.clientX - rc.left, m = geo.m;
+    if (px < m.l || px > m.l + geo.pw){ this.tip.hidden = true; this.clearOv(); return; }
+    const xv = this.xr[0] + (px - m.l) / geo.pw * (this.xr[1] - this.xr[0]);
+    const dpr = window.devicePixelRatio || 1, g = this.ov.getContext('2d');
+    this.clearOv(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.strokeStyle = cssv('--axis'); g.lineWidth = 1;
+    g.beginPath(); g.moveTo(Math.round(px) + 0.5, m.t); g.lineTo(Math.round(px) + 0.5, m.t + geo.ph); g.stroke();
+    const xf = cfg.tipx || (v => fx(v, 3)), yf = cfg.tipy || (v => fx(v, 3));
+    let html = '<b>' + xf(xv) + '</b>';
+    if (cfg.heat){
+      const hm = cfg.heat, py = e.clientY - rc.top; if (py < m.t || py > m.t + geo.ph){ this.tip.hidden = true; this.clearOv(); return; }
+      const yv = cfg.yr[1] - (py - m.t) / geo.ph * (cfg.yr[1] - cfg.yr[0]);
+      g.beginPath(); g.moveTo(m.l, Math.round(py) + 0.5); g.lineTo(m.l + geo.pw, Math.round(py) + 0.5); g.stroke();
+      const c = Math.floor((xv - hm.x0) / (hm.x1 - hm.x0) * hm.cols), r = Math.floor((yv - hm.y0) / (hm.y1 - hm.y0) * hm.rows);
+      html += '<div>' + (cfg.tipy2 || (v => fx(v, 3)))(yv) + '</div>';
+      if (c >= 0 && c < hm.cols && r >= 0 && r < hm.rows){ const z = hm.db[r * hm.cols + c]; html += '<div>' + (hm.tipz ? hm.tipz(z) : (z === z ? fx(z, 1) + ' dB' : '受信なし')) + '</div>'; }
+    }
+    for (const s of cfg.series){
+      if (!s.name || s.noTip) continue;
+      let v = NaN;
+      if (s.x){ let lo = 0, hi = s.x.length - 1; if (hi < 0 || xv < s.x[0] || xv > s.x[hi]) continue;
+        while (hi - lo > 1){ const mid = (lo + hi) >> 1; if (s.x[mid] <= xv) lo = mid; else hi = mid; }
+        const d = s.x[hi] - s.x[lo]; v = d > 0 ? s.y[lo] + (s.y[hi] - s.y[lo]) * (xv - s.x[lo]) / d : s.y[lo];
+      } else { const i = Math.round((xv - s.x0) / s.dx); if (i < 0 || i >= s.y.length) continue; v = s.y[i]; }
+      if (v !== v) continue;
+      html += '<div><i style="border-top-color:' + this.col(s.color) + ';border-top-style:' + (s.dash ? 'dashed' : 'solid') + '"></i>' + s.name + '：' + yf(v) + '</div>';
+    }
+    this.tip.innerHTML = html; this.tip.hidden = false;
+    const tw = this.tip.offsetWidth;
+    this.tip.style.left = (px + 14 + tw > geo.W ? Math.max(0, px - tw - 12) : px + 12) + 'px';
+  }
+}
+function redrawAll(){ for (const p of PLOTS) p.draw(); }
+/* 濃淡図の色（1色相の濃淡。ライトでは薄→濃、ダークでは暗→明）。t < 0 は「受信なし」 */
+const HEAT_L = [[250, 250, 248], [204, 222, 244], [128, 174, 232], [42, 120, 214], [20, 70, 150], [8, 26, 66]];
+const HEAT_D = [[30, 30, 29], [22, 46, 84], [32, 88, 168], [57, 135, 229], [142, 190, 246], [240, 246, 255]];
+function heatRGB(t, dark){
+  if (t < 0 && t === -1) return dark ? [58, 58, 55] : [222, 221, 215];
+  const st = dark ? HEAT_D : HEAT_L, x = Math.max(0, Math.min(1, t)) * (st.length - 1), i = Math.min(st.length - 2, Math.floor(x)), f = x - i;
+  return [0, 1, 2].map(k => Math.round(st[i][k] + (st[i + 1][k] - st[i][k]) * f));
+}
+
+
+/* ============================================================
+   4本共通：用語集と「前提知識」の補足
+   ============================================================ */
+const SERIES = [null,
+  {no: 1, file: '01_pulse_compression.html', name: 'パルス圧縮'},
+  {no: 2, file: '02_mti.html', name: 'MTI（移動目標指示）'},
+  {no: 3, file: '03_pulse_doppler.html', name: 'パルスドップラ'},
+  {no: 4, file: '04_detection_cfar.html', name: '自動検出とCFAR'}];
+/* [グループ, 日本語（English）, 説明]。グループ 0＝基礎（補足）、1〜4＝各回 */
+const GLOSS = [
+  [0, 'dB（デシベル）', '比を対数で表す単位。電力が 10 倍で +10 dB、100 倍で +20 dB、半分で約 −3 dB。掛け算が足し算になるので、レーダの計算でよく使う。'],
+  [0, 'S/N（信号対雑音比、signal-to-noise ratio）', '信号の電力が雑音の電力の何倍かを表す値。大きいほど目標を見つけやすい。'],
+  [0, 'I/Q（複素信号）', '受信信号を「振幅」と「位相」の両方が分かる形で表したもの。I（同相）と Q（直交）の 2 つの成分を持ち、平面上の矢印（フェーザ）として描ける。'],
+  [0, '位相（phase）', '波の「1 周期のうちのどこにいるか」を角度で表したもの。360° で 1 周する。'],
+  [0, 'ドップラ周波数（Doppler frequency）', '目標が近づく・遠ざかることで、エコーの周波数が送信からずれる量。fd = 2v/λ（v は近づく速度、λ は波長）。'],
+  [0, 'PRF（pulse repetition frequency、パルス繰り返し周波数）', '1 秒間に送るパルスの数。逆数がパルスの間隔。'],
+  [0, '距離セル／レンジゲート（range cell / range gate）', '受信信号を、距離（遅れ時間）ごとに細かく区切った 1 区画。'],
+  [0, 'クラッタ（clutter）', '地面・海面・雨など、見たい目標以外からの不要なエコー。'],
+  [0, 'サイドローブ（sidelobe）', '本来のピーク（主ローブ）の両脇に出る小さな山。強い信号のサイドローブが、弱い信号を隠すことがある。'],
+  [0, '重み付け（weighting）', 'データの端を小さくするような係数を掛けて、サイドローブを下げる処理。代わりに主ローブが少し広がり、S/N が少し下がる。'],
+  [0, 'FFT（高速フーリエ変換）', '信号を周波数の成分に分ける計算を、高速に行う方法。'],
+  [1, 'パルス圧縮（pulse compression）', '変調をかけた長いパルスを送り、受信側のフィルタで細いパルスに戻す方法。長いパルスのエネルギーと、短いパルスの距離分解能を両立させる。'],
+  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域 B の積 TB。パルス圧縮比にほぼ等しい。'],
+  [1, 'パルス圧縮比（pulse compression ratio）', '送信パルス幅と、圧縮後のパルス幅の比。およそ TB。'],
+  [1, '距離分解能（range resolution）', '近くにある 2 つの目標を別々に見分けられる最小の距離差。およそ c/(2B)。'],
+  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変える変調。代表的なパルス圧縮波形。'],
+  [1, '整合フィルタ（matched filter）', '送信波形に合わせて作った受信フィルタ。雑音の中の信号に対して、出力のピークの S/N を最大にする。'],
+  [1, '時間サイドローブ（time sidelobe）', '圧縮後のパルスで、主ローブの前後（距離方向）に出る小さな山。'],
+  [1, 'テイラー重み付け（Taylor weighting）', 'LFM の時間サイドローブを下げるための、代表的な周波数領域の重み付け。'],
+  [1, 'ミスマッチ損失（mismatch loss）', '重み付けなどで整合フィルタからわざと外したために生じる S/N の低下。'],
+  [1, '距離ドップラ結合（range-Doppler coupling）', 'LFM で、目標のドップラ周波数によって圧縮後のピークの位置（距離）がずれる現象。'],
+  [1, '位相符号波形（phase-coded waveform）', 'パルスを短いサブパルスに分け、サブパルスごとに位相を切り替える波形。'],
+  [1, 'バーカー符号（Barker code）', 'サイドローブが主ローブの 1/N になる特別な 2 値位相符号。長さは最大 13。'],
+  [1, 'エクリプシング（eclipsing）', '送信中は受信機がオフなので、その間に戻ってきたエコーが欠けること。'],
+  [1, 'ストレッチ処理（stretch processing）', '受信した LFM に参照の LFM を掛け、周波数の違いとして距離を読み取る圧縮方法。'],
+  [2, 'MTI（moving target indication、移動目標指示）', 'パルスごとのエコーの変化を使って、止まっているクラッタを消し、動いている目標を残す処理。'],
+  [2, 'パルスキャンセラ（delay-line canceler）', '1 つ前のパルスのエコーを引き算する MTI フィルタ。固定物のエコーは毎回同じなので消える。'],
+  [2, 'ブラインド速度（blind speed）', 'MTI で目標まで消えてしまう速度。ドップラ周波数が PRF の整数倍になる速度。'],
+  [2, '改善度（improvement factor）', 'MTI によって、信号対クラッタ比がどれだけ良くなったかを表す値（全速度で平均）。'],
+  [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比。'],
+  [2, 'スタガPRF（staggered PRF）', 'パルスの間隔を交互に変えることで、ブラインド速度を高い速度へ追いやる方法。'],
+  [2, 'クラッタのスペクトル拡がり（clutter spectral spread）', '風で揺れる木やアンテナの走査などで、クラッタのドップラが 0 のまわりに幅を持つこと。'],
+  [2, '走査変調（scanning modulation）', 'アンテナが回ることで、クラッタのエコーの強さがパルスごとに変わること。スペクトル拡がりの原因の 1 つ。'],
+  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強さを記憶したもの。しきい値の設定などに使う。'],
+  [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分けて目標を検出する方式。'],
+  [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通すフィルタ。FFT で多数並べて作る。'],
+  [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ分析する 1 かたまりのパルス列。長いほどドップラ分解能が細かい。'],
+  [3, '距離のあいまいさ（range ambiguity）', 'エコーがどの送信パルスのものか区別できず、距離が決まらないこと。PRF が高いほど起きやすい。'],
+  [3, 'ドップラのあいまいさ（Doppler ambiguity）', 'ドップラ周波数が PRF の整数倍だけ違うものと区別できないこと。PRF が低いほど起きやすい。'],
+  [3, 'メインビームクラッタ（mainbeam clutter）', 'アンテナの主ビームが地面に当たって返ってくる強いクラッタ。'],
+  [3, 'サイドローブクラッタ（sidelobe clutter）', 'アンテナのサイドローブを通って、あらゆる方向の地面から返ってくるクラッタ。'],
+  [3, '高度線（altitude line）', '航空機の真下の地面からのクラッタ。ドップラがほぼ 0 の位置に強く出る。'],
+  [3, 'ブラインドゾーン（blind zone）', 'エクリプシングやクラッタのために目標が見えなくなる、距離やドップラの範囲。'],
+  [4, 'しきい値（threshold）', '「これを超えたら目標あり」と判定する基準の値。'],
+  [4, '探知確率（probability of detection、Pd）', '目標があるときに、正しく検出できる確率。'],
+  [4, '誤警報確率（probability of false alarm、Pfa）', '目標がないのに、雑音などで「目標あり」と判定してしまう確率。'],
+  [4, '積分（integration）', '何パルス分かの受信信号を足し合わせて、目標を検出しやすくすること。'],
+  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器。'],
+  [4, '2値積分（binary integration）', 'パルスごとに 0／1 を判定し、N 回のうち M 回以上 1 なら検出とする方法（M-out-of-N）。'],
+  [4, 'CFAR（constant false alarm rate、一定誤警報率）', '背景の強さに合わせてしきい値を自動で変え、誤警報確率を一定に保つ処理。'],
+  [4, 'セル平均CFAR（cell-averaging CFAR）', '注目するセルの周りのセル（参照セル）の平均から背景の強さを推定する CFAR。'],
+  [4, '参照セル（reference cells）', 'CFAR で、背景の強さを推定するために使う周りのセル。'],
+  [4, 'CFAR損失（CFAR loss）', '背景を推定で求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N。'],
+  [4, 'Swerlingモデル（Swerling models）', '目標のエコーの強さのゆらぎ方を表す代表的なモデル（スキャンごとに変わるか、パルスごとに変わるか、など）。']
+];
+/* 前提知識の補足（30秒で読める長さ。すべてハンドブックにない一般知識＝補足） */
+const PREQ = {
+  db: ['dB（デシベル）とは', '大きさの比を、掛け算ではなく足し算で扱うための単位です。電力が 10 倍なら +10 dB、100 倍なら +20 dB、1/2 なら約 −3 dB、1/100 なら −20 dB。レーダでは信号の強さが何桁も変わるので、グラフの縦軸によく使います。このシリーズでは、dB の値の横に「何倍か」も書きます。'],
+  iq: ['I/Q（複素信号）とは', '受信した波の「強さ（振幅）」と「タイミング（位相）」を同時に表す方法です。平面の上に矢印を描き、矢印の長さが振幅、向きが位相です。横方向の成分を I、縦方向の成分を Q と呼びます。矢印がぐるぐる回る速さが、周波数にあたります。'],
+  dop: ['ドップラとは', '救急車が近づくとサイレンが高く聞こえるのと同じで、近づく目標からのエコーは周波数が少し高くなります。このずれがドップラ周波数で、fd = 2v/λ（v は近づく速度、λ は波長）。波長 3 cm で 15 m/s なら 1 kHz です。'],
+  prob: ['確率分布とは', '雑音の大きさは毎回ばらばらで、予測できません。ただし「どのくらいの大きさが、どのくらいの割合で出るか」は決まっています。これを表したグラフが確率分布で、横軸が大きさ、縦軸が出やすさです。ある値より右側の面積が、「その値を超える確率」になります。'],
+  wave: ['パルスとエコー、距離の測り方', 'レーダは短い電波（パルス）を出し、目標からはね返ってきた電波（エコー）を受けます。往復にかかった時間 t から、距離 R = c·t/2（c は光の速さ）が分かります。1 マイクロ秒の遅れが 150 m にあたります。'],
+  fft: ['周波数に分ける（スペクトル）とは', 'どんな信号も、いろいろな周波数の波の足し合わせとして表せます。「どの周波数の成分が、どのくらい入っているか」を表したものがスペクトルで、それを計算する方法が FFT です。'],
+  prf: ['パルスの繰り返しと PRF', 'レーダはパルスを一定の間隔で何度も送ります。1 秒あたりの回数が PRF です。同じ目標のエコーを、パルスごとに 1 つずつ受けることになり、その「パルスごとの変化」を見るのが MTI やパルスドップラです。']
+};
+
+/* ============================================================
+   4本共通の進行部品：問い → 予想 → 操作 → 答え合わせ、ミッション、読み物、用語集、指導者メモ
+   各回のファイルで STEPS（ステップの定義）、CT（操作部の一覧）、PRE（前提知識）、resetS(init) を用意する
+   ============================================================ */
+const STATE = {pred: [], shown: [], ms: [], touched: false};
+let cur = 0, PL = [], playT = null, hlT = null, lastR = {};
+/* dB の値に「何倍か」を添える（電力の比）。例：−20.0 dB（電力 1/100） */
+function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + ' 倍' : '1/' + s; }
+function dbx(d, dg){ return isFinite(d) ? fx(d, dg === undefined ? 1 : dg) + ' dB（電力 ' + ratioTxt(d) + '）' : '—'; }
+/* 読み物の書き方：[[キー|表示]] はシミュレータ側を強調するリンク、{H} は「補足」の印 */
+function rt(s){ return String(s || '').replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '<a class="term" data-hl="$1" role="button" tabindex="0">$2</a>').replace(/\{H\}/g, H); }
+function tilesHtml(a){ return (a || []).filter(Boolean).map(t => '<div class="tile"><div class="k">' + t.k + '</div><div class="v">' + t.v + '</div>' + (t.s ? '<div class="s">' + t.s + '</div>' : '') + '</div>').join(''); }
+const eq = b => '<div class="eq">' + b + '</div>';
+
+function stopPlay(){ if (playT){ clearInterval(playT); playT = null; const b = $('#playBtn'); if (b) b.textContent = b.dataset.t; } }
+function ctlDef(c){ const o = typeof c === 'string' ? {k: c} : c; return Object.assign({}, CT[o.k], o); }
+function getV(d){ return d.get ? d.get() : S[d.k]; }
+function setV(d, v){ if (d.set) d.set(v); else S[d.k] = v; }
+function buildCtl(host, c){
+  const d = ctlDef(c), e = el('div', 'ctl'); e.dataset.k = d.k;
+  if (d.seg){
+    e.innerHTML = '<div class="ctl-h"><label>' + d.l + '</label></div><span class="seg">' + d.seg.map(o => '<button type="button" data-v="' + o[0] + '">' + o[1] + '</button>').join('') + '</span><small></small>';
+    $('.seg', e).addEventListener('click', ev => { const v = ev.target && ev.target.dataset ? ev.target.dataset.v : undefined; if (v !== undefined){ setV(d, typeof d.seg[0][0] === 'number' ? Number(v) : v); userChanged(); } });
+  } else if (d.chk){
+    e.innerHTML = '<label class="chk"><input type="checkbox">' + d.l + '</label><small></small>';
+    $('input', e).addEventListener('change', ev => { setV(d, ev.target.checked); userChanged(); });
+  } else {
+    e.innerHTML = '<div class="ctl-h"><label>' + d.l + '</label><output></output></div><input type="range" min="' + d.min + '" max="' + d.max + '" step="' + d.step + '" aria-label="' + d.l.replace(/<[^>]*>/g, '') + '"><small></small>';
+    $('input', e).addEventListener('input', ev => { setV(d, parseFloat(ev.target.value)); userChanged(); });
+  }
+  e._d = d; host.appendChild(e);
+}
+function syncCtl(){
+  for (const e of document.querySelectorAll('#sim .ctl')){
+    const d = e._d, v = getV(d);
+    if (d.seg){ for (const b of $('.seg', e).children) b.setAttribute('aria-pressed', String(b.dataset.v) === String(v)); }
+    else if (d.chk) $('input', e).checked = !!v;
+    else { $('input', e).value = v; $('output', e).textContent = d.f ? d.f(v) : String(v); }
+    $('small', e).textContent = d.h ? d.h(v) : '';
+  }
+  const fx_ = $('#fixed'), st = STEPS[cur];
+  if (fx_) fx_.innerHTML = ((st.fixed && st.fixed.length) || (st.fixT && st.fixT.length) ? 'このステップでは固定：' + (st.fixed || []).map(k => { const d = ctlDef(k), v = getV(d); return '<span>' + d.l.replace(/（.*?）/g, '') + ' ' + (d.seg ? (d.seg.find(o => String(o[0]) === String(v)) || ['', v])[1] : d.chk ? (v ? 'あり' : 'なし') : d.f ? d.f(v) : v) + '</span>'; }).join('') + (st.fixT || []).map(t => '<span>' + t + '</span>').join('') : '');
+}
+function userChanged(){ STATE.touched = true; redraw(); }
+function redraw(){
+  const st = STEPS[cur]; syncCtl();
+  lastR = st.draw(PL) || {};
+  const tl = $('#tiles'); if (tl) tl.innerHTML = tilesHtml(lastR.tiles);
+  if (st.mission && !STATE.ms[cur] && STATE.touched && ((st.free && !st.q) || STATE.pred[cur] !== undefined) && st.mission.ok(lastR)){ STATE.ms[cur] = true; }
+  showMission();
+}
+function showMission(){
+  const st = STEPS[cur], c = $('#msCard');
+  if (c){ c.classList.toggle('done', !!STATE.ms[cur]); $('.st', c).textContent = STATE.ms[cur] ? '達成！' : (lastR.msHint ? '未達成（' + lastR.msHint + '）' : '未達成'); }
+  const bar = $('#msbar'); let n = 0, h = 'ミッション ';
+  STEPS.forEach((s, i) => { if (!s.mission) return; if (STATE.ms[i]) n++; h += '<button type="button" data-i="' + i + '" class="' + (STATE.ms[i] ? 'done' : '') + '" title="ステップ ' + (i + 1) + '：' + s.short + (STATE.ms[i] ? '（達成）' : '') + '" aria-label="ステップ ' + (i + 1) + ' のミッション' + (STATE.ms[i] ? '（達成）' : '（未達成）') + '">✓</button>'; });
+  bar.innerHTML = h + '<b>' + n + ' / ' + STEPS.filter(s => s.mission).length + '</b>';
+  for (const b of $('#steps').children) b.classList.toggle('done', !!STATE.ms[Number(b.dataset.i)]);
+}
+function showAnswer(){
+  const st = STEPS[cur], body = $('#ansBody'), p = STATE.pred[cur]; if (!body || !STATE.shown[cur]) return;
+  body.hidden = false;
+  body.innerHTML = '<p><b>' + (p === st.ans ? '予想どおりです。' : '予想とは違いましたね。外れても大丈夫、ここで「なぜ」を確かめれば身につきます。') + '</b></p><p>答え：<b>' + st.ch[st.ans] + '</b></p><p>' + rt(st.why) + '</p>';
+  const bs = $('#choices').children; for (let i = 0; i < bs.length; i++) bs[i].classList.toggle('right', i === st.ans);
+}
+function renderRead(st, i){
+  const r = st.read || {}; let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>';
+  if (i === 0 && typeof PRE !== 'undefined'){
+    h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと 30 秒で読める説明が出ます）';
+    for (const p of PRE){ if (typeof p === 'string') h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + '</p></details>'; else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回のステップ' + p.step + 'を先に見てね</a></p>'; }
+    h += '</div>';
+  }
+  if (r.ana) h += '<h3>① 身近なたとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
+  if (r.what) h += '<h3>② 何が起きているか</h3>' + rt(r.what).split('||').map(p => '<p>' + p + '</p>').join('');
+  if (r.eq) h += '<h3>③ 大事な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
+  if (r.mis) h += '<h3>④ よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
+  if (st.extra) h += '<div id="extra"></div>';
+  h += '<div class="src"><b>出典</b>　Radar Handbook 3rd ed.　' + st.src + '</div>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
+  $('#read').innerHTML = h;
+  if (st.extra) $('#extra').innerHTML = st.extra();
+}
+function renderSim(st, i){
+  const sim = $('#sim'); sim.innerHTML = ''; PL = []; PLOTS.length = 0;
+  const unlocked = (st.free && !st.q) || STATE.pred[i] !== undefined;
+  if (st.q){
+    const q = el('div', 'card q', '<span class="lbl">問い</span><p>' + st.q + '</p><div class="ch" id="choices">' + st.ch.map((c, k) => '<button type="button" data-k="' + k + '" aria-pressed="' + (STATE.pred[i] === k) + '">' + c + '</button>').join('') + '</div><div class="hint">まず予想を 1 つ選ぼう（当たり外れは気にしなくて大丈夫）。選ぶと下の操作部が使えるようになります。</div>');
+    sim.appendChild(q);
+    $('#choices', q).addEventListener('click', ev => { const k = ev.target && ev.target.dataset ? ev.target.dataset.k : undefined; if (k === undefined) return; STATE.pred[i] = Number(k); for (const b of $('#choices').children) b.setAttribute('aria-pressed', b.dataset.k === k); $('#opCard').classList.remove('locked'); $('#ansBtn').disabled = false; redraw(); });
+  }
+  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">予想してから触ろう</div><span class="lbl">操作</span><span class="hint" style="margin:0">' + (st.do || 'スライダーを動かして確かめよう') + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
+  op.id = 'opCard'; sim.appendChild(op);
+  for (const c of (st.ctl || [])) buildCtl($('#ctls', op), c);
+  const acts = $('#acts', op);
+  for (const a of (st.acts || [])){
+    const b = el('button', 'btn sm', a.t); b.type = 'button';
+    if (a.play){ b.id = 'playBtn'; b.dataset.t = a.t; b.addEventListener('click', () => { if (playT){ stopPlay(); return; } b.textContent = '■ 止める'; const p = a.play; playT = setInterval(() => { let v = S[p.k] + p.step; if (v > p.max){ if (p.once){ S[p.k] = p.max; stopPlay(); userChanged(); return; } v = p.min; } S[p.k] = v; userChanged(); }, p.ms || 90); }); }
+    else b.addEventListener('click', () => { a.f(); userChanged(); });
+    acts.appendChild(b);
+  }
+  for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
+  if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
+  if (st.q){
+    const a = el('div', 'card ans', '<button type="button" class="btn primary" id="ansBtn"' + (unlocked ? '' : ' disabled') + '>答えを見る</button>　<span class="hint">操作して確かめてから押そう</span><div class="body" id="ansBody" hidden></div>');
+    sim.appendChild(a); $('#ansBtn', a).addEventListener('click', () => { STATE.shown[i] = true; showAnswer(); });
+  }
+}
+function goStep(i){
+  stopPlay(); cur = Math.max(0, Math.min(STEPS.length - 1, i)); const st = STEPS[cur];
+  resetS(st.init || {}); STATE.touched = false; HLKEY = null;
+  renderRead(st, cur); renderSim(st, cur);
+  for (const b of $('#steps').children) b.setAttribute('aria-current', String(Number(b.dataset.i) === cur));
+  $('#prevBtn').disabled = cur === 0; $('#nextBtn').disabled = cur === STEPS.length - 1;
+  redraw(); showAnswer();
+  try { if (location.hash !== '#s' + (cur + 1)) history.replaceState(null, '', '#s' + (cur + 1)); } catch (e) {}
+}
+function highlight(key){
+  clearTimeout(hlT); for (const e of document.querySelectorAll('.flash')) e.classList.remove('flash');
+  let target = null;
+  if (key.indexOf('ctl:') === 0){ target = document.querySelector('#sim .ctl[data-k="' + key.slice(4) + '"]'); HLKEY = null; }
+  else if (key.indexOf('tile:') === 0){ target = document.querySelectorAll('#tiles .tile')[Number(key.slice(5))]; HLKEY = null; }
+  else { HLKEY = key; for (const p of PLOTS) if (p.cfg && p.cfg.marks && p.cfg.marks[key]){ target = p.root; break; } }
+  if (target && target.classList && HLKEY === null) target.classList.add('flash');
+  redrawAll();
+  if (target){ const r = target.getBoundingClientRect(); if (r.top < 50 || r.bottom > innerHeight) target.scrollIntoView({block: 'center', behavior: 'smooth'}); }
+  hlT = setTimeout(() => { HLKEY = null; for (const e of document.querySelectorAll('.flash')) e.classList.remove('flash'); redrawAll(); }, 4000);
+}
+function buildGloss(){
+  const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
+  let h = '<h2>用語集（4 回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';
+  h += '<h3>この回（第' + SIM_NO + '回 ' + SERIES[SIM_NO].name + '）の用語</h3>' + grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(0);
+  for (let n = 1; n <= 4; n++) if (n !== SIM_NO) h += '<h3>第' + n + '回 ' + SERIES[n].name + '</h3>' + grp(n);
+  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は、Radar Handbook 3rd ed. の用語を新人向けに言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
+  const toggle = on => { g.hidden = !on; if (on) $('#glFind').focus(); };
+  $('#glBtn').addEventListener('click', () => toggle(g.hidden)); $('#glTab').addEventListener('click', () => toggle(g.hidden)); $('#glClose').addEventListener('click', () => toggle(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
+  $('#glFind').addEventListener('input', e => { const q = e.target.value.trim().toLowerCase(); for (const dt of g.querySelectorAll('dt')){ const hit = !q || (dt.textContent + dt.nextElementSibling.textContent).toLowerCase().indexOf(q) >= 0; dt.hidden = !hit; dt.nextElementSibling.hidden = !hit; } });
+}
+function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); $('#themeBtn').textContent = '表示: ' + (t === 'dark' ? 'ダーク' : 'ライト'); redrawAll(); }
+function boot(){
+  const nav = $('#steps');
+  STEPS.forEach((s, i) => { const b = el('button', '', '<i>' + (i + 1) + '</i>' + s.short); b.type = 'button'; b.dataset.i = i; b.addEventListener('click', () => goStep(i)); nav.appendChild(b); });
+  $('#prevBtn').addEventListener('click', () => { goStep(cur - 1); window.scrollTo(0, 0); });
+  $('#nextBtn').addEventListener('click', () => { goStep(cur + 1); window.scrollTo(0, 0); });
+  $('#msbar').addEventListener('click', e => { const i = e.target && e.target.dataset ? e.target.dataset.i : undefined; if (i !== undefined) goStep(Number(i)); });
+  const onTerm = e => { const a = e.target && e.target.closest ? e.target.closest('a.term') : null; if (a && (e.type === 'click' || e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); highlight(a.dataset.hl); } };
+  $('#read').addEventListener('click', onTerm); $('#read').addEventListener('keydown', onTerm);
+  buildGloss();
+  const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  let theme = mq && mq.matches ? 'dark' : 'light';
+  $('#themeBtn').addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(theme); });
+  document.documentElement.setAttribute('data-theme', theme);
+  const h = /^#s(\d+)$/.exec(location.hash || '');
+  goStep(h ? Number(h[1]) - 1 : 0); applyTheme(theme);
+  window.addEventListener('hashchange', () => { const m = /^#s(\d+)$/.exec(location.hash || ''); if (m && Number(m[1]) - 1 !== cur) goStep(Number(m[1]) - 1); });
+  if (window.ResizeObserver) new ResizeObserver(() => redrawAll()).observe($('#sim')); else window.addEventListener('resize', redrawAll);
+}
+
+/* ============================================================
+   第4回 自動検出とCFAR：ステップの定義
+   ============================================================ */
+function resetS(init){ const d = cloneDef(); for (const k in S) delete S[k]; Object.assign(S, d, {up: 0, pos: 60, ks: 10, sep: 1.5, det: 'ca', cnr: 0, t3: false}, init); }
+const PRE = ['db', 'prob', {no: 3, step: 5, t: '距離や速度のマスごとに判定する、という考え方は、'}];
+const SUPC = {'0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '-': '⁻'};
+const sup = n => String(n).split('').map(c => SUPC[c] || c).join('');
+function fP(p){ if (!(p === p)) return '—'; if (p <= 0) return '0'; if (p >= 0.00995) return fx(p, 3); let e = Math.floor(Math.log10(p)), m = p / Math.pow(10, e); if (m >= 9.95){ m = 1; e++; } return fx(m, 1) + '×10' + sup(e); }
+const fOne = p => p >= 0.1 ? fx(p * 100, 0) + '%' : '1/' + (1 / p >= 9950 ? fx(1 / p / 1e4, 1 / p >= 99500 ? 0 : 1) + ' 万' : fx(1 / p, 0));
+const pfaOf = () => Math.pow(10, -S.pfa);
+const CT = {
+  pfa: {l: 'しきい値の高さ（ねらう誤警報確率）', min: 1, max: 8, step: 0.5, f: v => fP(Math.pow(10, -v)) + '（' + fOne(Math.pow(10, -v)) + '）', h: v => 'しきい値：雑音の平均 +' + fx(db10(thresholdFor(S.n, Math.pow(10, -v)) / S.n), 1) + ' dB'},
+  snr: {l: '目標の強さ（1 パルスの S/N）', min: -5, max: 25, step: 0.5, f: v => dbx(v)},
+  sw: {l: '目標のゆらぎ方', seg: [[0, 'ゆらぎなし'], [1, 'スキャンごとにゆらぐ（Swerling 1）']]},
+  n: {l: '足し合わせるパルスの数 n', min: 1, max: 32, step: 1, f: v => fx(v, 0) + ' パルス'},
+  M: {l: '「検出」とする回数 M（8 回のうち）', min: 1, max: 8, step: 1, f: v => '8 回中 ' + fx(v, 0) + ' 回以上'},
+  m: {l: '参照セルの数', min: 2, max: 64, step: 2, f: v => fx(v, 0) + ' 個', h: v => '注目セルの前後に ' + v / 2 + ' 個ずつ'},
+  g: {l: 'ガードセルの数（片側）', min: 0, max: 4, step: 1, f: v => fx(v, 0) + ' 個'},
+  cnr: {l: 'クラッタの強さ（雑音との比）', min: 0, max: 30, step: 1, f: v => v > 0 ? dbx(v, 0) : 'なし'},
+  edge: {l: 'クラッタの始まる位置', min: 40, max: 170, step: 1, f: v => 'セル ' + fx(v, 0)},
+  up: {l: 'しきい値を全体に上げる量', min: 0, max: 30, step: 0.5, f: v => '+' + dbx(v)},
+  pos: {l: '注目セルの位置', min: 0, max: 199, step: 1, f: v => 'セル ' + fx(v, 0)},
+  cfar: {l: 'しきい値の決め方', seg: [['ca', 'セル平均'], ['cens', '大きい 2 個を除く'], ['min', '平均が小さい側'], ['log', '対数ビデオ']]},
+  det: {l: 'しきい値の種類', seg: [['fixed', '固定'], ['ca', 'セル平均 CFAR']]},
+  ks: {l: 'スキャンの回数（時間）', min: 0, max: 60, step: 1, f: v => fx(v, 0) + ' 回目'},
+  sep: {l: '2 つの目標の間隔', min: 0.5, max: 4, step: 0.25, f: v => 'パルス幅の ' + fx(v, 2) + ' 倍'},
+  s2: {l: '近くの強い目標の強さ', min: 0, max: 40, step: 1, f: v => dbx(v, 0)}
+};
+const CAX = {xl: '距離セルの番号（左が近く、右が遠く）', yl: '受信の強さ [dB]（雑音の平均 = 0）', tipx: v => 'セル ' + Math.round(v), tipy: v => fx(v, 1) + ' dB'};
+function profCfg(sc, d, ev, o){        // 距離方向の波形・しきい値・検出の印
+  o = o || {}; const n = sc.n, y = new Float64Array(NC), t = new Float64Array(NC), pts = []; for (let c = 0; c < NC; c++){ y[c] = db10(d.Y[c + MARG] / n); if (ev.thr) t[c] = db10(ev.thr[c] / n); }
+  const series = [{name: '受信の強さ', color: 's1', x0: 0, dx: 1, y, w: 1.4}]; if (ev.thr) series.push({name: o.thrName || 'しきい値', color: 's2', x0: 0, dx: 1, y: t, w: 2.2}); for (const s of (o.more || [])) series.push(s);
+  for (let c = 0; c < NC; c++) if (ev.hits[c] && !ev.isT[c]) pts.push({x: c, y: y[c], color: 'ng', shape: 'x', r: 3.5});
+  for (const tg of sc.tg) pts.push(ev.hits[tg.cell] ? {x: tg.cell, y: y[tg.cell], color: 'ok', r: 5.5, label: '目標' + tg.id} : {x: tg.cell, y: y[tg.cell], color: 'ref', hollow: true, r: 6.5, label: '目標' + tg.id + '（見逃し）'});
+  const bands = (o.bands || []).slice(); if (sc.C > 0) bands.push({x0: sc.edge - 0.5, x1: NC, color: 'bandn', label: 'クラッタのある区間'});
+  return Object.assign({title: o.title, xr: o.xr || [0, NC - 1], yr: [-15, o.ymax || 30], series, pts, bands, vl: o.vl, notes: o.notes, marks: o.marks}, CAX);
+}
+const LEG = '●＝正しい検出、○＝見逃し、✕＝誤警報';
+const STEPS = [];
+
+/* 1 */
+STEPS.push({short: '自動検出とは', title: '自動検出とは — しきい値で「目標あり／なし」を決める', src: '7.1 Introduction（p.7.1）、7.2 Automatic Detection（p.7.1–7.3）、False-Alarm Control（p.7.11）',
+  q: 'しきい値を下げると、弱い目標の見逃しは減る。そのとき、誤警報（目標がないのに「あり」と判定すること）はどうなる？',
+  ch: ['減る', '変わらない', '増える'], ans: 2,
+  why: 'しきい値を下げると、雑音だけのセルも、たまたま大きくなったときにしきい値を超えやすくなります。見逃しと誤警報は、片方を減らすともう片方が増える関係です。そこでレーダでは、「誤警報の割合を決めたうえで、できるだけ多く見つける」という考え方をとります。',
+  read: {
+    ana: '火災報知器の感度を上げると、小さな火事も見逃しませんが、料理の湯気でも鳴ってしまいます。感度を下げると誤報は減りますが、本当の火事に気づくのが遅れます。「どこで鳴らすか」を決める線が、しきい値です。',
+    what: '自動検出（automatic detection）は、受信信号を距離などのセルに区切り、セルごとに「目標がある」か「雑音だけ」かを計算機が決める処理です。基本は、受信の強さを[[thr|しきい値（threshold）]]と比べることです。||誤りは 2 種類あります。目標がないのに検出する[[fa|誤警報]]と、目標があるのに検出しない[[miss|見逃し]]です。誤警報の起きる確率を誤警報確率（Pfa）、目標を正しく検出する確率を探知確率（Pd）と呼びます。',
+    eq: '受信の強さ ＞ しきい値　→　「目標あり」と判定',
+    sym: '受信の強さ：そのセルの検波後の出力（何パルスか足し合わせることもある）。しきい値：ねらう誤警報確率から決める値。誤警報が多すぎると、後ろにつながる追尾の処理があふれてしまいます。',
+    mis: '「しきい値を超えたら、そこに目標がある」とは限りません。雑音だけでも、ある確率でしきい値を超えます。検出は、確率で考える判定です。'},
+  hosoku: ['火災報知器のたとえ', '図の印は乱数で作った 1 スキャン分のデータに対する結果であること', 'クラッタなし・目標 2 つの場面設定'],
+  memo: 'つまずきやすい点：誤警報「確率」と、1 スキャンあたりの誤警報の「個数」（= 確率 × セル数）の違い。||声かけの例：「セルが 200 個で Pfa が 1/100 なら、誤警報は平均何個？」「別のデータにすると ✕ の位置は変わる。なぜ？」',
+  init: {pfa: 1, snr: 13, t2: true, t2off: 20, s2: 11, n: 1}, ctl: ['pfa'], fixed: ['snr'], fixT: ['もう 1 つの目標の強さ 11 dB', '距離セルの数 200 個'], plots: [{h: 280}], acts: [{t: '別のデータにする', f: () => { S.seed++; }}], do: 'スライダーを動かして確かめよう（' + LEG + '）',
+  mission: {t: 'このスキャンで、誤警報を 1 個以下にしつつ、2 つの目標を両方とも検出できるしきい値を見つけよう。', ok: r => r.ev.nFa <= 1 && r.ev.nMiss === 0}, sol: {pfa: 3},
+  draw(P){
+    const sc = scenario(S), d = genScan(sc, S.seed), ev = evalDet(sc, d, 'fixed'), Tdb = db10(thresholdFor(1, sc.pfa));
+    P[0].set(profCfg(sc, d, ev, {title: '距離ごとの受信の強さと、しきい値による判定（1 スキャン分）', marks: {thr: {y0: Tdb - 1.5, y1: Tdb + 1.5, t: 'しきい値'}, fa: {y0: Tdb, y1: 30, t: 'しきい値を超えた雑音＝誤警報'}, miss: {x0: 55, x1: 85, y0: -15, y1: Tdb, t: 'しきい値に届かない目標＝見逃し'}}}));
+    return {ev, msHint: '誤警報 ' + ev.nFa + ' 個・見逃し ' + ev.nMiss + ' 個', tiles: [{k: 'このスキャンの誤警報', v: ev.nFa + ' <small>個</small>', s: '平均では 200 セル × ' + fP(sc.pfa) + ' = ' + fx(200 * sc.pfa, 200 * sc.pfa < 10 ? 1 : 0) + ' 個'}, {k: 'このスキャンの目標', v: '検出 ' + ev.nDet + '・見逃し ' + ev.nMiss}, {k: 'しきい値', v: '+' + fx(Tdb, 1) + ' <small>dB</small>', s: '雑音の平均の ' + ratioTxt(Tdb)}]};
+  }});
+
+/* 2 */
+STEPS.push({short: '振幅の分布', title: '雑音と目標の振幅の分布 — しきい値の右側の面積が、確率になる', src: '7.1（p.7.1）、Optimal Detector（p.7.2–7.3）、式7.10（p.7.8）、レイリー分布の式（p.7.11）',
+  q: '「雑音だけ」のときの振幅の分布で、しきい値より右側の部分の面積は、何を表す？',
+  ch: ['探知確率', '誤警報確率', 'S/N'], ans: 1,
+  why: '雑音だけなのにしきい値を超えるのが誤警報です。だから、雑音の分布のうち、しきい値より右側の面積が誤警報確率になります。同じように、「目標＋雑音」の分布の右側の面積が探知確率です。',
+  read: {
+    ana: 'クラスの身長の分布を考えます。「170 cm 以上の人」の割合は、分布のグラフで 170 cm より右側の面積です。線を右にずらせば割合は減り、左にずらせば増えます。',
+    what: '雑音だけのとき、検波後の振幅は[[noise|レイリー分布]]になります。目標があると、分布は右へ動きます（ゆらがない目標では[[sig|ライス分布]]）。S/N が大きいほど、2 つの分布は離れます。||2 つの分布は重なっているので、しきい値をどこに置いても、誤警報と見逃しの両方を 0 にはできません。[[tail|しきい値より右側の面積]]が、それぞれの確率です。',
+    eq: '<i>T</i> = σ·√( −2·ln <i>P</i><sub>fa</sub> )',
+    sym: '<i>T</i>：しきい値（振幅）。σ：雑音の強さを表す量（I 成分・Q 成分それぞれの標準偏差）。ln：自然対数。<i>P</i><sub>fa</sub>：誤警報確率。P<sub>fa</sub> = 1/1000 なら T = 3.72σ。',
+    mis: '「誤警報確率を 10 分の 1 にするには、しきい値を大きく上げる必要がある」と思いがちですが、実際はわずかです（1/1000 → 1/1 万で 3.72σ → 4.29σ）。ただし、そのわずかな差で探知確率は確実に下がります。'},
+  hosoku: ['身長の分布のたとえ', '式7.10 はハンドブックでは 2 値積分の第 1 しきい値の式として出てくること', '1 パルス（積分なし）で説明していること'],
+  memo: 'つまずきやすい点：面積＝確率、という読み方。色を塗った部分を指さして確認。||声かけの例：「しきい値を右に動かすと、2 つの面積はそれぞれどうなる？」「2 つの分布の重なりを減らすには、何を変えればいい？（S/N、または次々回の積分）」',
+  init: {pfa: 1.5, snr: 10, n: 1}, ctl: ['pfa'], fixed: ['snr'], plots: [{h: 280}],
+  mission: {t: '誤警報確率を 1/1000 以下に保ったまま、探知確率が 0.8 以上になるしきい値を見つけよう。', ok: r => pfaOf() <= 1.0001e-3 && r.pd >= 0.8}, sol: {pfa: 3},
+  draw(P){
+    const pfa = pfaOf(), T = -Math.log(pfa), Ta = Math.sqrt(2 * T), s = lin(S.snr), Q = x => pd1(0, s, x), pd = Q(T), xmax = 9, NX = 270, xs = [], fn = [], ft = [], tx = [], tn = [], tt = [];
+    for (let k = 0; k <= NX; k++){ const x = k * xmax / NX, Pw = x * x / 2, h = 1e-4 * (1 + Pw), lo = Math.max(0, Pw - h), a = x * Math.exp(-x * x / 2), b = x * (Q(lo) - Q(Pw + h)) / (Pw + h - lo); xs.push(x); fn.push(a); ft.push(b); if (x >= Ta){ tx.push(x); tn.push(a); tt.push(b); } }
+    P[0].set({title: '振幅の分布としきい値（1 パルス）', xr: [0, xmax], yr: [0, 0.7], xl: '検波後の振幅（雑音の σ を 1 とする）', yl: '出やすさ（確率密度）', series: [{x: tx, y: tt, color: 's2', fill: 0.25, w: 0.01, noLegend: true, noTip: true}, {x: tx, y: tn, color: 's1', fill: 0.5, w: 0.01, noLegend: true, noTip: true}, {name: '雑音だけ', color: 's1', x: xs, y: fn, w: 2.2}, {name: '目標＋雑音（S/N ' + fx(S.snr, 0) + ' dB）', color: 's2', x: xs, y: ft, w: 2.2}],
+      vl: [{x: Ta, label: 'しきい値 ' + fx(Ta, 2) + 'σ', color: 'text2', w: 1.5, dash: [5, 3]}], notes: [{x: Math.sqrt(2 * s) + 0.6, y: 0.2, t: 'この面積が探知確率 ' + fx(pd, 2), dx: 30, dy: -50}],
+      marks: {noise: {x0: 0, x1: 3.5, t: '雑音だけの分布'}, sig: {x0: Math.sqrt(2 * s) - 2.2, x1: Math.sqrt(2 * s) + 2.5, t: '目標＋雑音の分布'}, tail: {x0: Ta, x1: xmax, t: 'しきい値より右側'}}, tipx: v => '振幅 ' + fx(v, 2), tipy: v => fx(v, 3)});
+    return {pd, tiles: [{k: '誤警報確率（雑音の分布の右側の面積）', v: fP(pfa), s: fOne(pfa)}, {k: '探知確率（目標＋雑音の右側の面積）', v: fx(pd, 3)}, {k: 'しきい値', v: fx(Ta, 2) + ' <small>σ</small>', s: '電力では雑音の平均 +' + fx(db10(T), 1) + ' dB'}]};
+  }});
+
+/* 3 */
+STEPS.push({short: 'S/N と探知確率', title: 'S/N と探知確率 — 目標の「ゆらぎ」で、必要な S/N が変わる', src: '7.1 Introduction（p.7.1）、Optimal Detector（p.7.3）、図7.5（p.7.6）',
+  q: '目標のエコーの強さが、スキャンごとにゆらぐとする（平均の S/N は同じ）。探知確率 0.9 を得るのに必要な S/N は、ゆらがない目標と比べてどうなる？',
+  ch: ['小さくてすむ', '同じ', '大きい S/N が必要'], ans: 2,
+  why: 'ゆらぐ目標は、たまたま弱く見えるスキャンがあります。高い探知確率（0.9 など）を得るには、その「弱いとき」でもしきい値を超える必要があるので、平均の S/N に大きな余裕が要ります。逆に低い探知確率では、たまたま強く見える分だけ有利になります。',
+  read: {
+    ana: '遠くの灯台の光が、いつも同じ明るさなら、ある明るさ以上で必ず見えます。もし光がちらちら揺れていると、平均の明るさは同じでも、暗い瞬間には見えません。「10 回中 9 回見える」ためには、もっと明るい灯台が必要です。',
+    what: '誤警報確率を決めると、探知確率は S/N で決まります。この関係は、強さが一定の目標と、ゆらぐ目標で形が違います。航空機のような目標は、向きがわずかに変わるだけでエコーの強さが大きく変わります。||図の 2 本の[[curve|曲線]]を比べてください。ゆらがない目標は立ち上がりが急です。ゆらぐ目標（Swerling 1 と呼ばれるモデル）はなだらかで、[[p9|探知確率 0.9]] に届くには、ずっと大きな S/N が必要です。',
+    eq: '<i>P</i><sub>D</sub> = <i>P</i><sub>fa</sub><sup> 1 / (1 + S/N)</sup>',
+    sym: '<i>P</i><sub>D</sub>：探知確率。<i>P</i><sub>fa</sub>：誤警報確率。S/N：平均の信号対雑音比（dB ではなく比）。{H}これは 1 パルス・Swerling 1 の場合に成り立つ、一般に知られた式です。ハンドブックのこの部分には、この式そのものは書かれていません。',
+    mis: '「S/N が 10 dB あれば必ず見つかる」わけではありません。探知確率は、S/N・誤警報確率・目標のゆらぎ方の 3 つで決まります。'},
+  hosoku: ['灯台のたとえ', 'Swerling モデルの定義（スキャンごとに変わる、電力が指数分布）', '式 Pd = Pfa^(1/(1+S/N))（1 パルス・Swerling 1 の一般に知られた式）', '全パルス同じ強さとして計算していること（ハンドブックの図7.5 はアンテナの走査による変化を含む）'],
+  memo: 'つまずきやすい点：横軸が dB（対数）であること。3 dB 右へ行くと S/N は 2 倍。||声かけの例：「探知確率 0.5 のところでは、2 本の曲線の差はどのくらい？ 0.9 では？」「誤警報確率をもっと小さくすると、曲線はどちらへ動くと思う？」',
+  init: {pfa: 3, snr: 8, sw: 0, n: 1}, ctl: ['snr', 'sw'], fixed: ['pfa'], plots: [{h: 290}],
+  mission: {t: 'スキャンごとにゆらぐ目標（Swerling 1）で、探知確率が 0.9 以上になる S/N を見つけよう。', ok: r => S.sw === 1 && r.pd >= 0.9}, sol: {sw: 1, snr: 18.5},
+  draw(P){
+    const pfa = pfaOf(), T = thresholdFor(1, pfa), xs = [], y0 = [], y1 = []; for (let d = -5; d <= 25.01; d += 0.25){ xs.push(d); y0.push(pdNF(1, lin(d), T)); y1.push(Math.pow(pfa, 1 / (1 + lin(d)))); }
+    const f = sw => sw ? Math.pow(pfa, 1 / (1 + lin(S.snr))) : pdNF(1, lin(S.snr), T), pd = f(S.sw);
+    P[0].set({title: '探知確率と S/N（誤警報確率 ' + fP(pfa) + '、1 パルス）', xr: [-5, 25], yr: [0, 1], xl: '目標の S/N [dB]（右ほど強い目標）', yl: '探知確率', series: [{name: 'ゆらぎなし', color: 's1', x: xs, y: y0, w: S.sw === 0 ? 3 : 1.6}, {name: 'スキャンごとにゆらぐ（Swerling 1）', color: 's2', x: xs, y: y1, w: S.sw === 1 ? 3 : 1.6}], hl: [{y: 0.9, label: '探知確率 0.9', left: true}],
+      pts: [{x: S.snr, y: pd, color: S.sw ? 's2' : 's1', r: 6, label: fx(pd, 2), left: pd > 0.7}], marks: {curve: {t: '2 本の曲線'}, p9: {y0: 0.86, y1: 0.94, t: '探知確率 0.9'}}, tipx: v => 'S/N ' + fx(v, 1) + ' dB', tipy: v => fx(v, 3)});
+    return {pd, tiles: [{k: 'いまの探知確率', v: fx(pd, 3), s: S.sw ? 'ゆらぐ目標' : 'ゆらがない目標'}, {k: '同じ S/N で、もう一方のモデルなら', v: fx(f(1 - S.sw), 3)}, {k: 'S/N', v: dbx(S.snr)}]};
+  }});
+
+/* 4 */
+const pdN = n => pdFixed(0, n, lin(S.snr), thresholdFor(n, pfaOf()));
+STEPS.push({short: '積分', title: '積分 — 何パルスか足し合わせて、弱い目標を見えるようにする', src: 'Practical Detectors（p.7.3–7.6、式7.5、図7.3〜7.5）',
+  q: '1 パルスでは雑音に埋もれてしまう弱い目標。8 パルス分の受信の強さを足し合わせてから判定すると、探知確率はどうなる？（誤警報確率は同じにそろえる）',
+  ch: ['上がる', '変わらない（雑音も一緒に足されるから）', '下がる'], ans: 0,
+  why: '足し合わせると、目標の成分は毎回積み上がります。雑音も足されますが、大きいときと小さいときが平均されて、でこぼこが目立たなくなります。そのため、しきい値を平均の近くまで下げられ、弱い目標でも超えられるようになります。',
+  read: {
+    ana: 'サイコロを 1 回振って「6 が出やすいサイコロかどうか」を見抜くのは無理ですが、100 回振れば、偏りがはっきり分かります。1 回ごとのばらつきは、回数を重ねると平均されて小さくなるからです。',
+    what: 'アンテナが目標を横切る間には、何発ものパルスが当たります。その受信の強さを足し合わせることを積分（integration）と呼びます。代表的な方法が移動窓積分器（moving-window integrator）で、直近 n パルスの和を、1 パルスごとに更新します。||上の図は 1 つの距離セルをパルスごとに見たもの、下の図は[[win|移動窓の出力]]です。足し合わせるパルスを増やすと、雑音のでこぼこが小さくなり、[[tgt4|目標のいる区間]]がしきい値を超えるようになります。',
+    eq: '<i>S</i><sub>i</sub> = <i>S</i><sub>i−1</sub> + <i>x</i><sub>i</sub> − <i>x</i><sub>i−n</sub>',
+    sym: '<i>S</i><sub>i</sub>：<i>i</i> 番目のパルスまでの、直近 <i>n</i> パルスの和。<i>x</i><sub>i</sub>：<i>i</i> 番目のパルスの受信の強さ。新しい値を足し、<i>n</i> 個前の値を引くだけで更新できます。',
+    mis: '「n パルス足せば、n 倍弱い目標まで見える」わけではありません。検波した後で足す積分（非コヒーレント積分）の効果は、n 倍より小さくなります。'},
+  hosoku: ['サイコロのたとえ', '目標が n パルスの間だけ同じ強さで見えるとした場面設定（ビームの形は平ら）', '雑音のでこぼこが平均されるという説明'],
+  memo: 'つまずきやすい点：下の図は「平均」で描いているので、雑音の高さ（0 dB）は変わらず、でこぼこだけが小さくなる。||声かけの例：「n を 4 倍にすると、しきい値は何 dB 下がった？」「移動窓の弱点は何だろう？（強い干渉パルス 1 発。次のステップ）」',
+  init: {snr: 3, n: 1, pfa: 3}, ctl: ['n'], fixed: ['snr', 'pfa'], plots: [{h: 150}, {h: 190}], acts: [{t: '別のデータにする', f: () => { S.seed++; }}],
+  mission: {t: '探知確率が 0.9 以上になる、いちばん少ないパルス数を見つけよう。', ok: r => r.pd >= 0.9 && (S.n === 1 || pdN(S.n - 1) < 0.9)}, sol: {n: 12},
+  draw(P){
+    const n = S.n, T = thresholdFor(n, pfaOf()), seq = pulseSeq({n, snr: S.snr, sw: 0}, S.seed), mov = movingSum(seq.x, n), xdb = new Float64Array(NPS), ydb = new Float64Array(NPS - n + 1), pts = [], Tdb = db10(T / n), pd = pdN(n);
+    for (let i = 0; i < NPS; i++) xdb[i] = db10(seq.x[i]); for (let i = n - 1; i < NPS; i++){ ydb[i - n + 1] = db10(mov[i] / n); if (mov[i] > T) pts.push(i >= seq.p0 && i <= seq.p0 + 2 * n - 2 ? {x: i, y: ydb[i - n + 1], color: 'ok', r: 3.5} : {x: i, y: ydb[i - n + 1], color: 'ng', shape: 'x', r: 3}); }
+    const band = [{x0: seq.p0 - 0.5, x1: seq.p0 + n - 0.5, color: 'band3', label: '目標がいる間'}];
+    P[0].set({title: '1 つの距離セルの、パルスごとの受信の強さ', xr: [-1, NPS], yr: [-20, 20], xl: '', yl: '強さ [dB]', series: [{name: '各パルス', color: 's1', x0: 0, dx: 1, y: xdb, stem: true, base: -20, mk: 2, w: 1.2}], bands: band, marks: {tgt4: {x0: seq.p0 - 0.5, x1: seq.p0 + n - 0.5, t: '目標のいる区間'}}, noHover: true});
+    P[1].set({title: '移動窓の出力（直近 ' + n + ' パルスの平均）としきい値', xr: [-1, NPS], yr: [-8, 14], xl: 'パルスの番号（時間の順）', yl: '強さ [dB]（雑音の平均 = 0）', series: [{name: '移動窓の出力', color: 's1', x0: n - 1, dx: 1, y: ydb, w: 1.8}], hl: [{y: Tdb, label: 'しきい値 +' + fx(Tdb, 1) + ' dB', color: 's2', dash: [6, 3]}], pts, bands: [{x0: seq.p0 - 0.5, x1: seq.p0 + n - 0.5, color: 'band3'}], marks: {win: {t: '移動窓の出力'}}, tipx: v => 'パルス ' + Math.round(v), tipy: v => fx(v, 1) + ' dB'});
+    return {pd, tiles: [{k: '探知確率（理論）', v: fx(pd, 3), s: n + ' パルスの積分'}, {k: 'しきい値', v: '+' + fx(Tdb, 1) + ' <small>dB</small>', s: '雑音の平均の ' + ratioTxt(Tdb)}, {k: '1 パルスだけなら', v: fx(pdN(1), 3), s: 'S/N ' + fx(S.snr, 0) + ' dB の目標'}]};
+  }});
+
+/* 5 */
+const pdB = M => pdBinary(0, 8, M, lin(S.snr), binP0(8, M, pfaOf()));
+STEPS.push({short: '2 値積分', title: '2 値積分（M-out-of-N）— 強さを足す代わりに、回数を数える', src: 'Binary Integrator（p.7.7–7.9、式7.9・7.10）、Batch Processor（p.7.10–7.11）、Summary（p.7.20–7.21）',
+  q: '8 パルスのうち 1 発だけ、目標ではない非常に強い干渉パルスが混ざった。だまされて誤警報を出しにくいのは、どちらの方式？',
+  ch: ['8 パルスの強さを足す方式（移動窓）', 'しきい値を超えた回数を数える方式（2 値積分）', 'どちらも同じ'], ans: 1,
+  why: '強さを足す方式では、1 発が極端に大きいと、それだけで和がしきい値を超えてしまいます。回数を数える方式では、どんなに大きくても「1 回」としか数えないので、M 回に届かず、だまされません。',
+  read: {
+    ana: '多数決を考えます。8 人の審査員のうち 5 人以上が「合格」と言えば合格、というルールなら、1 人が飛び抜けて大きな声で「合格！」と叫んでも、結果は変わりません。声の大きさではなく、人数で決めるからです。',
+    what: '2 値積分（binary integration）は、パルスごとに[[t1|第 1 のしきい値]]と比べて 0 か 1 にし、直近 N パルスのうち 1 が[[cnt|M 個以上]]あれば検出とします。「N 回中 M 回」方式とも呼びます。||強さの情報を捨てるので、移動窓より感度は少し落ちます。その代わり、作りやすく、1 発だけの強い干渉にだまされず、雑音の分布が想定と違う場合にも強い、という利点があります。パルスが 2〜4 個と少ないときは、この方式がすすめられています。',
+    eq: '<i>M</i> ≈ 1.5·√<i>N</i>',
+    sym: '<i>M</i>：「検出」とするのに必要な回数（第 2 のしきい値）。<i>N</i>：数える対象のパルスの数。N = 8 なら M ≈ 4.2。この目安で選ぶと、最も良い M との差は小さい（ハンドブックでは 0.2 dB 以内）とされています。',
+    mis: '「M は小さいほど見つけやすい」とは限りません。M を小さくすると、誤警報確率を保つために第 1 のしきい値を高くする必要があり、かえって探知確率が下がります。'},
+  hosoku: ['多数決のたとえ', '干渉パルスを 1 発（+30 dB）入れた場面設定', '探知確率の計算（二項分布）'],
+  memo: 'つまずきやすい点：しきい値が 2 つあること（パルスごとの第 1、回数の第 2）。M を変えると第 1 のしきい値も一緒に動く。||声かけの例：「M = 1 と M = 8 は、それぞれどんな弱点がある？」「上の図の赤い線（第 1 のしきい値）は、M を増やすとなぜ下がる？」',
+  init: {snr: 6, n: 8, M: 1, pfa: 3}, ctl: ['M'], fixed: ['snr', 'pfa'], plots: [{h: 160}, {h: 150}], acts: [{t: '別のデータにする', f: () => { S.seed++; }}],
+  mission: {t: '探知確率がいちばん高くなる M を見つけよう（式の目安 1.5·√8 ≈ 4.2 と比べてみよう）。', ok: r => r.best === S.M}, sol: {M: 4},
+  draw(P){
+    const M = S.M, pfa = pfaOf(), p0 = binP0(8, M, pfa), T1 = -Math.log(p0), T = thresholdFor(8, pfa), seq = pulseSeq({n: 8, snr: S.snr, sw: 0, spike: true}, S.seed), cnt = movingCount(seq.x, 8, T1), mov = movingSum(seq.x, 8), lo = [], lx = [], hi = [], hx = [], pts = [];
+    for (let i = 0; i < NPS; i++){ const v = db10(seq.x[i]); if (seq.x[i] > T1){ hx.push(i); hi.push(v); } else { lx.push(i); lo.push(v); } }
+    let fooled = false, best = 1; for (let i = 7; i < NPS; i++){ if (cnt[i] >= M) pts.push(i >= seq.p0 && i <= seq.p0 + 14 ? {x: i, y: cnt[i], color: 'ok', r: 3.5} : {x: i, y: cnt[i], color: 'ng', shape: 'x', r: 3}); if (mov[i] > T && i >= seq.spikeAt && i < seq.spikeAt + 8) fooled = true; }
+    for (let k = 2; k <= 8; k++) if (pdB(k) > pdB(best)) best = k;
+    P[0].set({title: 'パルスごとの受信の強さと、第 1 のしきい値', xr: [-1, NPS], yr: [-20, 40], xl: '', yl: '強さ [dB]', series: [{name: '0（しきい値以下）', color: 'ref', x: lx, y: lo, stem: true, base: -20, mk: 2, w: 1.2}, {name: '1（しきい値を超えた）', color: 's2', x: hx, y: hi, stem: true, base: -20, mk: 2.4, w: 1.6}],
+      hl: [{y: db10(T1), label: '第 1 のしきい値', color: 's2', dash: [6, 3]}], bands: [{x0: seq.p0 - 0.5, x1: seq.p0 + 7.5, color: 'band3', label: '目標がいる間'}], notes: [{x: seq.spikeAt, y: 30, t: '干渉パルス（1 発だけ）', dx: 30, dy: 10}], marks: {t1: {y0: db10(T1) - 3, y1: db10(T1) + 3, t: '第 1 のしきい値'}}, noHover: true});
+    P[1].set({title: '直近 8 パルスのうち、1 だった回数', xr: [-1, NPS], yr: [0, 8.6], xl: 'パルスの番号（時間の順）', yl: '回数', series: [{name: '1 の回数', color: 's2', x0: 0, dx: 1, y: cnt, w: 1.8}], hl: [{y: M, label: '検出とする回数 M = ' + M, color: 's1', dash: [6, 3]}], pts, bands: [{x0: seq.p0 - 0.5, x1: seq.p0 + 7.5, color: 'band3'}], marks: {cnt: {y0: M - 0.4, y1: 8.4, t: 'M 個以上'}}, tipx: v => 'パルス ' + Math.round(v), tipy: v => fx(v, 0) + ' 回'});
+    return {best, tiles: [{k: '探知確率（2 値積分、理論）', v: fx(pdB(M), 3), s: '8 回中 ' + M + ' 回以上'}, {k: '1 パルスが「1」になる確率（雑音だけ）', v: fP(p0), s: '全体の誤警報確率を ' + fP(pfa) + ' にする値'}, {k: '強さを足す方式なら（同じデータ）', v: fooled ? '干渉で誤警報' : '誤警報なし', s: '探知確率は ' + fx(pdFixed(0, 8, lin(S.snr), T), 3)}]};
+  }});
+
+/* 6 */
+STEPS.push({short: '固定しきい値の問題', title: '固定しきい値の問題 — 背景の強さが場所で変わると、破綻する', src: '7.2 Automatic Detection（p.7.2）、False-Alarm Control（p.7.11）',
+  q: '雑音に合わせて決めたしきい値のまま、雑音の約 30 倍（15 dB）強いクラッタが残っている区間を見ると、どうなる？',
+  ch: ['何も起きない', 'その区間が誤警報だらけになる', 'その区間の目標が見やすくなる'], ans: 1,
+  why: 'しきい値は「雑音だけなら、めったに超えない高さ」に決めてあります。背景が 30 倍強い区間では、ほとんどのセルがその高さを超えてしまい、誤警報だらけになります。かといって全体のしきい値を上げると、クラッタのない場所の弱い目標まで見逃します。',
+  read: {
+    ana: '静かな部屋に合わせて「この大きさ以上の音がしたら知らせる」と決めた装置を、工事現場に持っていくと、ずっと鳴りっぱなしになります。鳴らないように設定を上げると、今度は静かな部屋の小さな物音に気づけなくなります。',
+    what: 'ここまでは、雑音の強さがどのセルでも同じ、という前提でした。実際には、陸地・海面・雨などの[[cl6|クラッタ]]が残る場所では、背景がずっと強くなります。固定のしきい値のままでは、膨大な誤警報が出て、後ろにつながる追尾の処理があふれます。||[[thr6|しきい値]]を全体に上げれば誤警報は止まりますが、クラッタのない場所の感度まで下がります。必要なのは、場所ごとに背景の強さに合わせたしきい値です。',
+    eq: '<i>P</i><sub>fa</sub>（クラッタの中）= <i>P</i><sub>fa</sub>（雑音だけ）<sup> 1 / (1 + C/N)</sup>',
+    sym: 'C/N：クラッタと雑音の電力の比（dB ではなく比）。{H}この式は、1 パルス・背景がレイリー分布の場合に導ける関係です。C/N が 15 dB（約 32 倍）なら、1/1000 が約 0.81 に跳ね上がります。',
+    mis: '「誤警報が多いなら、しきい値を上げればよい」は、半分だけ正解です。誤警報は止まりますが、全体の感度が、いちばん背景の強い場所に合わせて下がってしまいます。'},
+  hosoku: ['工事現場のたとえ', 'クラッタを「一定の強さの区間で、雑音と同じ分布、セルごとに独立」としたモデル', 'クラッタの中の誤警報確率の式'],
+  memo: 'つまずきやすい点：クラッタの区間で起きているのは「目標の検出」ではなく誤警報であること。||声かけの例：「しきい値を 15 dB 上げたとき、雑音の中の目標1 の探知確率はいくつになった？」「場所ごとに違うしきい値を使うには、何が分かればいい？（次のステップ）」',
+  init: {cnr: 15, edge: 120, t3: true, s3: 30, snr: 12, pfa: 3, up: 0}, ctl: ['up'], fixed: ['cnr'], plots: [{h: 290}], acts: [{t: '別のデータにする', f: () => { S.seed++; }}], do: 'スライダーを動かして確かめよう（' + LEG + '）',
+  mission: {t: 'クラッタの区間の誤警報を 2 個以下にしよう。そのとき、雑音の中にいる目標1 がどうなったかも確かめよう。', ok: r => r.faC <= 2}, sol: {up: 17},
+  draw(P){
+    const sc = scenario(S), d = genScan(sc, S.seed), ev = evalDet(sc, d, 'fixed'), th = theory(sc, 'fixed'), Tdb = db10(ev.thr[0]); let faC = 0; for (let c = sc.edge; c < NC; c++) if (ev.hits[c] && !ev.isT[c]) faC++;
+    P[0].set(profCfg(sc, d, ev, {title: '固定しきい値による判定（1 スキャン分）', ymax: 45, thrName: 'しきい値（どこでも同じ）', marks: {cl6: {x0: sc.edge, x1: NC - 1, t: 'クラッタ'}, thr6: {y0: Tdb - 1.5, y1: Tdb + 1.5, t: 'しきい値'}}}));
+    return {faC, msHint: 'クラッタの区間の誤警報 ' + faC + ' 個', tiles: [{k: 'クラッタの区間の誤警報（このスキャン）', v: faC + ' <small>個</small>', s: '誤警報確率（理論）' + fP(th.pfa[1])}, {k: '雑音の中の目標1 の探知確率（理論）', v: fx(th.pd[0], 3), s: ev.hits[sc.tg[0].cell] ? 'このスキャンでは検出' : 'このスキャンでは見逃し'}, {k: 'しきい値', v: '+' + fx(Tdb, 1) + ' <small>dB</small>', s: '雑音の平均の ' + ratioTxt(Tdb)}]};
+  }});
+
+/* 7 */
+STEPS.push({short: 'セル平均 CFAR', title: 'セル平均 CFAR — 周りのセルから背景の強さを測って、しきい値を決める', src: 'Adaptive Thresholding（p.7.11–7.13、図7.12・7.13、式7.12）',
+  q: 'セル平均 CFAR は、注目するセルの周りのセルの平均から、しきい値を作る。背景が 30 倍強いクラッタの区間に入ると、しきい値はどうなる？',
+  ch: ['変わらない', '背景と一緒に上がる', '下がる'], ans: 1,
+  why: 'しきい値は「周りのセルの平均 × 一定の係数」です。背景が強い場所では、周りのセルの平均が大きくなるので、しきい値も同じ割合で上がります。そのため、背景の強さによらず、誤警報確率がほぼ一定に保たれます。',
+  read: {
+    ana: 'にぎやかな場所でも静かな場所でも、人は「周りの音より目立って大きい音」に気づきます。周りがうるさければ、気づく基準が自然に上がります。セル平均 CFAR は、この「周りと比べる」判定を、計算で行います。',
+    what: 'セル平均 CFAR（cell-averaging CFAR）は、[[cut|注目セル]]の前後にある[[ref|参照セル（reference cells）]]の平均から背景の強さを推定し、それに係数を掛けてしきい値にします。CFAR は「一定誤警報率」の略です。||前提は、参照セルの背景が注目セルと同じ強さであることです。注目セルのすぐ隣は、目標のエコーがもれて入るのを避けるため、参照に使いません（ガードセル）。「動かす」を押して、窓が滑っていく様子を見てください。',
+    eq: 'しきい値 = α ×（参照セルの平均）',
+    sym: 'α：ねらう誤警報確率と参照セルの数から決まる係数（背景の強さにはよらない）。参照セルの平均：注目セルの前後の参照セルの、受信の強さの平均。{H}1 パルス・参照セル m 個のとき、α = m·(P<sub>fa</sub><sup>−1/m</sup> − 1)。',
+    mis: '「CFAR はクラッタを消す」のではありません。しきい値をクラッタの上に持ち上げるだけです。クラッタより弱い目標は、CFAR でも検出できません。'},
+  hosoku: ['にぎやかな場所のたとえ', '「ガードセル」という呼び名と、もれ込みを避けるという説明（ハンドブックの式7.12・図7.13 でも両隣の 1 セルは参照から外れている）', '係数 α の式', '2 乗検波（電力）で計算していること'],
+  memo: 'つまずきやすい点：しきい値の線は、セルごとに別々に計算した値をつないだもの。||声かけの例：「注目セルをクラッタの境目に置くと、しきい値はどうなっている？」「目標3 が検出できるのは、クラッタより何 dB 強いから？」',
+  init: {cnr: 15, edge: 120, t3: true, s3: 30, snr: 12, pfa: 3, pos: 40, m: 16, g: 1}, ctl: ['pos'], fixed: ['m', 'cnr'], plots: [{h: 250}, {h: 160}], do: 'スライダーを動かして確かめよう（' + LEG + '）',
+  acts: [{t: '▶ 動かす', play: {k: 'pos', min: 0, max: 199, step: 1, ms: 70}}, {t: '別のデータにする', f: () => { S.seed++; }}],
+  mission: {t: '注目セルを、クラッタの中にいる目標3（セル 145）に合わせて、検出されることを確かめよう。', ok: r => S.pos === 145 && r.hit}, sol: {pos: 145},
+  draw(P){
+    const sc = scenario(S), d = genScan(sc, S.seed), ev = evalDet(sc, d, 'ca'), pos = S.pos, h = sc.m / 2, g = sc.g, w = h + g + 4, xr = [], yr_ = [], xg = [], yg = [], val = c => db10(d.Y[c + MARG]);
+    for (let c = pos - w; c <= pos + w; c++){ if (c + MARG < 0 || c + MARG >= NT) continue; const a = Math.abs(c - pos); if (a > g && a <= g + h){ xr.push(c); yr_.push(val(c)); } else if (a){ xg.push(c); yg.push(val(c)); } }
+    const est = db10(ev.est[pos]), thr = db10(ev.thr[pos]), hit = !!ev.hits[pos];
+    P[0].set(profCfg(sc, d, ev, {title: 'セル平均 CFAR のしきい値と判定（1 スキャン分）', ymax: 45, thrName: 'しきい値（セルごとに決まる）', bands: [{x0: pos - g - h - 0.5, x1: pos - g - 0.5, color: 'band'}, {x0: pos + g + 0.5, x1: pos + g + h + 0.5, color: 'band'}], vl: [{x: pos, label: '注目セル', color: 'text2'}],
+      marks: {cut: {x0: pos - 1, x1: pos + 1, t: '注目セル'}, ref: {x0: pos - g - h, x1: pos + g + h, t: '参照セル（前後 ' + h + ' 個ずつ）'}}}));
+    P[1].set({title: '注目セルのまわりを拡大', xr: [pos - w - 0.7, pos + w + 0.7], yr: [-15, 45], xl: '距離セルの番号', yl: '強さ [dB]', noHover: true, series: [{name: '参照セル', color: 's1', x: xr, y: yr_, stem: true, base: -15, mk: 3, w: 2}, {name: 'ガードセル・窓の外', color: 'ref', x: xg, y: yg, stem: true, base: -15, mk: 2.5, w: 1.5}, {name: '注目セル', color: 's2', x: [pos], y: [val(pos)], stem: true, base: -15, mk: 4.5, w: 3}],
+      hl: [{y: est, label: '参照セルの平均', color: 's1', left: true}, {y: thr, label: 'しきい値 = 平均 +' + fx(thr - est, 1) + ' dB', color: 's2', dash: [6, 3]}]});
+    return {hit, tiles: [{k: '参照セルの平均（背景の推定）', v: fx(est, 1) + ' <small>dB</small>'}, {k: 'しきい値', v: fx(thr, 1) + ' <small>dB</small>', s: '平均の ' + ratioTxt(thr - est) + '（係数 α）'}, {k: '注目セル ' + pos + ' の判定', v: hit ? '検出' : '検出なし', s: '強さ ' + fx(val(pos), 1) + ' dB'}]};
+  }});
+
+/* 8 */
+const _l8 = new Map();
+function loss8(n, m){ const k = n + '/' + m; let v = _l8.get(k); if (v === undefined){ v = cfarLoss(0, n, m, 1e-6, 0.9); _l8.set(k, v); } return v; }
+STEPS.push({short: 'CFAR 損失', title: 'CFAR 損失 — 背景を「推定」する分だけ、感度が少し下がる', src: 'Adaptive Thresholding（p.7.12、表7.1）',
+  q: '参照セルの数を減らすと、同じ探知確率を得るのに必要な S/N はどうなる？',
+  ch: ['小さくなる', '変わらない', '大きくなる（損失が増える）'], ans: 2,
+  why: '参照セルが少ないと、背景の強さの推定がスキャンごとに大きくばらつきます。たまたま低く見積もったときに誤警報が増えないよう、係数を大きめにする必要があり、その分だけ目標が見つけにくくなります。これが CFAR 損失です。',
+  read: {
+    ana: 'クラスの平均点を知りたいとき、3 人だけに聞いた平均は、聞く相手によって大きく変わります。30 人に聞けば、ほぼ正しい値になります。あてにならない平均をもとに合格ラインを決めるなら、安全のために余裕を大きく取るしかありません。',
+    what: 'CFAR のしきい値は、有限個の参照セルから推定した背景の強さで決めます。推定がばらつく分、背景の強さが正確に分かっている場合より、しきい値を高めにしなければなりません。同じ探知確率を得るために余分に必要な S/N が、[[loss|CFAR 損失（CFAR loss）]]です。||参照セルが多いほど、また足し合わせるパルスが多いほど、損失は小さくなります。図の[[tbl|白い丸]]はハンドブックの表の値です。目安は、損失が 1 dB 未満になるだけの参照セルを使うことです。',
+    eq: 'CFAR 損失 [dB] =（CFAR での所要 S/N）−（背景が既知のときの所要 S/N）',
+    sym: '所要 S/N：決めた誤警報確率と探知確率（図では 10⁻⁶ と 0.9）を得るのに必要な S/N [dB]。ハンドブックの表7.1 の例：1 パルスで参照セル 10 個なら 3.5 dB、10 パルスで 10 個なら 0.7 dB。',
+    mis: '「参照セルは多いほど良い」とは限りません。窓が長くなると、背景の強さが途中で変わったり、別の目標が入り込んだりして、「背景は一様」という前提が崩れます（次のステップ）。'},
+  hosoku: ['平均点のたとえ', '損失の計算方法（ゆらぎなし・2 乗検波・セル平均として、所要 S/N の差を計算）'],
+  memo: 'つまずきやすい点：損失は「誤警報確率を守るための保険料」であること。||声かけの例：「1 パルスで損失 1 dB 未満にするには、参照セルは何個くらい要る？」「参照セルを 64 個にしたら、窓の長さは距離で何 m になる？（セルの幅しだい）」',
+  init: {m: 2, n: 10, pfa: 6}, ctl: ['m'], fixed: ['pfa', 'n'], fixT: ['探知確率 0.9'], plots: [{h: 290}],
+  mission: {t: '10 パルスを足し合わせる場合に、CFAR 損失が 1 dB 未満になる、いちばん少ない参照セルの数を見つけよう。', ok: r => r.L < 1 && (S.m <= 2 || loss8(10, S.m - 2) >= 1)}, sol: {m: 8},
+  draw(P){
+    const ML = [1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 32, 48, 64], ser = [], pts = [], cols = {1: 's2', 10: 's1'};
+    for (const nn of [1, 10]){ const x = [], y = []; for (const mm of ML){ if (nn === 1 && mm < 2) continue; x.push(Math.log2(mm)); y.push(loss8(nn, mm)); } ser.push({name: nn + ' パルス', color: cols[nn], x, y, w: nn === 10 ? 2.6 : 1.6}); for (const mm of [1, 2, 3, 5, 10]) if (TAB71[nn][mm] !== undefined) pts.push({x: Math.log2(mm), y: TAB71[nn][mm], color: cols[nn], hollow: true, r: 4.5, clipY: true}); }
+    const L = loss8(10, S.m); pts.push({x: Math.log2(S.m), y: L, color: 's1', r: 6.5, label: fx(L, 2) + ' dB', clipY: true});
+    P[0].set({title: 'CFAR 損失と参照セルの数（誤警報確率 10⁻⁶、探知確率 0.9）', xr: [-0.2, 6.2], yr: [0, 12], xl: '参照セルの数', yl: 'CFAR 損失 [dB]（余分に必要な S/N）', xticks: [[0, '1'], [1, '2'], [2, '4'], [3, '8'], [4, '16'], [5, '32'], [6, '64']], series: ser, hl: [{y: 1, label: '目安：1 dB', left: false}], pts,
+      marks: {loss: {x0: Math.log2(S.m) - 0.3, x1: Math.log2(S.m) + 0.3, y0: 0, y1: Math.min(11.5, L + 1), t: 'CFAR 損失'}, tbl: {t: '白い丸＝ハンドブックの表7.1 の値'}}, tipx: v => '参照セル ' + fx(Math.pow(2, v), 0) + ' 個', tipy: v => fx(v, 2) + ' dB'});
+    return {L, tiles: [{k: 'CFAR 損失（10 パルス、参照セル ' + S.m + ' 個）', v: fx(L, 2) + ' <small>dB</small>', s: '必要な S/N が電力で ' + ratioTxt(L)}, {k: '1 パルスだけの場合', v: fx(loss8(1, S.m), 1) + ' <small>dB</small>', s: '同じ参照セル数で'}]};
+  }});
+
+/* 9 */
+const _m9 = {key: ''};
+function mc9(){ const key = JSON.stringify(S); if (_m9.key !== key){ _m9.key = key; const acc = mcNew(scenario(S), [S.cfar]); mcRun(acc, 400); _m9.pd = acc.det[S.cfar][0] / 400; } return _m9.pd; }
+STEPS.push({short: '苦手な場面と対策', title: 'CFAR が苦手な場面と対策 — 参照セルが「一様」でないとき', src: 'Target Suppression（p.7.16–7.17、式7.16）、Nonparametric Detectors（p.7.17–7.18）、Target Resolution（p.7.19–7.20、表7.2）',
+  q: '見つけたい目標のすぐ近く（参照セルの中）に、もっと強い別の目標がある。セル平均 CFAR では、弱い方の目標はどうなる？',
+  ch: ['変わらず検出できる', '検出されにくくなる', 'かえって検出しやすくなる'], ans: 1,
+  why: '強い目標が参照セルに入ると、「周りの平均」が実際の背景より大きく見積もられます。その結果しきい値が持ち上がり、弱い方の目標が届かなくなります。これを目標の抑圧（マスキング）と呼びます。',
+  read: {
+    ana: 'クラスの平均点で合格ラインを決めるとき、1 人だけ飛び抜けた高得点の人がいると、平均が引き上げられて、ラインが不当に高くなります。「いちばん高い 2 人を除いて平均する」などの工夫で、影響を減らせます。',
+    what: 'セル平均 CFAR は、参照セルが注目セルと同じ強さの背景だけ、という前提に立っています。参照セルに[[big|別の目標]]が入ると、[[up9|しきい値が持ち上がり]]、目標が抑圧（target suppression）されます。クラッタの境目でも、同じように前提が崩れます。||対策の考え方は 2 つです。(1) 大きな値をしきい値の計算から除く（大きいものから何個かを除いて平均する、前後のうち平均の小さい側だけを使う）。(2) 対数をとるなどして、大きな値の影響を小さくする（対数ビデオ）。どれも、代わりに損失が少し増えます。',
+    eq: '<i>M</i><sub>log</sub> = 1.65·<i>M</i><sub>lin</sub> − 0.65',
+    sym: '<i>M</i><sub>log</sub>：対数ビデオの CFAR で必要な参照セルの数。<i>M</i><sub>lin</sub>：同じ損失になる、ふつう（リニア）の CFAR の参照セルの数。対数ビデオは大きな値に強い代わりに、参照セルが約 1.65 倍必要です。',
+    mis: '「工夫した CFAR にすれば、どんな場面でも大丈夫」ではありません。除ける個数より多くの目標が入れば効きませんし、どの方式も一様な背景での損失は、セル平均より少し大きくなります。'},
+  hosoku: ['平均点から高得点者を除くたとえ', '各方式の係数の求め方（一様な雑音で誤警報確率が設計値になるように決めている）', '探知確率を 400 回の試行で数えていること'],
+  memo: 'つまずきやすい点：しきい値の線が、強い目標の「両脇」で持ち上がること（強い目標が参照セルに入る位置）。||声かけの例：「強い目標が 3 つ並んでいたら、『大きい 2 個を除く』はどうなる？」「順位を使う検出器（ハンドブックでは約 2 dB の損失）は、どんな考え方だろう？」',
+  init: {snr: 13, t2: true, t2off: 4, s2: 25, cfar: 'ca', pfa: 3, m: 16, g: 1}, ctl: ['cfar'], fixed: ['m'], plots: [{h: 290}], acts: [{t: '別のデータにする', f: () => { S.seed++; }}], do: '方式を切り替えて確かめよう（' + LEG + '）',
+  mission: {t: '強い目標の隣にいる目標1 の探知確率（400 回の試行）が、0.5 以上になる方式を選ぼう。', ok: r => r.pd >= 0.5}, sol: {cfar: 'cens'},
+  draw(P){
+    const sc = scenario(S), d = genScan(sc, S.seed), evC = evalDet(sc, d, 'ca'), ev = S.cfar === 'ca' ? evC : evalDet(sc, d, S.cfar), more = [], pd = mc9();
+    if (S.cfar !== 'ca'){ const t = new Float64Array(NC); for (let c = 0; c < NC; c++) t[c] = db10(evC.thr[c]); more.push({name: 'セル平均のしきい値（比較）', color: 'ref', x0: 0, dx: 1, y: t, w: 1.4, dash: [5, 3]}); }
+    const cfg = profCfg(sc, d, ev, {title: 'しきい値と判定（目標1 はセル 60、強い目標2 はセル 64）', xr: [30, 100], ymax: 40, thrName: 'しきい値（' + CFARN[S.cfar] + '）', more, marks: {big: {x0: 63, x1: 65, t: '強い別の目標'}, up9: {x0: 52, x1: 76, y0: 8, y1: 30, t: 'しきい値が持ち上がる'}}});
+    cfg.pts.forEach(p => { if (p.label && p.x === 60) p.left = true; }); P[0].set(cfg);
+    return {pd, msHint: '探知確率 ' + fx(pd, 2), tiles: [{k: '目標1 の探知確率（400 回の試行）', v: fx(pd, 2), s: '強い目標がなければ約 ' + fx(pdCA(0, 1, S.m, lin(S.snr), alphaCA(1, S.m, pfaOf())), 2) + '（セル平均の理論値）'}, {k: 'このスキャンの目標1', v: ev.hits[60] ? '検出' : '見逃し'}, {k: '方式', v: CFARN[S.cfar]}]};
+  }});
+
+/* 10 */
+const CMB0 = 15, _cm = {key: ''};
+function cmSim(){            // クラッタマップ：スキャン 0〜60。目標A は動く（1 スキャンに 1.5 セル）、目標B はスキャン 15 からセル 60 に止まっている
+  const key = JSON.stringify([S.pfa, S.snr, S.cnr, S.edge, S.seed]); if (_cm.key === key) return _cm.v;
+  const K = 0.875, pfa = pfaOf(), A = cmA(K, 1, pfa), rnd = mulberry32(S.seed * 9973 + 271), s = lin(S.snr), Cc = S.cnr > 0 ? lin(S.cnr) : 0, lev = new Float64Array(NT), map = new Float64Array(NT), Ys = [], Ths = [], cellA = [];
+  for (let i = 0; i < NT; i++) lev[i] = 1 + (Cc > 0 && i - MARG >= S.edge ? Cc : 0); for (const c of [30, 100]) lev[c + MARG] += 100;
+  const scan = tg => { const Y = new Float64Array(NT); for (let i = 0; i < NT; i++) Y[i] = -lev[i] * Math.log(1 - rnd()); for (const c of tg){ const i = c + MARG, r = Math.sqrt(-lev[i] * Math.log(1 - rnd())), u = 2 * Math.PI * rnd(), re = Math.sqrt(s) + r * Math.cos(u), im = r * Math.sin(u); Y[i] = re * re + im * im; } return Y; };
+  for (let k = 0; k < 80; k++){ const Y = scan([]); for (let i = 0; i < NT; i++) map[i] = K * map[i] + Y[i]; }
+  let firstMiss = -1;
+  for (let k = 0; k <= 60; k++){ const ca = Math.round(12 + 1.5 * k), tg = [ca]; if (k >= CMB0) tg.push(60); const Y = scan(tg), th = new Float64Array(NT); for (let i = 0; i < NT; i++){ th[i] = A * map[i]; map[i] = K * map[i] + Y[i]; } if (k >= CMB0 && firstMiss < 0 && !(Y[60 + MARG] > th[60 + MARG])) firstMiss = k; Ys.push(Y); Ths.push(th); cellA.push(ca); }
+  _cm.key = key; _cm.v = {A, K, pfa, Cc, lev, Ys, Ths, cellA, firstMiss}; return _cm.v;
+}
+STEPS.push({short: 'クラッタマップ', title: 'クラッタマップ — 同じセルの「過去のスキャン」から、しきい値を決める', src: '7.2（p.7.2）、False-Alarm Control（p.7.11）、Clutter Mapping（p.7.18–7.19、式7.17・7.18）',
+  q: 'クラッタマップは、セルごとに過去のスキャンの平均を覚えて、しきい値にする。あるときから同じ場所にずっと止まっている目標は、その後どうなる？',
+  ch: ['ずっと検出され続ける', '最初は検出されるが、すぐに検出されなくなる', 'だんだん強く検出される'], ans: 1,
+  why: '止まっている目標のエコーは、毎スキャン同じセルに入るので、マップの値を押し上げます。すると、しきい値が目標の強さの上まで上がり、検出されなくなります（この例では、現れた次のスキャンから）。動いている目標は、毎回別のセルに入るので、取り込まれません。',
+  read: {
+    ana: '毎日通る道の景色は、見慣れると気にとまらなくなります。ある日、新しい看板が立つと最初は目に入りますが、数日たつと、それも景色の一部になって気にならなくなります。一方、道を横切る猫は、毎回違う場所にいるので、いつも目にとまります。',
+    what: 'クラッタマップ（clutter map）は、セルごとに過去のスキャンの受信の強さを平均して記憶し、それに係数を掛けたものを[[mapthr|しきい値]]にします。CFAR が「周りのセル」を見るのに対し、クラッタマップは「同じセルの過去」を見ます。||そのため、背景が場所ごとに大きく違っても、時間的に変わらなければ正しく働きます。図のセル 30 と 100 には、建物のような強い[[pc|点状のクラッタ]]がありますが、誤警報になりません。レーダが動かず、周波数が一定のときに有効です。',
+    eq: '<i>S</i><sub>i</sub> = <i>K</i>·<i>S</i><sub>i−1</sub> + <i>X</i><sub>i</sub>　　しきい値 = <i>A</i>·<i>S</i><sub>i−1</sub>',
+    sym: '<i>S</i><sub>i</sub>：<i>i</i> 回目のスキャン後のマップの値。<i>X</i><sub>i</sub>：<i>i</i> 回目のスキャンの受信の強さ。<i>K</i>：1 より少し小さい係数（7/8 なら、過去およそ 8 スキャンの平均にあたる）。<i>A</i>：誤警報確率で決まる係数。',
+    mis: '「クラッタマップがあれば、クラッタの中の目標も見える」わけではありません。見えるのは、クラッタより強い目標か、クラッタのないセルを通る目標です。クラッタそのものを消す処理ではありません。'},
+  hosoku: ['見慣れた景色のたとえ', '止まっている目標がマップに取り込まれるという実験（目標B）と、点状クラッタを置いた場面設定', '係数 A の求め方', '1 スキャン 1 サンプル（積分なし）・K = 7/8 で計算していること'],
+  memo: 'つまずきやすい点：下の図の横軸は「時間（スキャンの回数）」。上の図とは軸が違う。||声かけの例：「目標B が現れた直後の数スキャンは検出できている。なぜ？」「第2回のステップ10 のクラッタマップと、同じ点・違う点は？」',
+  init: {snr: 12, cnr: 15, edge: 120, pfa: 3, ks: 10}, ctl: ['ks'], fixed: ['snr', 'cnr', 'pfa'], fixT: ['マップの重み K = 7/8（約 8 スキャン分の平均）'], plots: [{h: 230}, {h: 170}], do: 'スライダーを動かして確かめよう（' + LEG + '）',
+  acts: [{t: '▶ 再生', play: {k: 'ks', min: 0, max: 60, step: 1, ms: 260, once: true}}, {t: '別のデータにする', f: () => { S.seed++; }}],
+  mission: {t: '止まっている目標B は、スキャン 15 に現れる。初めて見逃されるスキャンを探して、スライダーをその回に合わせよう。', ok: r => S.ks === r.firstMiss}, sol: {},
+  draw(P){
+    const v = cmSim(), k = S.ks, Y = v.Ys[k], th = v.Ths[k], sc = {n: 1, tg: [{id: 'A', cell: v.cellA[k]}].concat(k >= CMB0 ? [{id: 'B', cell: 60}] : []), C: v.Cc, edge: S.edge}, hits = new Uint8Array(NC), isT = new Uint8Array(NC), thr = new Float64Array(NC);
+    for (const t of sc.tg) isT[t.cell] = 1; for (let c = 0; c < NC; c++){ thr[c] = th[c + MARG]; hits[c] = Y[c + MARG] > thr[c] ? 1 : 0; }
+    P[0].set(profCfg(sc, {Y}, {thr, hits, isT}, {title: 'スキャン ' + k + ' 回目：受信の強さと、クラッタマップによるしきい値', ymax: 40, thrName: 'しきい値（セルごとの過去の平均から）', marks: {mapthr: {t: 'しきい値'}, pc: {x0: 28, x1: 32, t: '点状のクラッタ'}}}));
+    const hx = [], hv = [], ht = []; for (let j = 0; j <= 60; j++){ hx.push(j); hv.push(db10(v.Ys[j][60 + MARG])); ht.push(db10(v.Ths[j][60 + MARG])); }
+    P[1].set({title: '目標B のセル（セル 60）を、スキャンごとに見たもの', xr: [0, 60], yr: [-12, 28], xl: 'スキャンの回数（時間の順）', yl: '強さ [dB]', series: [{name: 'このセルの受信の強さ', color: 's1', x: hx, y: hv, w: 1.3, mk: 2.4}, {name: 'しきい値', color: 's2', x: hx, y: ht, w: 2}], vl: [{x: CMB0, label: '目標B が現れる'}, {x: k, label: 'いま', color: 'text2', dash: [2, 2]}], tipx: x => Math.round(x) + ' 回目', tipy: y => fx(y, 1) + ' dB'});
+    return {firstMiss: v.firstMiss, tiles: [{k: 'いまのスキャンの目標B', v: k < CMB0 ? 'まだいない' : hits[60] ? '検出' : '見逃し', s: 'セル 60 に止まっている'}, {k: 'いまのスキャンの目標A', v: hits[v.cellA[k]] ? '検出' : '見逃し', s: 'セル ' + v.cellA[k] + '（動いている）'}, {k: 'マップが平均しているスキャン数', v: '約 8 <small>回分</small>', s: 'K = 7/8'}]};
+  }});
+STEPS[STEPS.length - 1].solFn = () => ({ks: cmSim().firstMiss});
+
+/* 11 */
+const _mg = new Map();
+function mergeCurve(){ const key = String(S.pfa); let c = _mg.get(key); if (c) return c; const T = thresholdFor(1, pfaOf()), x = [], two = []; for (let sp = 0.5; sp <= 4.001; sp += 0.25){ x.push(sp); two.push(mergeProb(sp, 100, 100, T, 600, 9000).two); } c = {x, two}; _mg.set(key, c); return c; }
+STEPS.push({short: '発展：プロット抽出', title: '発展 — 検出をまとめる（プロット抽出）と、2 つの目標の見分け', src: 'Target Resolution（p.7.19–7.21、表7.2、図7.22）、式7.11（p.7.11）、p.7.22',
+  q: '同じ強さの 2 つの目標が、パルス幅の 1.5 倍だけ離れている。「隣り合った検出は 1 つにまとめる」処理をすると、多くの場合どうなる？',
+  ch: ['2 つの目標として出力される', '1 つの目標にまとまって出力される', 'どちらも出力されない'], ans: 1,
+  why: '2 つのエコーのすそが重なり、間のセルもしきい値を超えるので、検出がひと続きになります。ひと続きの検出は 1 つにまとめるので、1 つの目標として出力されます。ハンドブックでは、2 つに分かれる確率が 0.9 を超えるのは、間隔がパルス幅の 2.5 倍になってからとされています。',
+  read: {
+    ana: '夜の道路を遠くから見ると、車のヘッドライトは 2 つの光が 1 つににじんで見えます。近づいて 2 つの光の間に暗いすき間が見えたとき、初めて「2 つある」と分かります。',
+    what: '1 つの目標は、ふつう隣り合う複数のセルでしきい値を超えます。そのまま出力すると 1 つの目標が何個もの検出になるので、[[plot|隣り合う検出をまとめて 1 つ]]にし、その[[cen|重心]]を目標の位置とします。||この処理は、1 つの目標を 2 つに割らないように作ります。その結果、近くにいる 2 つの目標は 1 つにまとまりやすくなり、距離の分解能は悪くなります。なお、ドップラ処理をするレーダでは、CPI 1 回分の出力を「1 パルス」とみなせば、ここまでの検出の話がそのまま使えます。',
+    eq: '重心 = Σ（強さ × 位置） / Σ（強さ）',
+    sym: 'Σ：まとめた検出のセルすべてについて足す、という意味。強さの大きいセルほど、位置の計算に大きく効きます。{H}ハンドブックには、方位について同じ形の式（式7.11）が書かれています。距離方向の重心は、それにならった計算です。',
+    mis: '「分解能は波形（帯域）だけで決まる」わけではありません。検出をまとめる処理のしかたでも変わります。第1回で学んだ c/(2B) は、まとめる処理をする前の話です。'},
+  hosoku: ['ヘッドライトのたとえ', 'パルスの形・サンプル間隔・位相差・固定しきい値などの簡単なモデル（ハンドブックの図7.22 は、対数ビデオで平均の小さい側の参照セルを使う検出器の結果）', '距離方向の重心の計算'],
+  memo: 'つまずきやすい点：2 つの目標のエコーは、位相差によって強め合ったり打ち消し合ったりする。だから同じ間隔でも、分かれるときと分かれないときがある。||声かけの例：「間隔 2 倍のとき、何回に 1 回くらい分かれる？」「目標がもっと強かったら、分かれやすくなる？ なりにくくなる？」',
+  init: {sep: 1.5, pfa: 4}, ctl: ['sep'], fixed: ['pfa'], fixT: ['2 つの目標の強さ どちらも S/N 20 dB（電力 100 倍）'], plots: [{h: 210}, {h: 190}], acts: [{t: '別のデータにする', f: () => { S.seed++; }}],
+  mission: {t: '2 つの目標が、9 割以上の確率で 2 つに分かれて出力される、いちばん小さい間隔を見つけよう。', ok: r => r.p2 >= 0.9 && r.pPrev < 0.9}, sol: {sep: 2.5},
+  draw(P){
+    const T = thresholdFor(1, pfaOf()), tg = mergeTargets(S.sep, 100, 100), Pw = mergeScan({tg}, S.seed + 31), plots = extractPlots(Pw, T), X = i => (i - NM / 2) / SPC, y = new Float64Array(NM), c = mergeCurve(), ix = Math.round((S.sep - 0.5) / 0.25), p2 = c.two[ix], pPrev = ix > 0 ? c.two[ix - 1] : 0;
+    for (let i = 0; i < NM; i++) y[i] = db10(Pw[i]); const near = plots.filter(q => q.c >= tg[0].pos - 3 && q.c <= tg[1].pos + 3);
+    P[0].set({title: '距離ごとの受信の強さと、まとめた検出（緑の帯）', xr: [-8, 8], yr: [-15, 32], xl: '距離（パルス幅を 1 とする）', yl: '強さ [dB]（雑音 = 0）', series: [{name: '受信の強さ', color: 's1', x0: X(0), dx: 1 / SPC, y, w: 1.5, mk: 2.2}], hl: [{y: db10(T), label: 'しきい値', color: 's2', dash: [6, 3]}],
+      bands: plots.map(q => ({x0: X(q.i0 - 0.5), x1: X(q.i1 + 0.5), color: 'band3'})), vl: tg.map(t => ({x: X(t.pos), color: 'text2', dash: [3, 3]})), pts: plots.map(q => ({x: X(q.c), y: db10(T), color: 's3', r: 5.5})), notes: [{x: 0, y: 28, t: near.length >= 2 ? '2 つに分かれた' : '1 つにまとまった', dx: 60, dy: 0}],
+      marks: {plot: {x0: near.length ? X(near[0].i0 - 0.5) : -1, x1: near.length ? X(near[near.length - 1].i1 + 0.5) : 1, t: 'まとめた検出'}, cen: {x0: near.length ? X(near[0].c) - 0.3 : -0.3, x1: near.length ? X(near[0].c) + 0.3 : 0.3, y0: db10(T) - 4, y1: db10(T) + 4, t: '重心'}}, tipx: v => fx(v, 2), tipy: v => fx(v, 1) + ' dB'});
+    P[1].set({title: '2 つに分かれて出力される割合（各 600 回の試行）', xr: [0.5, 4], yr: [0, 1.05], xl: '2 つの目標の間隔（パルス幅を 1 とする）', yl: '2 つに分かれる割合', series: [{name: '2 つに分かれる割合', color: 's1', x: c.x, y: c.two, w: 2, mk: 2.8}], hl: [{y: 0.9, label: '0.9', left: true}], vl: [{x: S.sep, label: 'いまの間隔', color: 'text2', dash: [2, 2]}], pts: [{x: S.sep, y: p2, color: 's1', r: 6, label: fx(p2, 2), left: S.sep > 3}], tipx: v => '間隔 ' + fx(v, 2), tipy: v => fx(v, 2)});
+    return {p2, pPrev, tiles: [{k: 'このデータでの出力', v: near.length + ' <small>個の目標</small>', s: '本当は 2 個'}, {k: '2 つに分かれる割合（この間隔）', v: fx(p2, 2), s: '600 回の試行'}]};
+  }});
+
+/* 12 */
+const _mc = {key: '', acc: null};
+function mcKey(){ return JSON.stringify([S.det, S.pfa, S.snr, S.sw, S.n, S.m, S.g, S.cnr, S.edge]); }
+function mcGet(){ const k = mcKey(); if (_mc.key !== k){ _mc.key = k; _mc.acc = mcNew(scenario(S), [S.det]); } return _mc.acc; }
+function checkTable4(){
+  const R = runChecks(), lab = {ok: '<span class="ok">一致</span>', info: '<span class="info">差あり</span>', ng: '<span class="ng">不一致</span>'}, sb = t => String(t).replace(/P_D/g, 'P<sub>D</sub>').replace(/P_fa/g, 'P<sub>fa</sub>').replace(/P_N/g, 'P<sub>N</sub>');
+  let h = '<h3>ハンドブックの値との照合</h3><p class="sym">「差あり」は、条件の違いなどで差があるものです（理由は備考）。</p><div class="tw"><table class="t"><tr><th>項目</th><th>ハンドブック（基準）</th><th>このシミュレータ</th><th>判定</th><th>備考</th></tr>';
+  for (const r of R) h += '<tr><td>' + sb(r.item) + '</td><td>' + sb(r.ref) + '</td><td>' + sb(r.calc) + '</td><td>' + lab[r.st] + '</td><td><small>' + r.note + '</small></td></tr>';
+  return h + '</table></div>';
+}
+STEPS.push({short: '自由実験', title: '自由実験とまとめ — 試行を繰り返して、確率を確かめる', src: '第7章 7.1 Introduction、7.2 Automatic Detection（p.7.1–7.22）', free: true,
+  q: '試行を 1,000 回から 11,000 回に増やす。実測した探知確率の「95% 区間」の幅は、およそどうなる？',
+  ch: ['ほとんど変わらない', 'およそ 1/3 になる', 'およそ 1/11 になる'], ans: 1,
+  why: '{H}割合のばらつきは、試行回数の平方根に反比例します。回数を 11 倍にすると、幅は 1/√11、およそ 1/3 になります。誤警報確率のような小さい確率を確かめるには、それだけ多くの試行が必要です。', do: '全部のパラメータを自由に動かせます。「試行」を押すと、乱数を変えたスキャンを繰り返して確率を数えます（' + LEG + '）',
+  read: {
+    ana: 'コインを 10 回投げて表が 7 回出ても、「表の出る確率は 0.7」とは言い切れません。1,000 回、10,000 回と投げるほど、割合は本当の確率に近づきます。探知確率と誤警報確率も、同じように試行を重ねて確かめます。',
+    eq: '<i>P</i><sub>D</sub>（実測）=（検出した回数）/（試行の回数）',
+    sym: '試行の回数：乱数を変えてスキャンを繰り返した回数。検出した回数：そのうち、目標のセルがしきい値を超えた回数。{H}実測の値には試行回数に応じたばらつきがあり、95% 信頼区間で表します。',
+    what: '検出の流れをまとめます。検波 → 何パルスか足し合わせる（積分）→ 背景に合わせたしきい値（CFAR・クラッタマップ）と比べる → 隣り合う検出をまとめる → 追尾へ。||覚えておきたい関係は 4 つです。(1) 誤警報と見逃しは、片方を減らすともう片方が増える。(2) 足し合わせると、弱い目標でも見つけやすくなる。(3) CFAR は、周りのセルから背景を推定してしきい値を決める。推定の分だけ損失がある。(4) 参照セルが一様でないと、CFAR は誤警報や見逃しを起こす。',
+    mis: '1 スキャンの結果だけで「見つかる・見つからない」を判断しないでください。確率は、何度も試行して初めて分かります。「試行」ボタンで数えた値には、試行回数に応じたばらつき（95% 信頼区間）があります。'},
+  hosoku: ['コイン投げのたとえ', '実測の確率の式と、ばらつきが試行回数の平方根に反比例すること', 'まとめの 4 つの関係の整理のしかた', 'モンテカルロ試行と 95% 信頼区間（ウィルソンの方法）'],
+  memo: '声かけの例：「試行 1,000 回で数えた誤警報確率は、ねらった値とぴったり一致する？ しないのはなぜ？」「固定しきい値とセル平均 CFAR で、クラッタの区間の誤警報確率を比べてみよう」',
+  init: {det: 'ca', cnr: 15, edge: 120, t3: true, s3: 30, snr: 10, pfa: 3, n: 1, m: 16, g: 1, sw: 0}, ctl: ['det', 'pfa', 'snr', 'sw', 'n', 'm', 'cnr', 'edge'], fixed: [], plots: [{h: 270}],
+  acts: [{t: '試行 +1,000 回', f: () => { mcRun(mcGet(), 1000); }}, {t: '試行 +10,000 回', f: () => { mcRun(mcGet(), 10000); }}, {t: '別のデータにする', f: () => { S.seed++; }}],
+  mission: {t: 'セル平均 CFAR で、雑音の中の目標1 の探知確率が 0.9 以上になる設定を作り、1,000 回以上の試行で確かめよう。雑音だけの領域の誤警報確率が、ねらった値の 2 倍以内であることも確かめよう。', ok: r => S.det === 'ca' && r.N >= 1000 && r.pd1 >= 0.9 && r.pfaN <= 2 * pfaOf()}, sol: {snr: 16}, solClicks: [0],
+  extra: checkTable4,
+  draw(P){
+    const sc = scenario(S), d = genScan(sc, S.seed), ev = evalDet(sc, d, S.det), acc = mcGet(), N = acc.trials, th = theory(sc, S.det), k1 = acc.det[S.det][0], kf = acc.fa[S.det][0], nf = acc.ncls[0] * N, w1 = wilson(k1, N), wf = wilson(kf, nf), kc = acc.fa[S.det][1], nc = acc.ncls[1] * N;
+    P[0].set(profCfg(sc, d, ev, {title: (S.det === 'ca' ? 'セル平均 CFAR' : '固定しきい値') + 'による判定（1 スキャン分）', ymax: Math.max(35, S.cnr + 25), thrName: 'しきい値'}));
+    return {N, pd1: N ? k1 / N : 0, pfaN: nf ? kf / nf : 1, msHint: N ? '試行 ' + N + ' 回' : 'まだ試行していない', tiles: [
+      {k: '目標1 の探知確率：理論', v: fx(th.pd[0], 3), s: N ? '試行 ' + fx(k1 / N, 3) + '（95% 区間 ' + fx(w1[0], 3) + '〜' + fx(w1[1], 3) + '、' + N + ' 回）' : '「試行」を押すと数えます'},
+      {k: '誤警報確率（雑音だけの領域）：ねらい', v: fP(th.pfa[0]), s: N ? '試行 ' + fP(kf / nf) + '（95% 区間 ' + fP(wf[0]) + '〜' + fP(wf[1]) + '）' : ''},
+      sc.C > 0 ? {k: '誤警報確率（クラッタの内側）：理論', v: fP(th.pfa[1]), s: N && nc ? '試行 ' + fP(kc / nc) : ''} : null,
+      {k: 'このスキャン', v: '検出 ' + ev.nDet + '・見逃し ' + ev.nMiss, s: '誤警報 ' + ev.nFa + ' 個'}]};
+  }});
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# 組み立ての途中で作るファイル
+src/generated/
+# テストのスクリーンショット
+tests/_shots/
+# Python
+__pycache__/
+*.pyc
+# 資料の抜粋など（著作物。リポジトリに入れない）
+*.pdf
