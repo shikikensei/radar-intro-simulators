@@ -36,13 +36,14 @@ ser='''const SERIES = [
   {no: 12, file: '12_eccm.html', name: '電子防護（ECCM）', ready: %(r12)s},
   {no: 13, file: '13_scheduling.html', name: 'ビームのスケジューリング', ready: %(r13)s},
   {no: 14, file: '14_clutter_map.html', name: 'クラッタマップ', ready: %(r14)s},
-  {no: 15, file: '15_radar_equation.html', name: 'レーダ方程式', ready: %(r15)s}];
+  {no: 15, file: '15_radar_equation.html', name: 'レーダ方程式', ready: %(r15)s},
+  {no: 16, file: '16_signal_chain.html', name: '信号を追う（送信から航跡まで）', ready: %(r16)s}];
 '''
 import os
-READY={n: (SRC/'episodes'/('s%d_steps.js'%n)).exists() for n in (0,5,6,7,8,9,10,11,12,13,14,15)}
+READY={n: (SRC/'episodes'/('s%d_steps.js'%n)).exists() for n in (0,5,6,7,8,9,10,11,12,13,14,15,16)}
 ser=ser%{('r%d'%n):('true' if READY[n] else 'false') for n in READY}
 g=g[:i0]+ser+g[i1:]
-g=g.replace('グループ 0＝基礎（補足）、1〜4＝各回','グループ −1＝基礎（補足）、0〜15＝各回')
+g=g.replace('グループ 0＝基礎（補足）、1〜4＝各回','グループ −1＝基礎（補足）、0〜16＝各回')
 n0=len(re.findall(r'^  \[0, ',g,flags=re.M)); g=re.sub(r'^  \[0, ','  [-1, ',g,flags=re.M)
 g+='\n'+rd('gloss_add.js')
 wr(GEN/'fw_gloss2.js',g)

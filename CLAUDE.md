@@ -20,7 +20,7 @@
 リポジトリのいちばん上で実行する。
 
 ```
-python src/build/build2.py 0 5 6 7 8 9 10 11 12 13 14 15 # 第0回、第5回以降を組み立てる
+python src/build/build2.py 0 5 6 7 8 9 10 11 12 13 14 15 16 # 第0回、第5回以降を組み立てる
 python src/build/build.py 1 2 3 4                         # 第1〜4回（ふだんは実行しない）
 python tests/dump.py && python src/build/build_index2.py  # 目次を作り直す
 python tests/stest.py <ファイル名> 1366 768 light a       # 1 つの回のテスト
@@ -83,7 +83,7 @@ python tests/itest.py && python tests/xlink.py            # 目次と、回を�
 
 ## 残っている作業
 
-- 全体をつなぐ回（第16回）：1 つの目標を、送信から航跡まで通して追う。
+- 第17回「レーダを 1 台設計する」：要求から、周波数・アンテナ・電力・波形・処理を決めていく回。第16回の S/N の家計簿を、要求から逆にたどる。
 - 第9〜12回の、問いの正解の位置を散らす。
 - 第14回：クラッタマップの 4 段階表示（雑音に対する dB で色分け）を入れるか検討。
 - Microsoft Edge での確認。

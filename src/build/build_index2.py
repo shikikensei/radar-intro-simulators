@@ -1,4 +1,4 @@
-# 目次（全16本）。完成している回だけリンクし、残りは「準備中」と表示する。
+# 目次（全17本）。完成している回だけリンクし、残りは「準備中」と表示する。
 import json, html, os
 from paths import rd, wr, DOCS, GEN
 D={d['file']:d for d in json.load(open(GEN/'dump.json',encoding='utf-8'))}
@@ -19,7 +19,8 @@ INFO=[
  (12,'12_eccm.html','電子防護（ECCM）','Electronic Counter-Countermeasures','第24章 Electronic Counter-Countermeasures','妨害を受けてもレーダが働き続けるための考え方を、原理のレベルで学びます。','第0回、第4回、第7回',8),
  (13,'13_scheduling.html','ビームのスケジューリング','Beam Scheduling','!もとにした資料：Smouse ほか「Integrated Air and Missile Defense Resource Management」Johns Hopkins APL Technical Digest 35(2), 2020 の前半（p.99–104）／Radar Handbook 3rd ed. §24.11、§7.3','捜索と追尾が、1 本のビームの時間をどう分け合うか。従来の方式と新しい方式を、同じ条件で動かして比べます。','第0回、第5回、第7回',9),
  (14,'14_clutter_map.html','クラッタマップ','Clutter Map','第2章 MTI Radar（§2.2、§2.15）、第7章（§7.2 Clutter Mapping）','場所ごとのクラッタの強さを覚えておき、しきい値を場所ごとに決める方法を学びます。','第0回、第2回、第4回',8),
- (15,'15_radar_equation.html','レーダ方程式','The Radar Equation','第1章 §1.4 The Radar Equation','受信機の雑音、パルスの積分、平均電力、損失、捜索レーダの形まで、レーダ方程式のすべての変数を動かして、探知距離への効き方を確かめます。','第0回、第4回',9)]
+ (15,'15_radar_equation.html','レーダ方程式','The Radar Equation','第1章 §1.4 The Radar Equation','受信機の雑音、パルスの積分、平均電力、損失、捜索レーダの形まで、レーダ方程式のすべての変数を動かして、探知距離への効き方を確かめます。','第0回、第4回',9),
+ (16,'16_signal_chain.html','信号を追う（送信から航跡まで）','Following the Signal','第1章 §1.1 Basic Parts of a Radar（図1.1）と、これまでの各回','1 つの目標のエコーを、送信から航跡まで順に追い、各段階で S/N を何 dB 稼ぐか（失うか）を「家計簿」で確かめます。シリーズ全体をつなぐ回です。','第0回〜第15回（とくに第1・4・5・15回）',9)]
 def ttl(x):
     h,_,r=x.partition(' — ')
     return ('発展：'+r) if h=='発展' else h
@@ -75,7 +76,7 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <body>
 <header class="top">
   <h1>レーダ 入門シミュレータ</h1>
-  <div id="msbar">全 16 回・目次</div>
+  <div id="msbar">全 17 回・目次</div>
   <button class="btn sm" id="glBtn" type="button">用語集</button>
   <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
 </header>
@@ -90,11 +91,11 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
  <p class="cap">受信した信号の処理：消す → 決める → 追う</p>
  <div class="row">'''+box('クラッタを消す','動かない物のエコーを取り除く',[2,3,6])+'<i>→</i>'+box('「ある／ない」を決める','しきい値で検出する。場所ごとの背景を覚える',[4,14])+'<i>→</i>'+box('目標を追う','検出点をつないで航跡にする。角度を精密に測る',[5,8])+'''</div>
  <p class="cap">全体にかかわること・応用</p>
- <div class="row">'''+box('基礎','距離・dB・レーダ方程式・ドップラ・雑音',[0])+box('画像にする','動きながら集めた信号で画像を作る',[11])+box('妨害から守る','妨害の中でも働き続ける工夫',[12])+box('時間を配る','捜索と追尾に、ビームの時間を割り当てる',[13])+box('探知距離を見積もる','レーダ方程式の全部の変数',[15])+'''</div>
+ <div class="row">'''+box('基礎','距離・dB・レーダ方程式・ドップラ・雑音',[0])+box('画像にする','動きながら集めた信号で画像を作る',[11])+box('妨害から守る','妨害の中でも働き続ける工夫',[12])+box('時間を配る','捜索と追尾に、ビームの時間を割り当てる',[13])+box('探知距離を見積もる','レーダ方程式の全部の変数',[15])+box('全体をつなぐ','1 つのエコーを、送信から航跡まで追う',[16])+'''</div>
 </div>
 <p class="sym">受信した信号がたどる処理の順に並べた、おおまかな見取り図です。実際のレーダでは、方式によって使う処理や順番が変わります。</p>
 
-<h2 class="sec">16 回の一覧（上から順に進めるのがおすすめ）</h2>
+<h2 class="sec">17 回の一覧（上から順に進めるのがおすすめ）</h2>
 <div class="cards">
 '''+cards+'''</div>
 

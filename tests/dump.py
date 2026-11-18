@@ -2,7 +2,7 @@ from conf import DOCS, GEN, SHOTS, LAUNCH, URL
 import asyncio, sys, json
 from playwright.async_api import async_playwright
 import os
-ALL=['00_basics.html','01_pulse_compression.html','02_mti.html','03_pulse_doppler.html','04_detection_cfar.html','05_tracking.html','06_amti.html','07_phased_array.html','08_monopulse.html','09_propagation.html','10_rcs.html','11_sar.html','12_eccm.html','13_scheduling.html','14_clutter_map.html','15_radar_equation.html']
+ALL=['00_basics.html','01_pulse_compression.html','02_mti.html','03_pulse_doppler.html','04_detection_cfar.html','05_tracking.html','06_amti.html','07_phased_array.html','08_monopulse.html','09_propagation.html','10_rcs.html','11_sar.html','12_eccm.html','13_scheduling.html','14_clutter_map.html','15_radar_equation.html','16_signal_chain.html']
 FILES=[f for f in ALL if (DOCS/f).exists()]
 JS = r"""
 async () => {
