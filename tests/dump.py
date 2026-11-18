@@ -2,7 +2,7 @@ from conf import DOCS, GEN, SHOTS, LAUNCH, URL
 import asyncio, sys, json
 from playwright.async_api import async_playwright
 import os
-ALL=['00_basics.html','01_pulse_compression.html','02_mti.html','03_pulse_doppler.html','04_detection_cfar.html','05_tracking.html','06_amti.html','07_phased_array.html','08_monopulse.html','09_propagation.html','10_rcs.html','11_sar.html','12_eccm.html','13_scheduling.html','14_clutter_map.html','15_radar_equation.html','16_signal_chain.html','17_design_exercise.html','m01_detection.html']
+ALL=['00_basics.html','01_pulse_compression.html','02_mti.html','03_pulse_doppler.html','04_detection_cfar.html','05_tracking.html','06_amti.html','07_phased_array.html','08_monopulse.html','09_propagation.html','10_rcs.html','11_sar.html','12_eccm.html','13_scheduling.html','14_clutter_map.html','15_radar_equation.html','16_signal_chain.html','17_design_exercise.html']+['m%02d_%s'%(n,s) for n,s in [(1,'detection.html'),(2,'clutter_performance.html'),(3,'waveform_ambiguity.html'),(4,'measurement_accuracy.html'),(5,'array_practice.html'),(6,'propagation_coverage.html'),(7,'resource_budget.html'),(8,'performance_report.html')]]
 FILES=[f for f in ALL if (DOCS/f).exists()]
 JS = r"""
 async () => {

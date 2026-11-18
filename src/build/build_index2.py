@@ -42,7 +42,8 @@ for no,f,name,en,ch,desc,pre,nst in INFO:
 <p class="sym">所要時間の目安：約 %d〜%d 分　／　前提となる回：%s<br>%s</p>
 %s</section>
 '''%('' if ready[no] else ' off',no,name,en,desc,n*5,n*8,pre,(ch[1:] if ch.startswith('!') else 'もとにした章：Radar Handbook 3rd ed. '+ch),act)
-MINFO=[('m01_detection.html','中級 第1回','検出の計算','Detection Performance Calculation','第4章 §4.6 Range Performance（p.4.39–4.48）','誤報の要求から誤警報確率を決め、必要な S/N、損失、探知距離（1 回の検出確率と、累積の検出確率）を、手で計算して計算書にまとめます。','入門 第4回、第15回、第16回')]
+from msims import MSIMS
+MINFO=[(v[0],'中級 第%d回'%n,v[1],v[4],v[5],v[6],v[7]) for n,v in sorted(MSIMS.items())]
 mcards=''
 for f,no,name,en,ch,desc,pre in MINFO:
     if not (f in D and (DOCS/f).exists()): continue
@@ -88,7 +89,7 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <body>
 <header class="top">
   <h1>レーダ 入門シミュレータ</h1>
-  <div id="msbar">入門 18 回・中級 1 回</div>
+  <div id="msbar">入門 18 回・中級 '''+str(len([m for m in MINFO if m[0] in D]))+''' 回</div>
   <button class="btn sm" id="glBtn" type="button">用語集</button>
   <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
 </header>

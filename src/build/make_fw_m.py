@@ -15,5 +15,9 @@ for f in ('redraw', 'showAnswer', 'renderRead', 'renderSim'):
 rep("""'<h3>この回（第' + SIM_NO + '回 ' + SERIES[SIM_NO].name + '）の用語</h3>'""", """'<h3>この回（' + SERIES[SIM_NO].label + ' ' + SERIES[SIM_NO].name + '）の用語</h3>'""")
 rep("""for (let n = 0; n < SERIES.length; n++) if (n !== SIM_NO && GLOSS.some(t => t[0] === n)) h += '<h3>第' + n + '回 '""", """for (let n = 0; n < SERIES.length; n++) if (n !== SIM_NO && SERIES[n] && GLOSS.some(t => t[0] === n)) h += '<h3>' + (SERIES[n].label || '入門 第' + n + '回') + ' '""")
 wr(GEN / 'fw_core_m.js', c + '\n' + rd('fw_m_add.js'))
-wr(GEN / 'fw_gloss_m.js', rd('fw_gloss2.js') + '\n' + rd('gloss_m.js'))
+from msims import MSIMS
+from paths import SRC
+ser = '\n'.join("SERIES[%d] = {no: %d, file: '%s', name: '%s', label: '中級 第%d回', ready: %s};" % (100 + n, 100 + n, v[0], v[1], n, 'true' if (SRC / 'episodes' / v[3]).exists() else 'false') for n, v in sorted(MSIMS.items()))
+gm = rd('gloss_m.js'); assert gm.count('/*%%MSERIES%%*/') == 1
+wr(GEN / 'fw_gloss_m.js', rd('fw_gloss2.js') + '\n' + gm.replace('/*%%MSERIES%%*/', ser))
 print('fw_core_m.js', len(c), 'fw_gloss_m.js')

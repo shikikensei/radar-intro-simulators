@@ -57,7 +57,7 @@ function renderRead(st, i){
   const r = st.read || {}, para = s => rt(s).split('||').map(p => '<p>' + p + '</p>').join(''); let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>', n = 0; const no = () => '①②③④⑤⑥'[n++];
   if (i === 0 && typeof PRE !== 'undefined'){
     h += '<div class="pre"><b>この回に必要な前提知識</b>　' + H + '（入門の回で扱った内容です）';
-    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">くわしくは第' + L[0] + '回のステップ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">入門 第' + p.no + '回のステップ' + p.step + '</a></p>'; }
+    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">くわしくは第' + L[0] + '回のステップ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">' + (SERIES[p.no].label || '入門 第' + p.no + '回') + 'のステップ' + p.step + '</a></p>'; }
     h += '</div>';
   }
   if (r.ana) h += '<h3>' + no() + ' たとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
@@ -68,7 +68,7 @@ function renderRead(st, i){
   if (r.fail) h += '<h3>' + no() + ' 崩れる条件</h3>' + para(r.fail);
   if (r.mis) h += '<h3>' + no() + ' よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
   if (st.extra) h += '<div id="extra"></div>';
-  if (i === STEPS.length - 1) h += '<p class="nextsim">この回はここまでです。<a href="00_index.html">目次へ戻る</a></p>';
+  if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; h += nx && nx.ready ? '<p class="nextsim">この回はここまでです。次は　<a class="btn primary" href="' + nx.file + '">' + nx.label + ' ' + nx.name + ' →</a></p>' : '<p class="nextsim">この回はここまでです。<a href="00_index.html">目次へ戻る</a></p>'; }
   h += '<div class="src"><b>出典</b>　' + (st.srcRaw ? '' : 'Radar Handbook 3rd ed.　') + st.src + '</div>';
   if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + para(st.memo) + '</details>';
   $('#read').innerHTML = h;

@@ -4,7 +4,8 @@ import sys, subprocess
 from pathlib import Path
 from paths import rd, wr, DOCS
 subprocess.run([sys.executable, str(Path(__file__).with_name('make_fw_m.py'))], check=True)
-SIMS = {1: ('m01_detection.html', '中級 第1回 検出の計算', ['cm01_core.js'], 'sm01_steps.js')}
+from msims import MSIMS
+SIMS = {n: (v[0], '中級 第%d回 %s' % (n, v[1]), v[2], v[3]) for n, v in MSIMS.items()}
 CSS = """.nextsim{margin:14px 0 4px;font-size:14px}
 .card.q .qm p{margin:4px 0 6px;font-size:14px;font-weight:400}
 .card.q .qm p:first-child{font-size:15px;font-weight:700}
