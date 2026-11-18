@@ -13,6 +13,7 @@
 - `src/framework/`：共通の部品。`src/episodes/`：回ごとの計算部分（`cN_core.js`）とステップ定義（`sN_steps.js`）。`src/build/`：組み立てスクリプト。
 - `src/generated/`、`tests/_shots/`：途中で作るファイル（git に入れない）。
 - `tests/`：ブラウザの自動操作テスト。`reports/`：作成報告。
+- `task/`：作業の指示書（どんな指示で作ったかの記録）。
 
 ## コマンド
 

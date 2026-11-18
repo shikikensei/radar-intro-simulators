@@ -234,11 +234,11 @@ function runChecks(){
   const R = [], add = (item, ref, calc, st, note) => R.push({item, ref, calc, st, note});
   const kt = 1.380649e-23 * 290; add('kT₀（ボルツマン定数 × 290 K）', '4×10⁻²¹ W/Hz', sci(kt, 2) + ' W/Hz', near(kt, 4e-21, 0.01e-21), '式1.4 の説明（p.1.11）');
   { const r = rmaxOf(with_({pt: 16})) / R0; add('式1.3：送信電力を 16 倍にしたときの最大探知距離', '2 倍（4 乗根）', fx(r, 4) + ' 倍', near(r, 2, 1e-9), '式1.3（p.1.11）。ステップ 1'); }
-  { const a = rmaxOf(with_({ls: 10})) / R0, b = rmaxOf(with_({ls: 20})) / R0; add('式1.5：システム損失 10 dB／20 dB のときの最大探知距離', '0.56 倍／0.32 倍（10 の −Ls/40 乗。指示書の照合値）', fx(a, 3) + ' 倍／' + fx(b, 3) + ' 倍', Math.abs(a - 0.562) < 0.001 && Math.abs(b - 0.316) < 0.001 ? 'ok' : 'ng', 'p.1.12「すべての損失を数えると 10〜20 dB になることも珍しくない」。ステップ 7'); }
+  { const a = rmaxOf(with_({ls: 10})) / R0, b = rmaxOf(with_({ls: 20})) / R0; add('式1.5：システム損失 10 dB／20 dB のときの最大探知距離', '0.56 倍／0.32 倍（10 の −Ls/40 乗）', fx(a, 3) + ' 倍／' + fx(b, 3) + ' 倍', Math.abs(a - 0.562) < 0.001 && Math.abs(b - 0.316) < 0.001 ? 'ok' : 'ng', 'p.1.12「すべての損失を数えると 10〜20 dB になることも珍しくない」。ステップ 7'); }
   { const e = ep0Same(); add('第0回と同じ条件での最大探知距離（式1.3 と、式1.5 で n = 1・Ei = 1・F = 1・Ls = 1・B = 1/τ）', '同じ値になる（第0回 ステップ 4 の答えは 105 km）', '式1.3：' + fx(e.r13 / 1000, 3) + ' km、式1.5：' + fx(e.r15 / 1000, 3) + ' km、式1.2 の交点：' + fx(e.cross / 1000, 3) + ' km', near(e.r13, e.r15, 1e-6) === 'ok' && near(e.r13, e.cross, 1) === 'ok' ? 'ok' : 'ng', '1 MW、利得 2000 倍、波長 10 cm、RCS 1 m²、帯域 1 MHz、雑音指数 2 倍、(S/N)1 = 20 倍。パルス幅 1 µs、PRF 1 kHz（平均電力 1 kW）。第0回の rmaxOf と同じ式'); }
   { const pav = 1e6 * 1e-6 * 1e3; add('平均電力 Pav = Pt·fp·τ（尖頭 1 MW、パルス幅 1 µs、PRF 1 kHz）', '1 kW（§1.1 の例のレーダ）', fx(pav / 1000, 2) + ' kW', near(pav, 1000, 1e-9), 'p.1.12 の Pt = Pav/(fp·τ) と、§1.1（p.1.1）の例'); }
   { const s = with_({form: 'srch', ts: 6, el: 20, fg: 5}), p = par(s), r16 = rmax16(p), n15 = 4 * Math.PI * p.ts / (p.g * p.om) * p.fp, r15 = rmax15(Object.assign({}, p, {n: n15}));
-    add('式1.5 に n/fp = 4π·ts/(G·Ω) を入れた値と、式1.6 の値', '同じ値になる（指示書の照合値。式1.6 の導き方）', '式1.5：' + fx(r15 / 1000, 3) + ' km、式1.6：' + fx(r16 / 1000, 3) + ' km（n = ' + fx(n15, 2) + '）', near(r15, r16, 1e-6), 'p.1.12。再訪時間 6 秒、仰角 0〜20°、5 GHz、Ei = 1'); }
+    add('式1.5 に n/fp = 4π·ts/(G·Ω) を入れた値と、式1.6 の値', '同じ値になる（式1.6 の導き方）', '式1.5：' + fx(r15 / 1000, 3) + ' km、式1.6：' + fx(r16 / 1000, 3) + ' km（n = ' + fx(n15, 2) + '）', near(r15, r16, 1e-6), 'p.1.12。再訪時間 6 秒、仰角 0〜20°、5 GHz、Ei = 1'); }
   { const rs = [1, 3, 10].map(f => rmaxOf(with_({form: 'srch', fg: f}))), d = Math.max(...rs) - Math.min(...rs); add('式1.6：Pav・Ae・ts・Ω を固定して、周波数を 1／3／10 GHz に変えたときの最大探知距離', '変わらない（周波数があらわに出てこない）', rs.map(r => fx(r / 1000, 2)).join('／') + ' km', d < 1e-6 ? 'ok' : 'ng', 'p.1.12。位相をそろえて足す（Ei = 1）とした場合。そろえずに足すと、Ei(n) を通して周波数が効く（ステップ 8・9）'); }
   { const r = Math.pow(12 / 4, 0.25); add('式1.6：再訪時間 4 秒と 12 秒の最大探知距離の比', '（基準なし）航空管制のレーダの再訪時間は 4〜12 秒ほど（p.1.12）', fx(rmaxOf(with_({form: 'srch', ts: 12})) / rmaxOf(with_({form: 'srch', ts: 4})), 3) + ' 倍（3 の 4 乗根 = ' + fx(r, 3) + '）', 'ref', '再訪時間を長くすると、1 つの方向を見る時間が延び、距離は ts の 4 乗根で伸びる'); }
   { const s1 = albersheim(0.9, 1e-6, 1); add('(S/N)1 の例：検出確率 0.9、誤警報確率 10⁻⁶、ゆらがない目標', '（第1章に値なし。求め方は第4回）', fx(s1, 2) + ' dB（Albersheim の近似式）', 'ref', '補足。この回の標準の (S/N)1 = 13 dB は、この値に近い。ゆらぐ目標では、もっと大きな値が要る（第4回 ステップ 3）'); }
@@ -1023,6 +1023,8 @@ const CT = {
   form: {l: '式の形', seg: [['trk', '式1.5（目標を見続ける）'], ['srch', '式1.6（捜索レーダ）']]}
 };
 const STEPS = [];
+/* 捜索の形で、1 つの方向に当たるパルスの数が 1 未満のときの注意（資料にない注意。補足） */
+const scanWarn = p => S.form === 'srch' && p.nScan < 1 ? {k: '⚠ 注意：範囲を見て回れない', v: fx(p.nScan, 2) + ' <small>個</small>', s: '1 つの方向に、パルスが 1 個も当たらない。この設定では、決めた時間で範囲を見て回れない（式1.6 の距離は実現できない）'} : null;
 const ratioTo = (o, base) => rmaxOf(Object.assign({}, S, o)) / rmaxOf(Object.assign({}, S, base));
 /* 距離と受信電力（積分・損失・伝搬を含めた実効値）の図。ref は比べるための基準の設定 */
 function prPlot(Pl, ref, xmax, ttl){
@@ -1137,7 +1139,7 @@ STEPS.push({short: '検出に要る S/N', title: '検出に要る S/N — 確実
   }});
 
 /* 5 */
-STEPS.push({short: 'パルスを足し合わせる', title: 'パルスを足し合わせる — 積分で、同じ電力でも遠くまで見える', src: '§1.4（p.1.12、式1.5）',
+STEPS.push({short: 'パルスを足し合わせる', title: 'パルスを足し合わせる — 積分で、同じ電力でも遠くまで見える', src: '§1.4（p.1.11–1.12、式1.5）',
   q: '目標から返ってくるパルス 10 個を、位相をそろえずに（強さだけを）足し合わせてから判定する。最大探知距離は、1 個で判定するときの何倍になる？',
   ch: ['10 倍', '1.78 倍（10 の 4 乗根）より少し小さい', '変わらない（雑音も一緒に足されるので）'], ans: 1,
   why: '足し合わせると、信号は確実に積み上がり、雑音のばらつきはならされるので、検出しやすくなります。式1.5 では分子に n·Ei(n) が掛かります。位相をそろえて足せば Ei = 1 で、10 の 4 乗根 ≈ 1.78 倍。そろえずに足すと Ei は 1 より小さく（このモデルでは 0.65）、約 1.60 倍です。',
@@ -1208,7 +1210,7 @@ STEPS.push({short: '損失を忘れない', title: '損失を忘れない — 10
   }});
 
 /* 8 */
-STEPS.push({short: '捜索レーダの形', title: '捜索レーダの形 — 決め手は電力開口積。周波数はあらわに出てこない', src: '§1.4（p.1.12–1.13、式1.6）',
+STEPS.push({short: '捜索レーダの形', title: '捜索レーダの形 — 決め手は電力開口積。周波数はあらわに出てこない', src: '§1.4（p.1.12、式1.6）',
   q: '捜索レーダで、平均電力・有効開口面積・再訪時間・見る範囲を変えずに、周波数を 3 GHz から 10 GHz に上げた。最大探知距離は？',
   ch: ['伸びる（利得が上がるので）', '変わらない', '縮む（波長が短くなるので）'], ans: 1,
   why: '面積が同じなら、周波数を上げると利得が上がります。しかしビームが細くなるので、同じ範囲を見て回るのに向きの数が増え、1 つの方向を見る時間（パルスの数）が減ります。2 つが打ち消し合うので、式1.6 には周波数が出てきません。',
@@ -1218,19 +1220,19 @@ STEPS.push({short: '捜索レーダの形', title: '捜索レーダの形 — �
     eq: '<i>R</i><sub>max</sub><sup>4</sup> = <i>P</i><sub>av</sub>·<i>A</i><sub>e</sub>·σ·<i>E</i><sub>i</sub>(<i>n</i>)·<i>F</i><sup>4</sup>·<i>t</i><sub>s</sub><br>　　　/ ( 4π·<i>k</i>·<i>T</i><sub>0</sub>·<i>F</i><sub>n</sub>·(<i>S</i>/<i>N</i>)<sub>1</sub>·<i>L</i><sub>s</sub>·Ω )',
     sym: '<i>t</i><sub>s</sub>：再訪時間 [s]。Ω：見て回る範囲の立体角 [sr]（ここでは方位 360° × 仰角 0〜10° として約 1.09 sr{H}）。<i>P</i><sub>av</sub>·<i>A</i><sub>e</sub>：電力開口積 [W·m²]。ほかは式1.5 と同じです。<i>G</i> も λ も <i>f</i><sub>p</sub> も、この式にはありません。',
     mis: '「周波数は探知距離に関係ない」とまでは言えません。式にあらわに出てこないだけで、損失（大気による減衰など）、伝搬因子、目標のレーダ断面積、そろえずに足すときの Ei(n) を通して効きます。このステップでは、位相をそろえて足す（Ei = 1）としています。'},
-  hosoku: ['畑の水まきのたとえ', '見る範囲を「方位 360° × 仰角 0〜10°」とし、立体角を Ω = 2π·sin(仰角の上限) とした', '点線（1 方向あたりのパルスの数を固定した場合）は、比べるための仮の線', '「大気による減衰など」は損失の一般的な例'],
+  hosoku: ['畑の水まきのたとえ', 'このステップでは再訪時間を 2 秒からにした（1 秒台で周波数が高いと、1 つの方向に当たるパルスの数が 1 個未満になり、範囲を見て回れないため）', '見る範囲を「方位 360° × 仰角 0〜10°」とし、立体角を Ω = 2π·sin(仰角の上限) とした', '点線（1 方向あたりのパルスの数を固定した場合）は、比べるための仮の線', '「大気による減衰など」は損失の一般的な例'],
   memo: 'つまずきやすい点：「利得が上がれば遠くまで見える」という直感。捜索では、ビームが細いほど見る方向が増えることを、タイルの「ビームの向きの数」で確かめる。||声かけの例：「見る範囲（仰角）を 2 倍にすると、距離は？」「再訪時間を短くしたいのはどんなとき？ 何を犠牲にする？」',
-  init: {form: 'srch', ts: 4, fg: 3}, ctl: ['ts', 'fg'], fixed: [], fixT: ['平均電力 1 kW、有効開口面積 1.6 m²（電力開口積 1600 W·m²）', '見る範囲：方位 360° × 仰角 0〜10°', '位相をそろえて足す（Ei = 1）'], plots: [{h: 230}, {h: 210}],
+  init: {form: 'srch', ts: 4, fg: 3}, ctl: [{k: 'ts', min: 2}, 'fg'], fixed: [], fixT: ['平均電力 1 kW、有効開口面積 1.6 m²（電力開口積 1600 W·m²）', '見る範囲：方位 360° × 仰角 0〜10°', '位相をそろえて足す（Ei = 1）'], plots: [{h: 230}, {h: 210}],
   mission: {t: '最大探知距離を、再訪時間 4 秒のときの 1.2 倍以上にする、いちばん短い再訪時間を探そう。', ok: r => r.ratio >= 1.2 && ratioTo({ts: S.ts - 0.5}, {ts: 4}) < 1.2}, sol: {ts: 8.5},
   draw(P){
     const rm = rmaxOf(S), ratio = ratioTo({}, {ts: 4}), p = par(), n3 = par(Object.assign({}, S, {fg: 3})).nScan, xs = [], y1 = [], y2 = [];
     for (let f = 1; f <= 10.001; f += 0.1){ const s = Object.assign({}, S, {fg: f}); xs.push(f); y1.push(rmaxOf(s) / 1000); y2.push(rmax15(Object.assign(par(s), {n: n3})) / 1000); }
     P[0].set({title: '周波数と最大探知距離（電力開口積・再訪時間・範囲は固定）', xr: [1, 10], yr: [0, 450], xl: '周波数 [GHz]', yl: '最大探知距離 [km]', series: [{name: '式1.6（捜索レーダ）', color: 's1', x: xs, y: y1, w: 2.4}, {name: '1 方向あたりのパルスの数を固定したら（仮）', color: 'ref', x: xs, y: y2, dash: [5, 4], w: 1.5}],
       pts: [{x: S.fg, y: rm / 1000, color: 's2', r: 6, label: kmTxt(rm)}], marks: {srch: {t: '平ら：周波数があらわに出てこない'}, fixn: {t: '仮の線：利得の分だけ伸びる'}}, tipx: v => fx(v, 1) + ' GHz', tipy: v => fx(v, 0) + ' km'});
-    const tx = [], ty = []; for (let t = 1; t <= 20.001; t += 0.25){ tx.push(t); ty.push(rmaxOf(Object.assign({}, S, {ts: t})) / 1000); }
+    const tx = [], ty = []; for (let t = 2; t <= 20.001; t += 0.25){ tx.push(t); ty.push(rmaxOf(Object.assign({}, S, {ts: t})) / 1000); }
     P[1].set({title: '再訪時間と最大探知距離', xr: [0, 20], yr: [0, 400], xl: '再訪時間 [秒]', yl: '最大探知距離 [km]', series: [{name: '最大探知距離', color: 's1', x: tx, y: ty, w: 2.2}],
       hl: [{y: 1.2 * rmaxOf(Object.assign({}, S, {ts: 4})) / 1000, label: '4 秒のときの 1.2 倍', color: 's2', left: true}], pts: [{x: S.ts, y: rm / 1000, color: 's2', r: 6, label: kmTxt(rm)}], tipx: v => fx(v, 1) + ' 秒', tipy: v => fx(v, 0) + ' km'});
-    return {ratio, tiles: [{k: '最大探知距離', v: kmTxt(rm), s: '4 秒のときの ' + fx(ratio, 3) + ' 倍'}, {k: '電力開口積 Pav·Ae', v: fx(p.pav * p.ae, 0) + ' <small>W·m²</small>'}, {k: 'ビームの向きの数 Ω/Ω₀', v: fx(p.om / p.om0, 0), s: '利得 ' + fx(db10(p.g), 1) + ' dB'}, {k: '1 方向あたりのパルスの数', v: fx(p.nScan, 1) + ' <small>個</small>', s: 'n = ts·fp·Ω₀/Ω'}]};
+    return {ratio, tiles: [{k: '最大探知距離', v: kmTxt(rm), s: '4 秒のときの ' + fx(ratio, 3) + ' 倍'}, {k: '電力開口積 Pav·Ae', v: fx(p.pav * p.ae, 0) + ' <small>W·m²</small>'}, {k: 'ビームの向きの数 Ω/Ω₀', v: fx(p.om / p.om0, 0), s: '利得 ' + fx(db10(p.g), 1) + ' dB'}, {k: '1 方向あたりのパルスの数', v: fx(p.nScan, 1) + ' <small>個</small>', s: 'n = ts·fp·Ω₀/Ω'}, scanWarn(p)]};
   }});
 
 /* 9 */
@@ -1247,7 +1249,7 @@ STEPS.push({short: '自由実験', title: '自由実験とまとめ — 式1.5�
     eq: '<i>R</i><sub>max</sub><sup>4</sup> = <i>P</i><sub>av</sub>·<i>G</i>·<i>A</i><sub>e</sub>·σ·<i>n</i>·<i>E</i><sub>i</sub>(<i>n</i>)·<i>F</i><sup>4</sup><br>　　　/ ( (4π)<sup>2</sup>·<i>k</i>·<i>T</i><sub>0</sub>·<i>F</i><sub>n</sub>·<i>f</i><sub>p</sub>·(<i>S</i>/<i>N</i>)<sub>1</sub>·<i>L</i><sub>s</sub> )',
     sym: 'これまでのステップの記号をまとめた式1.5 です。捜索の形（式1.6）は、<i>n</i>/<i>f</i><sub>p</sub> を 4π·<i>t</i><sub>s</sub>/(<i>G</i>·Ω) に置き換えたものです。2 つが同じ値になることを、下の照合表で確かめています。',
     mis: '「レーダ方程式で出た距離が、そのレーダの性能」ではありません。目標の大きさはゆらぎ、伝搬因子は高さや天候で変わり、損失の見積もりにも幅があります。この回の数値も、すべて説明用です。式は、何を変えるとどれだけ効くかを考える道具として使いましょう。'},
-  hosoku: ['旅行の計画のたとえ', 'まとめの 7 項目の整理のしかた', '下の図（変化を dB で並べた棒）の見せ方', '捜索の形では、n を ts・fp・Ω から決める（n = ts·fp·Ω0/Ω）。そろえずに足すときの Ei(n) は、この n で計算する', '「送信電力を上げるとクラッタも強くなる」という説明（第1章のこの節には書かれていない）'],
+  hosoku: ['旅行の計画のたとえ', 'まとめの 7 項目の整理のしかた', '下の図（変化を dB で並べた棒）の見せ方', '捜索の形では、n を ts・fp・Ω から決める（n = ts·fp·Ω0/Ω）。そろえずに足すときの Ei(n) は、この n で計算する', '「送信電力を上げるとクラッタも強くなる」という説明（第1章のこの節には書かれていない）', '捜索の形で、1 つの方向に当たるパルスの数 n = ts·fp·Ω0/Ω が 1 未満になると、注意を出す（例：再訪時間 2 秒、PRF 250 Hz、10 GHz、仰角 0〜30° で約 0.09 個）。決めた時間で範囲を見て回れないので、式1.6 の距離は実現できない。資料には書かれていない注意'],
   memo: '声かけの例：「損失 10 dB を取り戻すのに、いちばん安くつきそうな手段は？」「捜索の形に切り替えて、周波数を動かしてみよう。そろえずに足すと、距離は少し変わる。なぜ？（Ei(n) の n が周波数で変わる）」「伝搬因子 F が 2（地面の反射で強め合う所）だと、距離は？」',
   init: {mode: 'nc', n: 10, ls: 10},
   ctl: [{k: 'form'}, {k: 'pt', l: '送信：尖頭電力 Pt'}, {k: 'tau', l: '送信：パルス幅 τ'}, {k: 'fp', l: '送信：パルス繰り返し周波数 fp'}, {k: 'ae', l: 'アンテナ：有効開口面積 Ae'}, {k: 'fg', l: 'アンテナ：周波数'}, {k: 'rcs', l: '目標：レーダ断面積 σ'}, {k: 'F', l: '目標：伝搬因子 F'},
@@ -1263,7 +1265,7 @@ STEPS.push({short: '自由実験', title: '自由実験とまとめ — 式1.5�
     let tot = 0; B.forEach((b, i) => { const d = db10(b[1](p) / b[1](pb)); tot += d; const x = i + 1; xt.push([x, b[0]]); rects.push({x0: x - 0.3, x1: x + 0.3, y0: Math.min(0, d), y1: Math.max(0, d), color: d >= 0 ? 's1' : 's2', fill: 0.75, w: 0}); if (Math.abs(d) > 0.05) texts.push({s: (d > 0 ? '+' : '') + fx(d, 1), x, y: Math.min(29, Math.max(-26, d + (d >= 0 ? 4.5 : -1))), align: 'center'}); });
     const nb = B.length + 1; xt.push([nb, '合計÷4']); rects.push({x0: nb - 0.3, x1: nb + 0.3, y0: Math.min(0, tot / 4), y1: Math.max(0, tot / 4), color: 's3', fill: 0.85, w: 0}); texts.push({s: (tot > 0 ? '+' : '') + fx(tot / 4, 1), x: nb, y: Math.min(29, Math.max(-26, tot / 4 + (tot >= 0 ? 4.5 : -1))), align: 'center'});
     P[1].set({title: 'はじめの設定からの変化 [dB]（合計の 1/4 が、距離の変化）', xr: [0.4, nb + 0.6], yr: [-30, 30], xticks: xt, yl: '変化 [dB]', noHover: true, series: [], rects, texts, hl: [{y: 0, color: 'ref', dash: []}], marks: {budget: {t: '各変数の効き目（dB）'}}});
-    return {rmax: rm, tiles: [{k: '最大探知距離', v: kmTxt(rm), s: S.form === 'srch' ? '式1.6（捜索レーダ）' : '式1.5'}, {k: 'はじめの設定との比', v: fx(rm / rb, 3) + ' <small>倍</small>', s: fx(10 * Math.log10(rm / rb), 1) + ' dB（距離の比を dB で）'}, {k: '平均電力・電力開口積', v: fx(p.pav / 1000, 2) + ' <small>kW</small>', s: fx(p.pav * p.ae, 0) + ' W·m²'}, {k: 'パルスの数 n と Ei(n)', v: fx(p.n, 1) + ' <small>個</small>', s: 'Ei = ' + fx(p.ei, 3)}]};
+    return {rmax: rm, tiles: [{k: '最大探知距離', v: kmTxt(rm), s: S.form === 'srch' ? '式1.6（捜索レーダ）' : '式1.5'}, {k: 'はじめの設定との比', v: fx(rm / rb, 3) + ' <small>倍</small>', s: fx(10 * Math.log10(rm / rb), 1) + ' dB（距離の比を dB で）'}, {k: '平均電力・電力開口積', v: fx(p.pav / 1000, 2) + ' <small>kW</small>', s: fx(p.pav * p.ae, 0) + ' W·m²'}, {k: 'パルスの数 n と Ei(n)', v: fx(p.n, p.n < 1 ? 2 : 1) + ' <small>個</small>', s: 'Ei = ' + fx(p.ei, 3)}, scanWarn(p)]};
   },
   extra: () => checkTable(runChecks())});
 
