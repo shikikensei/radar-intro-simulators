@@ -1261,7 +1261,7 @@ function renderSim(st, i){
   const acts = $('#acts', op);
   for (const a of (st.acts || [])){ const b = el('button', 'btn sm', a.t); b.type = 'button'; b.addEventListener('click', () => { a.f(); userChanged(); }); acts.appendChild(b); }
   for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
-  const sh = el('div', 'card sheetc', '<span class="lbl">計算書</span><span class="hint" style="margin:0">ステップが進むたびに、行が埋まります。値は、標準の条件（' + (st.free ? 'このステップでは、今の設定' : 'P<sub>d</sub> 0.9 など') + '）のものです。</span><div id="sheet"></div>'); sim.appendChild(sh);
+  const sh = el('div', 'card sheetc', '<span class="lbl">計算書</span><span class="hint" style="margin:0">' + (st.free ? '前提から探知距離まで、今の設定の値で 1 枚にまとめたものです。' : 'ステップが進むたびに、行が埋まります。値は、標準の条件（P<sub>d</sub> 0.9 など）のものです。') + '</span><div id="sheet"></div>'); sim.appendChild(sh);
   if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
   if (st.ask){ const a = el('div', 'card ans', '<div class="body" id="ansBody" hidden></div><span class="hint" id="ansWait">解き方は、正解したとき（または 3 回外れたとき）に、ここに出ます。</span>'); sim.appendChild(a); showSolve(); }
 }
@@ -1577,7 +1577,7 @@ STEPS.push({short: '計算書を 1 枚作る', title: '計算書を 1 枚作る 
   hosoku: ['計算書の並べ方と、感度の図の見せ方', '感度の図の「1 段」は、こちらで決めた動かし方（電力と損失は 1 dB、P_FA は 1/10、P_d は +0.05、N_pdi は 2 倍、ゆらぎ方は「ゆらがない」と Swerling 1 の入れ替え）', '累積の P_d で決める距離は、ステップ 8 のモデル（近づく速さ 600 m/s、R_o⁴ がフレーム時間に比例）による。足し合わせる CPI を増やしても、フレーム時間は変わらないとした', '「多くの場合、いちばん先に確かめるべきなのは…」という指針', '例の値は、すべて説明用'],
   memo: '声かけの例：「この計算書の前提のうち、仕様で決まるものはどれ？ 設計で決めるものは？」「探知距離を 1 割伸ばしたい。どの行を動かす？ 何 dB 要る？」「同じ計算書を、目標のモデルだけ変えて 2 枚作ると、何が言える？」',
   init: {sw: 1}, ctl: ['sw', 'pd', 'x', 'npdi', 'pavdb', 'ladj', 'ltf'], fixed: [], fixT: FIXE.concat(['損失の表はステップ 6 のもの（合計 13.03 dB）', '近づく速さ 600 m/s']), plots: [{h: 230}, {h: 210}],
-  mission: {t: 'Swerling 1 の目標を、1 回の P_d 0.9 以上で検出できる距離を、80 km 以上にしよう。平均電力は増やさず、損失の見込みも減らさないこと（足し合わせる数などで工夫する）。', ok: r => S.sw === 1 && S.pd >= 0.9 - 1e-9 && S.pavdb <= 0 && S.ladj >= 0 && r.c.r1 >= 80e3}, sol: {npdi: 4},
+  mission: {t: 'Swerling 1 の目標を、1 回の P<sub>d</sub> 0.9 以上で検出できる距離を、80 km 以上にしよう。平均電力は増やさず、損失の見込みも減らさないこと（足し合わせる数などで工夫する）。', ok: r => S.sw === 1 && S.pd >= 0.9 - 1e-9 && S.pavdb <= 0 && S.ladj >= 0 && r.c.r1 >= 80e3}, sol: {npdi: 4},
   sheet(r){
     const c = r.c || calc(), pfa = c.pfa;
     return [{head: '前提（今の設定）'},

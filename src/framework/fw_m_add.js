@@ -91,7 +91,7 @@ function renderSim(st, i){
   const acts = $('#acts', op);
   for (const a of (st.acts || [])){ const b = el('button', 'btn sm', a.t); b.type = 'button'; b.addEventListener('click', () => { a.f(); userChanged(); }); acts.appendChild(b); }
   for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
-  const sh = el('div', 'card sheetc', '<span class="lbl">計算書</span><span class="hint" style="margin:0">ステップが進むたびに、行が埋まります。値は、標準の条件（' + (st.free ? 'このステップでは、今の設定' : 'P<sub>d</sub> 0.9 など') + '）のものです。</span><div id="sheet"></div>'); sim.appendChild(sh);
+  const sh = el('div', 'card sheetc', '<span class="lbl">計算書</span><span class="hint" style="margin:0">' + (st.free ? '前提から探知距離まで、今の設定の値で 1 枚にまとめたものです。' : 'ステップが進むたびに、行が埋まります。値は、標準の条件（P<sub>d</sub> 0.9 など）のものです。') + '</span><div id="sheet"></div>'); sim.appendChild(sh);
   if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
   if (st.ask){ const a = el('div', 'card ans', '<div class="body" id="ansBody" hidden></div><span class="hint" id="ansWait">解き方は、正解したとき（または 3 回外れたとき）に、ここに出ます。</span>'); sim.appendChild(a); showSolve(); }
 }
