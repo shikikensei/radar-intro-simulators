@@ -170,7 +170,7 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <body>
 <header class="top">
   <h1>レーダ 入門シミュレータ</h1>
-  <div id="msbar">全 13 回・目次</div>
+  <div id="msbar">全 16 回・目次</div>
   <button class="btn sm" id="glBtn" type="button">用語集</button>
   <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
 </header>
@@ -185,11 +185,11 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
  <p class="cap">受信した信号の処理：消す → 決める → 追う</p>
  <div class="row"><div><b>クラッタを消す</b>動かない物のエコーを取り除く<span class="mapl"><a href="02_mti.html">第2回</a>　<a href="03_pulse_doppler.html">第3回</a>　<a href="06_amti.html">第6回</a></span></div><i>→</i><div><b>「ある／ない」を決める</b>しきい値で検出する。場所ごとの背景を覚える<span class="mapl"><a href="04_detection_cfar.html">第4回</a>　<a href="14_clutter_map.html">第14回</a></span></div><i>→</i><div><b>目標を追う</b>検出点をつないで航跡にする。角度を精密に測る<span class="mapl"><a href="05_tracking.html">第5回</a>　<a href="08_monopulse.html">第8回</a></span></div></div>
  <p class="cap">全体にかかわること・応用</p>
- <div class="row"><div><b>基礎</b>距離・dB・レーダ方程式・ドップラ・雑音<span class="mapl"><a href="00_basics.html">第0回</a></span></div><div><b>画像にする</b>動きながら集めた信号で画像を作る<span class="mapl"><a href="11_sar.html">第11回</a></span></div><div><b>妨害から守る</b>妨害の中でも働き続ける工夫<span class="mapl"><a href="12_eccm.html">第12回</a></span></div><div><b>時間を配る</b>捜索と追尾に、ビームの時間を割り当てる<span class="mapl"><a href="13_scheduling.html">第13回</a></span></div></div>
+ <div class="row"><div><b>基礎</b>距離・dB・レーダ方程式・ドップラ・雑音<span class="mapl"><a href="00_basics.html">第0回</a></span></div><div><b>画像にする</b>動きながら集めた信号で画像を作る<span class="mapl"><a href="11_sar.html">第11回</a></span></div><div><b>妨害から守る</b>妨害の中でも働き続ける工夫<span class="mapl"><a href="12_eccm.html">第12回</a></span></div><div><b>時間を配る</b>捜索と追尾に、ビームの時間を割り当てる<span class="mapl"><a href="13_scheduling.html">第13回</a></span></div><div><b>探知距離を見積もる</b>レーダ方程式の全部の変数<span class="mapl"><a href="15_radar_equation.html">第15回</a></span></div></div>
 </div>
 <p class="sym">受信した信号がたどる処理の順に並べた、おおまかな見取り図です。実際のレーダでは、方式によって使う処理や順番が変わります。</p>
 
-<h2 class="sec">13 回の一覧（上から順に進めるのがおすすめ）</h2>
+<h2 class="sec">16 回の一覧（上から順に進めるのがおすすめ）</h2>
 <div class="cards">
 <section class="card sim"><div class="sim-h"><span class="no">第0回</span><h2>レーダの基礎の基礎 <small>Radar Basics</small></h2></div>
 <p>レーダが距離・方向・速度を知るしくみと、dB・レーダ方程式・雑音という共通の道具を学びます。</p>
@@ -251,6 +251,10 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <p>場所ごとのクラッタの強さを覚えておき、しきい値を場所ごとに決める方法を学びます。</p>
 <p class="sym">所要時間の目安：約 40〜64 分　／　前提となる回：第0回、第2回、第4回<br>もとにした章：Radar Handbook 3rd ed. 第2章 MTI Radar（§2.2、§2.15）、第7章（§7.2 Clutter Mapping）</p>
 <p><a class="btn primary" href="14_clutter_map.html">第14回をはじめる →</a>　<span class="sym">全 8 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="14_clutter_map.html#s1">場所ごとに違う背景</a></li><li><a href="14_clutter_map.html#s2">地図を作る</a></li><li><a href="14_clutter_map.html#s3">しきい値を決める</a></li><li><a href="14_clutter_map.html#s4">地図の損失</a></li><li><a href="14_clutter_map.html#s5">立ち上がり</a></li><li><a href="14_clutter_map.html#s6">遅い目標は消える</a></li><li><a href="14_clutter_map.html#s7">MTD での使い方</a></li><li><a href="14_clutter_map.html#s8">自由実験とまとめ</a></li></ol></details></section>
+<section class="card sim"><div class="sim-h"><span class="no">第15回</span><h2>レーダ方程式 <small>The Radar Equation</small></h2></div>
+<p>受信機の雑音、パルスの積分、平均電力、損失、捜索レーダの形まで、レーダ方程式のすべての変数を動かして、探知距離への効き方を確かめます。</p>
+<p class="sym">所要時間の目安：約 45〜72 分　／　前提となる回：第0回、第4回<br>もとにした章：Radar Handbook 3rd ed. 第1章 §1.4 The Radar Equation</p>
+<p><a class="btn primary" href="15_radar_equation.html">第15回をはじめる →</a>　<span class="sym">全 9 ステップ</span></p><details><summary>ステップの一覧（押すとそのステップへ）</summary><ol><li><a href="15_radar_equation.html#s1">4 乗根の重さ</a></li><li><a href="15_radar_equation.html#s2">アンテナは 2 回効く</a></li><li><a href="15_radar_equation.html#s3">受信機の雑音</a></li><li><a href="15_radar_equation.html#s4">検出に要る S/N</a></li><li><a href="15_radar_equation.html#s5">パルスを足し合わせる</a></li><li><a href="15_radar_equation.html#s6">尖頭電力より平均電力</a></li><li><a href="15_radar_equation.html#s7">損失を忘れない</a></li><li><a href="15_radar_equation.html#s8">捜索レーダの形</a></li><li><a href="15_radar_equation.html#s9">自由実験とまとめ</a></li></ol></details></section>
 </div>
 
 <h2 class="sec">1 つのステップの進め方</h2>
@@ -297,8 +301,9 @@ const SERIES = [
   {no: 11, file: '11_sar.html', name: '合成開口レーダ（SAR）', ready: true},
   {no: 12, file: '12_eccm.html', name: '電子防護（ECCM）', ready: true},
   {no: 13, file: '13_scheduling.html', name: 'ビームのスケジューリング', ready: true},
-  {no: 14, file: '14_clutter_map.html', name: 'クラッタマップ', ready: true}];
-/* [グループ, 日本語（English）, 説明]。グループ −1＝基礎（補足）、0〜13＝各回 */
+  {no: 14, file: '14_clutter_map.html', name: 'クラッタマップ', ready: true},
+  {no: 15, file: '15_radar_equation.html', name: 'レーダ方程式', ready: true}];
+/* [グループ, 日本語（English）, 説明]。グループ −1＝基礎（補足）、0〜15＝各回 */
 const GLOSS = [
   [-1, 'dB（デシベル）', '比を対数で表す単位。電力が 10 倍で +10 dB、100 倍で +20 dB、半分で約 −3 dB。掛け算が足し算になるので、レーダの計算でよく使う。'],
   [-1, 'S/N（信号対雑音比、signal-to-noise ratio）', '信号の電力が雑音の電力の何倍かを表す値。大きいほど目標を見つけやすい。'],
@@ -604,7 +609,19 @@ GLOSS.push(
   [14, 'ゼロ速度フィルタ（zero-velocity filter）', 'ドップラが 0 に近い成分だけを取り出すフィルタ。止まっているクラッタと、視線を横切る目標が、ここに出る。'],
   [14, 'MTD（moving target detector）', 'ドップラフィルタバンク、ゼロ速度フィルタ、クラッタマップなどを組み合わせた、目標検出の方式。'],
   [14, 'スーパークラッタビジビリティ（superclutter visibility）', '点のクラッタの上を飛ぶ目標を、目標のほうがクラッタより強いことを利用して検出できること。'],
-  [14, '点のクラッタ（discrete clutter / point clutter）', '建物や鉄塔のように、1 つのセルに集中して現れる強いクラッタ。']
+  [14, '点のクラッタ（discrete clutter / point clutter）', '建物や鉄塔のように、1 つのセルに集中して現れる強いクラッタ。'],
+  [14, 'PPI（plan position indicator）', 'レーダを中心に置き、方位と距離で、まわりの様子を円形に描く表示。上から見た地図のように見える。'],
+  [15, '最大探知距離（maximum detection range、Rmax）', '受信電力が最小検出信号と等しくなる距離。これより遠い目標は検出できない。レーダ方程式で見積もる。'],
+  [15, '熱雑音（thermal noise）', '受信機の中の電子が、熱で動き回ることで生じる雑音。1 Hz あたり k·T₀ = 4×10⁻²¹ W（T₀ = 290 K）で、受信機の帯域幅に比例する。'],
+  [15, '受信機の帯域幅（receiver bandwidth、B）', '受信機が通す周波数の幅。広いほど雑音も多く入る。ふつうはパルス幅の逆数くらいにする（B·τ ≈ 1）。'],
+  [15, '検出に要る S/N（(S/N)₁）', 'パルス 1 つで、決めた誤警報確率と検出確率を満たすのに要る S/N。判定の厳しさと、目標のゆらぎで決まる。'],
+  [15, '積分の効率（integration efficiency、Ei(n)）', 'n 個のパルスを足し合わせたとき、理想（S/N が n 倍）に対して、どれだけの効き目があるかを表す数（0〜1）。位相をそろえて足せば 1。'],
+  [15, 'コヒーレント積分と非コヒーレント積分（coherent / noncoherent integration）', '位相までそろえてパルスを足すのがコヒーレント積分、強さだけを足すのが非コヒーレント積分。後者は効率が 1 より小さい。'],
+  [15, 'デューティ比（duty cycle）', 'パルスを出している時間の割合。パルス幅 × パルス繰り返し周波数。平均電力 = 尖頭電力 × デューティ比。'],
+  [15, 'システム損失（system loss、Ls）', '理想どおりの式から実際の性能を下げるものを、まとめた数（1 より大きい）。全部を数えると 10〜20 dB になることも珍しくない。'],
+  [15, '立体角（solid angle、Ω）', '空間の中の方向の広がりを表す量。単位はステラジアン [sr]。全方向は 4π sr。'],
+  [15, 'ビームの立体角（beam solid angle、Ω₀）', 'アンテナのビームが占める立体角。利得とは G = 4π/Ω₀ の関係にある。'],
+  [15, '電力開口積（power-aperture product）', '平均電力と有効開口面積の積 Pav·Ae。捜索レーダの探知距離を決める、設計で選べるいちばん大事な量。']
 );
 
 (function(){

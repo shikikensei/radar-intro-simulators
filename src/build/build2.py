@@ -1,4 +1,4 @@
-"""第0回、第5回以降を組み立てる。使い方：python src/build/build2.py 0 5 6 7 8 9 10 11 12 13 14
+"""第0回、第5回以降を組み立てる。使い方：python src/build/build2.py 0 5 6 7 8 9 10 11 12 13 14 15
 用語集と「次の回へ」のリンクは全回で共通なので、1 つ足したら、全部を組み立て直す。"""
 import sys, subprocess
 from pathlib import Path
@@ -14,7 +14,8 @@ SIMS={0:('00_basics.html','第0回 レーダの基礎の基礎',['c0_core.js'],'
  11:('11_sar.html','第11回 合成開口レーダ（SAR）',['c11_core.js'],'s11_steps.js'),
  12:('12_eccm.html','第12回 電子防護（ECCM）',['c12_core.js'],'s12_steps.js'),
  13:('13_scheduling.html','第13回 ビームのスケジューリング',['c13_core.js'],'s13_steps.js'),
- 14:('14_clutter_map.html','第14回 クラッタマップ',['c14_core.js'],'s14_steps.js')}
+ 14:('14_clutter_map.html','第14回 クラッタマップ',['c14_core.js'],'s14_steps.js'),
+ 15:('15_radar_equation.html','第15回 レーダ方程式',['c15_core.js'],'s15_steps.js')}
 for n in [int(a) for a in sys.argv[1:]]:
     f,title,cores,steps=SIMS[n]
     out=rd('tpl_head.html').replace('%%TITLE%%',title).replace('%%NO%%',str(n))
