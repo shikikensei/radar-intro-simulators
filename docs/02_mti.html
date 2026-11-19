@@ -146,7 +146,7 @@ a.gt:hover,a.gt[aria-expanded=true]{background:var(--accent-bg)}
 .gpop .gpa{display:flex;flex-wrap:wrap;gap:6px}
 #gloss dt.hit,#gloss dt.hit+dd{background:var(--accent-bg);box-shadow:-6px 0 0 var(--accent-bg),6px 0 0 var(--accent-bg)}
 #gloss .glpage{margin:0 0 8px;font-size:12.5px}
-.tile .k,.tile .s,.plot-t,.ctl-h label,.ctl small,.ch button,.card.q p,.card.ms p,nav#steps,#read h2,.fixed{word-break:auto-phrase}
+.tile .k,.tile .v,.tile .s,.plot-t,.ctl-h label,.ctl small,.ch button,.card.q p,.card.ms p,nav#steps,#read h2,.fixed{word-break:auto-phrase}
 .seg button{padding:2px 7px}
 </style>
 </head>
@@ -400,15 +400,15 @@ function runChecks(){
   for (const o of [2, 3]){
     const n = o - 1, g = noiseGain(U(o)); let e = 0;
     for (let x = 0; x <= 2; x += 0.01) e = Math.max(e, Math.abs(respPow(U(o), x) - Math.pow(2 * Math.abs(Math.sin(Math.PI * x)), 2 * n) / g));
-    add(o + 'パルスキャンセラ：速度応答の式との最大差', 'V/VB = 0〜2 を 0.01 ステップ（電力、雑音利得で正規化）', e, 0, '', 1e-9, '2ⁿ·sinⁿ(π·fd·T), p.2.34');
+    add(o + ' パルスキャンセラ：速度応答の式との最大差', 'V/VB = 0〜2 を 0.01 ステップ（電力、雑音利得で正規化）', e, 0, '', 1e-9, '2ⁿ·sinⁿ(π·fd·T), p.2.34');
   }
-  add('2パルスキャンセラ：応答のピーク', 'V = VB/2', db10(respPow(U(2), 0.5)), 3.01, 'dB', 0.02, '図2.10（+3 dB）, p.2.10');
-  add('3パルスキャンセラ：応答のピーク', 'V = VB/2', db10(respPow(U(3), 0.5)), 4.26, 'dB', 0.01, '4/√6 = 4.26 dB, p.2.68');
+  add('2 パルスキャンセラ：応答のピーク', 'V = VB/2', db10(respPow(U(2), 0.5)), 3.01, 'dB', 0.02, '図2.10（+3 dB）, p.2.10');
+  add('3 パルスキャンセラ：応答のピーク', 'V = VB/2', db10(respPow(U(3), 0.5)), 4.26, 'dB', 0.01, '4/√6 = 4.26 dB, p.2.68');
   /* 2) ブラインド速度：式(2.1)、(2.2)、図2.10 */
   {
     const o = Object.assign({}, DEFAULTS, {f: 1.3, prf: 400}), D = derive(o);
     let xb = 0; for (let x = 0.5; x <= 1.5; x += 0.0005){ if (respPow(U(2), x) < 1e-9){ xb = x; break; } }
-    add('ブラインド速度（応答が0になる最初の速度）', '1300 MHz, PRF 400 Hz, 2パルス', xb * D.vb * KT, 89, 'ノット', 1.0, '式2.1, 図2.10（89ノット）', 'λ = c/f で計算。式2.2（0.29·fr/fGHz）では ' + (0.29 * 400 / 1.3).toFixed(1) + ' ノット');
+    add('ブラインド速度（応答が 0 になる最初の速度）', '1300 MHz, PRF 400 Hz, 2 パルス', xb * D.vb * KT, 89, 'ノット', 1.0, '式2.1, 図2.10（89 ノット）', 'λ = c/f で計算。式2.2（0.29·fr/fGHz）では ' + (0.29 * 400 / 1.3).toFixed(1) + ' ノット');
     add('同：ブラインドになるドップラ周波数', '同上', xb * 400, 400, 'Hz', 0.5, '図2.10（PRF の整数倍）, p.2.10');
     const sim = simulate(Object.assign({}, DEFAULTS, {tv: derive(DEFAULTS).vb, cn: -200, ts: 20}), {uniform: true});
     const s = {re: new Float64Array(sim.nr * sim.np), im: new Float64Array(sim.nr * sim.np)}; s.re.set(sim.sr, sim.rt * sim.np); s.im.set(sim.si, sim.rt * sim.np);
@@ -422,60 +422,60 @@ function runChecks(){
   {
     const hb = {2: 24, 3: 36, 4: 45};
     for (const o of [2, 3, 4]){ let c = 0, n = 0; for (let x = 0.00025; x < 1; x += 0.0005){ n++; if (respPow(U(o), x) < 0.2512) c++; }
-      add(o + 'パルスキャンセラ：ノッチの幅', '平均応答より 6 dB 以上低い範囲の割合', 100 * c / n, hb[o], '%', 1.5, 'p.2.38'); }
+      add(o + ' パルスキャンセラ：ノッチの幅', '平均応答より 6 dB 以上低い範囲の割合', 100 * c / n, hb[o], '%', 1.5, 'p.2.38'); }
     const ml = o => { const w = BINOM[o]; let s = 0, g = 0; for (const v of w){ s += Math.abs(v); g += v * v; } return 10 * Math.log10(o * g / (s * s)); };
-    add('3パルス（二項係数）：フィルタのミスマッチ損失', 'N·Σw²/(Σ|w|)²', ml(3), 0.51, 'dB', 0.01, 'p.2.23');
-    add('4パルス（二項係数）：フィルタのミスマッチ損失', '同上', ml(4), 0.97, 'dB', 0.01, 'p.2.23');
+    add('3 パルス（二項係数）：フィルタのミスマッチ損失', 'N·Σw²/(Σ|w|)²', ml(3), 0.51, 'dB', 0.01, 'p.2.23');
+    add('4 パルス（二項係数）：フィルタのミスマッチ損失', '同上', ml(4), 0.97, 'dB', 0.01, 'p.2.23');
   }
   /* 4) クラッタのスペクトル拡がりと改善度：式(2.23)〜(2.28) */
-  for (const o of [2, 3, 4]) add(o + 'パルス：改善係数（共分散から計算）と式の比較', 'σf·T = 0.01（ガウス形）', db10(impFactor(U(o), 0.01)), db10(eqI(o, 0.01)), 'dB', 0.05, '式2.' + (21 + o) + ', p.2.23');
+  for (const o of [2, 3, 4]) add(o + ' パルス：改善係数（共分散から計算）と式の比較', 'σf·T = 0.01（ガウス形）', db10(impFactor(U(o), 0.01)), db10(eqI(o, 0.01)), 'dB', 0.05, '式2.' + (21 + o) + ', p.2.23');
   {
     const n = 14.4, sfT = Math.sqrt(Math.LN2) / Math.PI / n, ref = {2: n * n / 1.39, 3: Math.pow(n, 4) / 3.84, 4: Math.pow(n, 6) / 16.0}, fig = {2: 21.3, 3: 39.9, 4: 56.6};
-    for (const o of [2, 3, 4]) add(o + 'パルス：走査変調による改善係数の上限', 'ビーム内ヒット数 n = 14.4（σf·T = 0.265/n）', db10(impFactor(U(o), sfT)), db10(ref[o]), 'dB', 0.3, '式2.' + (24 + o) + ', p.2.23', '図2.' + (32 + o) + ' の表示値は ' + fig[o] + ' dB（sin U/U 形のビームで計算した値）');
+    for (const o of [2, 3, 4]) add(o + ' パルス：走査変調による改善係数の上限', 'ビーム内ヒット数 n = 14.4（σf·T = 0.265/n）', db10(impFactor(U(o), sfT)), db10(ref[o]), 'dB', 0.3, '式2.' + (24 + o) + ', p.2.23', '図2.' + (32 + o) + ' の表示値は ' + fig[o] + ' dB（sin U/U 形のビームで計算した値）');
   }
   {
     const o = Object.assign({}, DEFAULTS, {f: 3, prf: 1000, sv: 0.5, cn: 40}), D = derive(o), sim = simulate(o, {uniform: true, flat: true, np: 256});
-    for (const od of [2, 3]) add('シミュレーション実測：' + od + 'パルスの改善係数', '3 GHz, PRF 1 kHz, σv = 0.5 m/s（200セル×256パルス）', db10(measureI(sim, od, [1])), db10(impFactor(U(od), D.sfT)), 'dB', 1.5, '式2.19・式2.' + (21 + od), '乱数で生成したクラッタであるため、統計的なばらつきがある');
+    for (const od of [2, 3]) add('シミュレーション実測：' + od + ' パルスの改善係数', '3 GHz, PRF 1 kHz, σv = 0.5 m/s（200 セル × 256 パルス）', db10(measureI(sim, od, [1])), db10(impFactor(U(od), D.sfT)), 'dB', 1.5, '式2.19・式2.' + (21 + od), '乱数で生成したクラッタであるため、統計的なばらつきがある');
   }
   /* 5) スタガPRF：最初の真のブラインド速度（式2.36）と応答 */
   for (const r of [[6, 7, 8], [11, 16, 13, 17], [25, 30, 27, 31], [53, 58, 55, 59], [51, 62, 53, 61, 58]]){
     const sets = tapSets(3, r, false); let xb = 0;
     for (let i = 100; i <= 26000; i++){ const x = i * 0.0025; if (respPow(sets, x) < 1e-7){ xb = x; break; } }
-    add('スタガ ' + r.join(':') + '：最初の真のブラインド速度 V/VB', '3パルスキャンセラ、応答が0になる最初の点', xb, meanOf(r), '', 0.003, '式2.36, p.2.41–2.43');
+    add('スタガ ' + r.join(':') + '：最初の真のブラインド速度 V/VB', '3 パルスキャンセラ、応答が 0 になる最初の点', xb, meanOf(r), '', 0.003, '式2.36, p.2.41–2.43');
   }
-  add('スタガ 6:7:8：V = VB での応答', '3パルス（2重）キャンセラ、帰還なし', db10(respPow(tapSets(3, [6, 7, 8], false), 1)), -6, 'dB', 0.3, 'p.2.43');
+  add('スタガ 6:7:8：V = VB での応答', '3 パルス（2 重）キャンセラ、帰還なし', db10(respPow(tapSets(3, [6, 7, 8], false), 1)), -6, 'dB', 0.3, 'p.2.43');
   {
     let p = 0; for (const k of [6, 7, 8]) p += respPow(U(3), k / 7); 
-    add('（参考）スキャンごとに周期を変える場合の V = VB での応答', '周期 6:7:8 の3スキャンの平均電力、3パルス', db10(p / 3), -12.5, 'dB', null, 'p.2.43', 'ハンドブックはビーム内 14.4 ヒットの走査を含む計算');
+    add('（参考）スキャンごとに周期を変える場合の V = VB での応答', '周期 6:7:8 の 3 スキャンの平均電力、3 パルス', db10(p / 3), -12.5, 'dB', null, 'p.2.43', 'ハンドブックはビーム内 14.4 ヒットの走査を含む計算');
     const fig = {1.1: 13, 1.2: 9, 1.3: 7, 1.5: 5};
     for (const g of [1.1, 1.2, 1.3, 1.5]){ const sets = tapSets(2, [10, 10 * g], false); let mn = 1e9; for (let x = 0.7; x <= 1.3; x += 0.001) mn = Math.min(mn, respPow(sets, x));
-      add('（参考）2周期スタガ γ=' + g + '：最初の落ち込みの深さ', '2パルスキャンセラ、V≈VB 付近の最小値', -db10(mn), fig[g], 'dB', null, '図2.45（図からの読み取り、近似曲線）', g >= 1.3 ? '図は複数の周期比についての近似。γが大きいと差が生じる' : ''); }
+      add('（参考）2 周期スタガ γ=' + g + '：最初の落ち込みの深さ', '2 パルスキャンセラ、V≈VB 付近の最小値', -db10(mn), fig[g], 'dB', null, '図2.45（図からの読み取り、近似曲線）', g >= 1.3 ? '図は複数の周期比についての近似。γ が大きいと差が生じる' : ''); }
   }
   /* 6) スタガによる改善度の上限：式(2.37) と p.2.44 の例 */
   {
     const sfT = Math.sqrt(Math.LN2) / Math.PI / 14.4;
     add('式(2.37)：スタガ＋走査による改善係数の上限', 'n = 14.4, γ = 1.5', eqStagLimit(1.5, sfT), 37.2, 'dB', 0.1, '式2.37, p.2.44');
-    add('4パルス・スタガ 6:9:7:8：改善係数（共分散から計算）', 'n = 14.4（ガウス形スペクトルで計算）', db10(impFactor(tapSets(4, [6, 9, 7, 8], false), sfT)), 36.5, 'dB', 1.5, 'p.2.44（実際の上限 36.5 dB）');
-    add('4パルス・スタガ 6:8:9:7：改善係数（共分散から計算）', '同上', db10(impFactor(tapSets(4, [6, 8, 9, 7], false), sfT)), 41.1, 'dB', 1.5, 'p.2.44（41.1 dB）');
-    add('同 6:9:7:8 に時変の重み付けを使った場合', '式(2.41) の重み付け', db10(impFactor(tapSets(4, [6, 9, 7, 8], true), sfT)), db10(impFactor(U(4), sfT)), 'dB', null, '式2.41, p.2.44–2.45', '比較値はスタガなしの4パルス。スタガによる上限がなくなる');
+    add('4 パルス・スタガ 6:9:7:8：改善係数（共分散から計算）', 'n = 14.4（ガウス形スペクトルで計算）', db10(impFactor(tapSets(4, [6, 9, 7, 8], false), sfT)), 36.5, 'dB', 1.5, 'p.2.44（実際の上限 36.5 dB）');
+    add('4 パルス・スタガ 6:8:9:7：改善係数（共分散から計算）', '同上', db10(impFactor(tapSets(4, [6, 8, 9, 7], false), sfT)), 41.1, 'dB', 1.5, 'p.2.44（41.1 dB）');
+    add('同 6:9:7:8 に時変の重み付けを使った場合', '式(2.41) の重み付け', db10(impFactor(tapSets(4, [6, 9, 7, 8], true), sfT)), db10(impFactor(U(4), sfT)), 'dB', null, '式2.41, p.2.44–2.45', '比較値はスタガなしの4 パルス。スタガによる上限がなくなる');
   }
   /* 7) 位相のふらつきによる改善度の上限：I = 20 log(1/Δφ)（表2.5） */
-  add('位相の変動 0.01 rad：改善係数の上限', '2パルス、クラッタのスペクトル幅なし（共分散から計算）', db10(impFactor(U(2), 0, 0.01)), 40, 'dB', 0.01, 'p.2.66, 表2.5');
-  add('位相の変動 1/316 rad（0.18°）：改善係数の上限', '3パルス、同上', db10(impFactor(U(3), 0, 1 / 316)), 50, 'dB', 0.01, '式2.51, p.2.73');
+  add('位相の変動 0.01 rad：改善係数の上限', '2 パルス、クラッタのスペクトル幅なし（共分散から計算）', db10(impFactor(U(2), 0, 0.01)), 40, 'dB', 0.01, 'p.2.66, 表2.5');
+  add('位相の変動 1/316 rad（0.18°）：改善係数の上限', '3 パルス、同上', db10(impFactor(U(3), 0, 1 / 316)), 50, 'dB', 0.01, '式2.51, p.2.73');
   {
     const o = Object.assign({}, DEFAULTS, {sv: 0, hits: 0, pj: 10, cn: 40}), sim = simulate(o, {uniform: true, flat: true, nr: 8, np: 4096});
-    add('シミュレーション実測：位相の変動 0.01 rad', '2パルス、クラッタは完全に静止（4096パルス）', db10(measureI(sim, 2, [1])), 40, 'dB', 0.5, 'p.2.66, 表2.5');
+    add('シミュレーション実測：位相の変動 0.01 rad', '2 パルス、クラッタは完全に静止（4096 パルス）', db10(measureI(sim, 2, [1])), 40, 'dB', 0.5, 'p.2.66, 表2.5');
     const sim3 = simulate(Object.assign({}, o, {seed: 2}), {uniform: true, flat: true, nr: 8, np: 4096});
-    add('同：4パルスキャンセラ', '同上（上限はキャンセラのパルス数によらない）', db10(measureI(sim3, 4, [1])), 40, 'dB', 0.5, '表2.5');
+    add('同：4 パルスキャンセラ', '同上（上限はキャンセラのパルス数によらない）', db10(measureI(sim3, 4, [1])), 40, 'dB', 0.5, '表2.5');
   }
-  add('A/D変換の量子化による上限（10ビット）', '20 log[(2ᴺ−1)·√0.75]', 20 * Math.log10(1023 * Math.sqrt(0.75)), 59.0, 'dB', 0.06, '表2.6, p.2.74');
-  add('同（16ビット）', '同上', 20 * Math.log10(65535 * Math.sqrt(0.75)), 95.1, 'dB', 0.06, '表2.6, p.2.74');
+  add('A/D 変換の量子化による上限（10 ビット）', '20 log[(2ᴺ−1)·√0.75]', 20 * Math.log10(1023 * Math.sqrt(0.75)), 59.0, 'dB', 0.06, '表2.6, p.2.74');
+  add('同（16 ビット）', '同上', 20 * Math.log10(65535 * Math.sqrt(0.75)), 95.1, 'dB', 0.06, '表2.6, p.2.74');
   /* 8) その他 */
   add('指数形モデルの形状パラメータ β = √2/σv', 'σv = 0.25 m/s（強風）', Math.SQRT2 / 0.25, 5.7, '(m/s)⁻¹', 0.06, '式2.13, 表2.1');
-  add('チェビシェフの重み付け（9パルス）：ドップラサイドローブ', '設計値 68 dB のフィルタの最大サイドローブ', winPeakSidelobeDb(chebWin(9, 68)), -68, 'dB', 0.1, '図2.54, p.2.54');
+  add('チェビシェフの重み付け（9 パルス）：ドップラサイドローブ', '設計値 68 dB のフィルタの最大サイドローブ', winPeakSidelobeDb(chebWin(9, 68)), -68, 'dB', 0.1, '図2.54, p.2.54');
   add('クラッタマップの実効的な平均回数 Leff = (2−α)/α', 'α = 0.125', (2 - 0.125) / 0.125, 15, '', 0.001, '式2.63, p.2.85');
   /* 参考：式が成り立たなくなる例 */
-  for (const o of [2, 4]) add('（参考）' + o + 'パルス：スペクトル幅が大きい場合の式との差', 'σf·T = 0.1', db10(impFactor(U(o), 0.1)), db10(eqI(o, 0.1)), 'dB', null, '式2.' + (21 + o), '式は σf·T ≪ 1 の近似。スペクトル幅が大きいと一致しない');
+  for (const o of [2, 4]) add('（参考）' + o + ' パルス：スペクトル幅が大きい場合の式との差', 'σf·T = 0.1', db10(impFactor(U(o), 0.1)), db10(eqI(o, 0.1)), 'dB', null, '式2.' + (21 + o), '式は σf·T ≪ 1 の近似。スペクトル幅が大きいと一致しない');
   return out;
 }
 if (typeof module !== 'undefined') module.exports = {S, DEFAULTS, derive, tapSets, respPow, impFactor, eqI, simulate, totalOf, mtiApply, cellPower, measureI, runChecks, chebWin, winMismatchDb, winPeakSidelobeDb, clutterMapDemo, db10, noiseGain, eqStagLimit, STAG};
@@ -813,7 +813,7 @@ const PREQ = {
 const STATE = {pred: [], shown: [], ms: [], touched: false};
 let cur = 0, PL = [], playT = null, hlT = null, lastR = {};
 /* dB の値に「何倍か」を添える（電力の比）。例：−20.0 dB（電力 1/100） */
-function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + ' 倍' : '1/' + s; }
+function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + (s.endsWith('万') ? '倍' : ' 倍') : '1/' + s; }
 function dbx(d, dg){ return isFinite(d) ? fx(d, dg === undefined ? 1 : dg) + ' dB（電力 ' + ratioTxt(d) + '）' : '—'; }
 /* 読み物の書き方：[[キー|表示]] はシミュレータ側を強調するリンク、{H} は「補足」の印 */
 function rt(s){ return String(s || '').replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '<a class="term" data-hl="$1" role="button" tabindex="0">$2</a>').replace(/\{H\}/g, H); }
@@ -1043,7 +1043,7 @@ function profiles(){          // MTI の前と後の、距離ごとの強さ [dB
 function profPlots(P, pr, o){
   o = o || {}; const tr = S.tr, ymax = Math.max(50, S.cn + 15);
   P[0].set(Object.assign({title: 'MTI の前：距離ごとの受信信号の強度', xr: [0, 30], yr: [-10, ymax], yl: '強度 [dB]（雑音 = 0）', series: [{name: 'MTI の前', color: 'ref', x0: 0, dx: pr.dx, y: pr.a, w: 1.5}], vl: [{x: tr, label: '目標の位置'}],
-    notes: [{x: 9, y: S.cn, t: 'クラッタ（地面などのエコー）', dx: 30, dy: -24}], marks: {clutter: {x0: 3, x1: 16.5, t: 'クラッタ'}}}, RK2));
+    notes: [{x: 9, y: S.cn, t: 'クラッタ（地面などのエコー）', dx: -30, dy: -24}], marks: {clutter: {x0: 3, x1: 16.5, t: 'クラッタ'}}}, RK2));
   P[1].set(Object.assign({title: 'MTI の後（' + S.order + ' パルスキャンセラ）', xr: [0, 30], yr: [-10, ymax], yl: '強度 [dB]（雑音 = 0）', series: [{name: 'MTI の後', color: 's1', x0: 0, dx: pr.dx, y: pr.b, w: 1.8}], vl: [{x: tr, label: '目標'}],
     notes: [pr.margin >= 10 ? {x: tr, y: pr.tgt, t: '目標が現れた（周囲より ' + fx(pr.margin, 0) + ' dB 高い）', dx: 30, dy: -6} : {x: tr, y: pr.tgt, t: o.why || '目標はまだ埋もれている', dx: 30, dy: -34}], marks: {target: {x0: tr - 0.5, x1: tr + 0.5, t: '目標'}, residue: {x0: 3, x1: 16.5, y0: -10, y1: pr.bgHi + 4, t: '残留クラッタ'}}}, RK2));
 }
@@ -1057,12 +1057,12 @@ STEPS.push({short: 'MTI とは', title: 'MTI とは — 強いクラッタの中
   why: '静止している地面のエコーは、毎回ほぼ同じです。このため、減算すると除去されます。運動している目標のエコーは、パルスごとに位相（波のタイミング）が変化するため、減算しても残ります。ただし、目標が静止していると、目標もともに除去されます。',
   read: {
     ana: '同じ場所から 1 秒おきに 2 枚の写真を撮り、2 枚を比較して「異なる部分」だけを残すと、背景の建物は消え、歩いている人だけが現れます。MTI はこれをレーダのエコーで行う処理です。',
-    what: 'レーダには地面・建物・雨などからの不要なエコー、すなわち[[clutter|クラッタ（clutter）]]も返ってきます（<a class=gt data-g=g-clutter tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>クラッタ</a>）。その強度は目標の数百倍から数万倍にもなり、そのままでは目標を検出できません。||<a class=gt data-g=g-mti tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>MTI</a>（moving target indication、移動目標指示）は、パルスごとのエコーの変化を利用します。静止している物体のエコーは変化しないため除去され、[[target|移動目標]]だけが残ります。完全には除去されずに残る成分を[[residue|残留クラッタ]]と呼びます。',
+    what: 'レーダには目標のほかに、[[clutter|地面・建物・雨などからの不要なエコー]]も返ってきます。これを<a class=gt data-g=g-clutter tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>クラッタ</a>（clutter）と呼びます。その強度は目標の数百倍から数万倍にもなり、そのままでは目標を検出できません。||<a class=gt data-g=g-mti tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>MTI</a>（moving target indication、移動目標指示）は、パルスごとのエコーの変化を利用します。静止している物体のエコーは変化しないため除去され、[[target|移動目標]]だけが残ります。完全には除去されずに残る成分を[[residue|残留クラッタ]]と呼びます。',
     eq: '出力 = （今回のエコー）−（1 つ前のパルスのエコー）',
     sym: 'エコーは振幅だけでなく位相も含めた値（I/Q）で減算します。静止している物体は 2 回とも同じ値であるため 0 になり、運動する目標は位相が変化するため 0 になりません。',
-    mis: 'MTI は「振幅が変化するもの」を残すのではありません。振幅が同じでも、位相が変化すれば残ります。逆に、運動していても、位相が元に戻る速度では除去されます（ステップ4）。'},
+    mis: 'MTI は「振幅が変化するもの」を残すのではありません。振幅が同じでも、位相が変化すれば残ります。逆に、運動していても、位相が元に戻る速度では除去されます（ステップ 4）。'},
   hosoku: ['写真を比較するたとえ', 'クラッタの距離方向の分布は、教材用に設定した仮のものであること', 'MTI の出力を雑音レベルが変わらないように正規化して表示していること'],
-  memo: 'つまずきやすい点は、「減算すると目標も除去されるのではないか」という疑問です。位相が変化することの意味は、ステップ2 で扱うと予告します。||声かけの例：「速度を 0 にすると、目標はどうなりますか」「MTI の後に残っている変動（残留クラッタ）は、なぜ完全には除去されないと思いますか」',
+  memo: 'つまずきやすい点は、「減算すると目標も除去されるのではないか」という疑問です。位相が変化することの意味は、ステップ 2 で扱うと予告します。||声かけの例：「速度を 0 にすると、目標はどうなりますか」「MTI の後に残っている変動（残留クラッタ）は、なぜ完全には除去されないと思いますか」',
   init: {tv: 2, cn: 40, ts: 15, order: 2}, ctl: [{k: 'tv', max: 40}], fixed: ['cn', 'ts', 'prf'], plots: [{h: 180}, {h: 200}], acts: [{t: '別の雑音にする', f: () => { S.seed++; }}],
   mission: {t: 'MTI の後で目標が周囲より 10 dB 以上（電力で 10 倍以上）高く見える速度にしましょう。', ok: r => r.margin >= 10}, sol: {tv: 20},
   draw(P){ const pr = profiles(); profPlots(P, pr, {why: S.tv < 5 ? '低速すぎて、目標も除去されている' : null});
@@ -1080,12 +1080,15 @@ STEPS.push({short: '位相の変化', title: 'パルスごとの位相の変化 
     sym: 'Δφ：1 パルスごとの位相の変化 [度]。<i>v</i>：目標の接近速度 [m/s]。<i>T</i>：パルス繰り返し周期 [秒]（= 1/PRF）。λ：波長 [m]。<i>f</i><sub>d</sub>：ドップラ周波数 [Hz]。',
     mis: '「遠距離の目標ほど位相が大きく変化する」という理解は誤りです。影響するのは距離そのものではなく、パルスの間に距離がどれだけ変化したか（速度）です。'},
   hosoku: ['時計の秒針のたとえ', 'Δφ = 360° × 2vT/λ は式2.3 から導いた関係', 'フェーザ図は矢印の長さを 1 にそろえて作図していること'],
-  memo: 'つまずきやすい点は、往復で 2 倍になることと、位相が 360° で元に戻ることです。||声かけの例：「速度を 2 倍にすると、矢印の回転する角度はどうなりますか」「1 パルスで 360° 回転する速度にすると、矢印はどのように見えますか（ステップ4 の予告）」',
+  memo: 'つまずきやすい点は、往復で 2 倍になることと、位相が 360° で元に戻ることです。||声かけの例：「速度を 2 倍にすると、矢印の回転する角度はどうなりますか」「1 パルスで 360° 回転する速度にすると、矢印はどのように見えますか（ステップ 4 の予告）」',
   init: {tv: 5, prf: 1000, f: 3}, ctl: [{k: 'tv', max: 60}], fixed: ['f', 'prf'], plots: [{h: 250}, {h: 150}],
   mission: {t: '矢印が 1 パルスごとに、ちょうど 90° ずつ回転する速度にしましょう。', ok: r => Math.abs(r.dphi - 90) < 1}, sol: {tv: 12.5},
   draw(P){
     const D = derive(), dphi = 360 * D.x, n = 8, arrows = [{x1: Math.cos(0.35) * 1.15, y1: Math.sin(0.35) * 1.15, color: 'ref', w: 3}], pts = [{x: Math.cos(0.35) * 1.15, y: Math.sin(0.35) * 1.15, color: 'ref', r: 1, label: '静止している物体（毎回同じ）'}];
-    for (let k = 0; k < n; k++){ const a = k * dphi * Math.PI / 180; arrows.push({x1: Math.cos(a), y1: Math.sin(a), color: 's1', w: 2, alpha: 0.35 + 0.65 * (k + 1) / n}); pts.push({x: Math.cos(a) * 1.12, y: Math.sin(a) * 1.12, color: 's1', r: 1, label: String(k + 1), left: Math.cos(a) < 0}); }
+    const grp = [];   /* 方向がほぼ同じ矢印の番号は、1 つの札にまとめる（札の重なりを避ける） */
+    for (let k = 0; k < n; k++){ const a = k * dphi * Math.PI / 180; arrows.push({x1: Math.cos(a), y1: Math.sin(a), color: 's1', w: 2, alpha: 0.35 + 0.65 * (k + 1) / n});
+      const g = grp.find(o => Math.abs(Math.atan2(Math.sin(a - o.a), Math.cos(a - o.a))) < 0.21); if (g) g.l.push(k + 1); else grp.push({a, l: [k + 1]}); }
+    for (const g of grp) pts.push({x: Math.cos(g.a) * 1.12, y: Math.sin(g.a) * 1.12, color: 's1', r: 1, label: g.l.join('・'), left: Math.cos(g.a) < 0});
     const ix = [], iy = []; for (let k = 0; k < 24; k++){ ix.push(k + 1); iy.push(Math.cos(k * dphi * Math.PI / 180)); }
     P[0].set({title: '目標のエコーの矢印（番号はパルスの順番）', xr: [-1.5, 1.5], yr: [-1.5, 1.5], equal: true, xl: 'I 成分', yl: 'Q 成分', series: [], arrows, pts, noHover: true, texts: [{s: '1 パルスごとに ' + fx(dphi, 0) + '° 回転', px: 0.02, row: 0}], marks: {phasor: {x0: -1.2, x1: 1.2, y0: -1.2, y1: 1.2, t: '矢印（フェーザ）'}}});
     P[1].set({title: '目標のエコーの I 成分（パルスの順）', xr: [0, 25], yr: [-1.3, 1.3], xl: 'パルスの番号', yl: 'I 成分', series: [{name: 'I 成分', color: 's1', x: ix, y: iy, stem: true, base: 0, mk: 3, w: 1.5}], marks: {icomp: {t: '回転が正弦波として現れる'}}, tipx: v => 'パルス ' + Math.round(v), tipy: v => fx(v, 2)});
@@ -1099,12 +1102,12 @@ STEPS.push({short: '2 パルスキャンセラ', title: '2 パルスキャンセ
   why: '2 本の矢印の差は矢印が正反対（180°）を向いている場合に最も長くなります。0° や 360° では 2 本が同じ方向であるため、減算すると 0 になります。360° 回転する速度がブラインド速度であり、180° はその半分の速度に当たります。',
   read: {
     ana: '同じ長さの 2 本の棒を、根元をそろえて置きます。先端どうしの距離は、2 本が同じ方向であれば 0、反対方向であれば最大になります。減算の出力はこの「先端どうしの距離」です。',
-    what: '2 パルスキャンセラ（delay-line canceler、<a class=gt data-g=g-pulse-canceler tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>パルスキャンセラ</a>）は、エコーを 1 周期だけ記憶して、次のエコーから減算します。出力の大きさは目標の速度によって変わり、その関係が[[resp|速度応答]]です。||速度 0 では応答が 0 であるため、静止したクラッタが除去されます。この応答の落ち込みを[[notch|ノッチ]]と呼びます。ブラインド速度の半分の付近では、MTI を使わない受信より 3 dB 大きくなります（雑音レベルをそろえて比較した場合）。',
+    what: '2 パルスキャンセラ（delay-line canceler）は最も簡単な<a class=gt data-g=g-pulse-canceler tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>パルスキャンセラ</a>であり、エコーを 1 周期だけ記憶して、次のエコーから減算します。出力の大きさは目標の速度によって変わり、その関係が[[resp|速度応答]]です。||速度 0 では応答が 0 であるため、静止したクラッタが除去されます。この応答の落ち込みを[[notch|ノッチ]]と呼びます。ブラインド速度の半分の付近では、応答は MTI を使わない受信より 3 dB 大きくなります（雑音レベルをそろえて比較した場合）。',
     eq: '応答の形 ∝ | sin(π·<i>f</i><sub>d</sub>·<i>T</i>) |',
     sym: '<i>f</i><sub>d</sub>：目標のドップラ周波数 [Hz]（= 2<i>v</i>/λ）。<i>T</i>：パルス繰り返し周期 [秒]。<i>f</i><sub>d</sub>·<i>T</i> は「1 パルスで矢印が何周するか」を表します。0.5 周で最大、0 周と 1 周で 0 になります。',
     mis: '「MTI は低速の目標だけを除去する」という理解は誤りです。速度 0 のほかにも応答が 0 になる速度が周期的に現れます（次のステップ）。'},
   hosoku: ['棒のたとえ', '応答を雑音の電力利得で正規化し、ピークが +3 dB になるという表示'],
-  memo: 'つまずきやすい点は、縦軸が dB であることです。0 dB が「MTI を使わない受信と同じ」であり、−20 dB は電力で 1/100 です。||声かけの例：「速度 25 m/s と 75 m/s で応答が同じになるのはなぜですか」「応答が 0 になる速度を、ステップ2 の式で計算できますか」',
+  memo: 'つまずきやすい点は、縦軸が dB であることです。0 dB が「MTI を使わない受信と同じ」であり、−20 dB は電力で 1/100 です。||声かけの例：「速度 25 m/s と 75 m/s で応答が同じになるのはなぜですか」「応答が 0 になる速度を、ステップ 2 の式で計算できますか」',
   init: {tv: 10, prf: 1000, f: 3, order: 2}, ctl: [{k: 'tv', max: 120}], fixed: ['f', 'prf'], plots: [{h: 270}],
   mission: {t: '速度 0 以外で応答が −20 dB 以下（電力 1/100 以下）になる速度を見つけましょう。', ok: r => S.tv > 5 && r.rd <= -20}, sol: {tv: 50},
   draw(P){
@@ -1122,10 +1125,10 @@ STEPS.push({short: 'ブラインド速度', title: 'ブラインド速度 — �
   why: 'ブラインド速度は「パルスの間に目標がちょうど半波長進む速度」です。PRF を 2 倍にするとパルス繰り返し周期が半分になるため、同じ半波長を進むには 2 倍の速度が必要になります。',
   read: {
     ana: '回転している扇風機を、点滅するライトで照らすと、羽根が止まって見えることがあります。点滅 1 回の間に羽根がちょうど 1 枚分進んでいるためです。レーダのパルスが「点滅」、目標の位相が「羽根」に当たります。',
-    what: 'パルスの間に目標が半波長の整数倍だけ進むと、位相がちょうど 1 周して元に戻ります。レーダからは静止しているように見え、目標もともに除去されます。この速度が[[blind|ブラインド速度（blind speed）]]です（<a class=gt data-g=g-blind-speed tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>ブラインド速度</a>）。||ブラインド速度は<a class=gt data-g=g-prf tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>PRF</a> を上げるか、波長を長くすると、高い速度へ移ります。図の[[tgt|目標の点]]がノッチに入らないように、PRF を選択する必要があります。',
+    what: 'パルスの間に目標が半波長の整数倍だけ進むと、位相がちょうど 1 周して元に戻ります。レーダからは静止しているように見え、目標もともに除去されます。[[blind|この速度]]を<a class=gt data-g=g-blind-speed tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>ブラインド速度</a>（blind speed）と呼びます。||ブラインド速度は<a class=gt data-g=g-prf tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>PRF</a>（パルス繰り返し周波数）を上げるか、波長を長くすると、高い速度へ移ります。図の[[tgt|目標の点]]がノッチに入らないように、PRF を選択する必要があります。',
     eq: '<i>V</i><sub>B</sub> = <i>k</i>·λ·<i>f</i><sub>r</sub> / 2',
     sym: '<i>V</i><sub>B</sub>：ブラインド速度 [m/s]。<i>k</i>：整数（1, 2, 3, …）。λ：波長 [m]。<i>f</i><sub>r</sub>：PRF [Hz]。波長 10 cm・PRF 1000 Hz の場合は 50、100、150 m/s … です。',
-    mis: '「PRF をできるだけ上げればよい」とは限りません。{H}PRF を上げると、次のパルスを送信する前にエコーが戻る距離 c/(2·PRF) が短くなり、遠距離で距離アンビギュイティが生じます（第3回で扱います）。'},
+    mis: '「PRF をできるだけ上げればよい」という理解は誤りです。{H}PRF を上げると、次のパルスを送信する前にエコーが戻る距離 c/(2·PRF) が短くなり、遠距離で距離アンビギュイティが生じます（第3回で扱います）。'},
   hosoku: ['扇風機とライトのたとえ', 'PRF を上げると、あいまいさのない最大距離 c/(2fr) が短くなること'],
   memo: 'つまずきやすい点は、ブラインド速度が 1 つではなく、整数倍で無数にあることです。||声かけの例：「100 m/s の目標が除去されない PRF を、いくつか挙げてみましょう」「波長を半分（周波数を 2 倍）にすると、ブラインド速度はどうなりますか」',
   init: {tv: 100, prf: 1000, f: 3, order: 2}, ctl: ['prf'], fixed: ['f', 'tv'], plots: [{h: 270}],
@@ -1170,7 +1173,7 @@ STEPS.push({short: 'クラッタの性質', title: 'クラッタの性質 — �
   why: '木の揺れる速度は同じでも、ドップラ周波数は 2v/λ であるため、波長が短いほど大きくなります。このため、同じ森林でも周波数の高いレーダほどクラッタのスペクトル幅が広くなり、MTI で除去しにくくなります。',
   read: {
     ana: '遠くの木を双眼鏡で見ると、肉眼では止まって見えた葉が、細かく揺れていることが分かります。波長の短いレーダは倍率の高い双眼鏡のようなものであり、クラッタのわずかな動きにも敏感です。',
-    what: 'クラッタが毎回まったく同じであれば、キャンセラで完全に除去できます。実際には風で揺れる木や波立つ海面のように、クラッタ自体がわずかに運動します。このため、クラッタのドップラ周波数は、0 の付近に[[spread|スペクトル幅]]をもちます（<a class=gt data-g=g-clutter-spectral-spread tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>クラッタのスペクトル幅</a>）。||スペクトル幅は速度の標準偏差 σv で表します。森林の場合、微風で 0.12 m/s、強風で 0.25 m/s 程度です。雨は 1〜4 m/s であり、はるかに広くなります。アンテナの回転によっても広くなります（<a class=gt data-g=g-scanning-modulation tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>走査変調</a>）。',
+    what: 'クラッタが毎回まったく同じであれば、キャンセラで完全に除去できます。実際には風で揺れる木や波立つ海面のように、クラッタ自体がわずかに運動します。このため、クラッタのドップラ周波数は、0 の付近の[[spread|ある幅の範囲]]に分布します。この幅を<a class=gt data-g=g-clutter-spectral-spread tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>クラッタのスペクトル幅</a>と呼びます。||スペクトル幅は速度の標準偏差 σv で表します。森林の場合、微風で 0.12 m/s、強風で 0.25 m/s 程度です。雨は 1〜4 m/s であり、はるかに広くなります。アンテナの回転によってエコーの振幅がパルスごとに変化することでも広くなり、これを<a class=gt data-g=g-scanning-modulation tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>走査変調</a>と呼びます。',
     eq: 'σ<sub>f</sub> = 2·σ<sub>v</sub> / λ',
     sym: 'σ<sub>f</sub>：クラッタのドップラ周波数のスペクトル幅（標準偏差）[Hz]。σ<sub>v</sub>：クラッタの速度のスペクトル幅（標準偏差）[m/s]。λ：波長 [m]。',
     mis: '「地面は運動しないため、地面クラッタのドップラ周波数は必ず 0 である」という理解は誤りです。木・草・波は運動し、アンテナが回転するだけでもエコーは変化します。'},
@@ -1205,8 +1208,8 @@ STEPS.push({short: '改善係数', title: '改善係数 — MTI の性能を表�
     for (const o of [2, 3, 4]){ const ys = lx.map(e => db10(impFactor(tapSets(o, [1], false), 2 * Math.pow(10, e) / D.lam / S.prf, 0))); ser.push({name: o + ' パルス', color: o === S.order ? 's1' : 'ref', x: lx, y: ys, w: o === S.order ? 2.6 : 1.2, dash: o === S.order ? null : [4, 3]}); }
     const I = db10(impFactor(tapSets(S.order, [1], false), D.sfT, 0));
     P[0].set({title: 'クラッタのスペクトル幅と改善係数（太線が選択したパルス数）', xr: [-1.4, 0.32], yr: [0, 110], xl: 'クラッタの速度のスペクトル幅 σv [m/s]', yl: '改善係数 [dB]', xticks: [[-1.301, '0.05'], [-1, '0.1'], [-0.699, '0.2'], [-0.301, '0.5'], [0, '1'], [0.301, '2']], series: ser,
-      hl: [{y: S.cn, label: 'クラッタの C/N = ' + S.cn + ' dB（これより上であれば雑音以下にできる）', color: 's2'}], pts: [{x: Math.log10(S.sv), y: I, color: 's1', r: 6, label: fx(I, 1) + ' dB'}], marks: {line: {t: '改善係数の線'}, cnline: {y0: S.cn - 4, y1: S.cn + 4, t: 'C/N の線'}}, tipx: v => 'σv ' + fx(Math.pow(10, v), 2) + ' m/s', tipy: v => fx(v, 1) + ' dB'});
-    return {I, tiles: [{k: '改善係数', v: fx(I, 1) + ' <small>dB</small>', s: 'クラッタの電力が ' + ratioTxt(-I) + ' に'}, {k: 'MTI の後に残るクラッタ（C/N − 改善係数）', v: fx(S.cn - I, 1) + ' <small>dB</small>', s: S.cn - I <= 0 ? '雑音より小さい' : '雑音より大きく残る'}]};
+      hl: [{y: S.cn, label: 'クラッタの C/N = ' + S.cn + ' dB（これより上であれば雑音以下にできる）', color: 's2', left: true}], pts: [{x: Math.log10(S.sv), y: I, color: 's1', r: 6, label: fx(I, 1) + ' dB'}], marks: {line: {t: '改善係数の線'}, cnline: {y0: S.cn - 4, y1: S.cn + 4, t: 'C/N の線'}}, tipx: v => 'σv ' + fx(Math.pow(10, v), 2) + ' m/s', tipy: v => fx(v, 1) + ' dB'});
+    return {I, tiles: [{k: '改善係数', v: fx(I, 1) + ' <small>dB</small>', s: 'クラッタの電力が ' + ratioTxt(-I) + ' に'}, {k: 'MTI の後に残るクラッタ（C/N − 改善係数）', v: fx(S.cn - I, 1) + ' <small>dB</small>', s: Math.abs(S.cn - I) < 0.5 ? '雑音と同程度' : S.cn - I < 0 ? '雑音より小さい' : '雑音より大きく残る'}]};
   }});
 
 /* 8 */
@@ -1253,7 +1256,7 @@ STEPS.push({short: '安定度の限界', title: 'システムの安定度によ�
   mission: {t: '位相の変動で決まる上限が 50 dB 以上になる、最大の変動の値に合わせましょう。', ok: r => r.lim >= 50 && S.pj >= 3}, sol: {pj: 3},
   draw(P){ const pr = profiles(), D = pr.D, lim = S.pj > 0 ? -20 * Math.log10(S.pj * 1e-3) : Infinity, I = db10(impFactor(tapSets(S.order, [1], false), D.sfT, D.sphi));
     profPlots(P, pr, {why: '残留クラッタに埋もれている'}); P[1].cfg.marks.res9 = P[1].cfg.marks.residue; P[0].cfg.marks.jit = {t: 'このクラッタが毎回わずかに異なって見える'};
-    return {lim, tiles: [{k: '位相の変動で決まる上限', v: isFinite(lim) ? fx(lim, 1) + ' <small>dB</small>' : '上限なし', s: S.pj + ' mrad = ' + fx(S.pj * 0.0573, 2) + '°'}, {k: '全体の改善係数（スペクトル幅の分も含む）', v: fx(I, 1) + ' <small>dB</small>'}, {k: 'MTI の後に残るクラッタ', v: fx(S.cn - I, 1) + ' <small>dB</small>', s: S.cn - I <= 0 ? '雑音より小さい' : '雑音より大きく残る'}]}; }});
+    return {lim, tiles: [{k: '位相の変動で決まる上限', v: isFinite(lim) ? fx(lim, 1) + ' <small>dB</small>' : '上限なし', s: S.pj + ' mrad = ' + fx(S.pj * 0.0573, 2) + '°'}, {k: '全体の改善係数（スペクトル幅の分も含む）', v: fx(I, 1) + ' <small>dB</small>'}, {k: 'MTI の後に残るクラッタ', v: fx(S.cn - I, 1) + ' <small>dB</small>', s: Math.abs(S.cn - I) < 0.5 ? '雑音と同程度' : S.cn - I < 0 ? '雑音より小さい' : '雑音より大きく残る'}]}; }});
 
 /* 10 */
 STEPS.push({short: '発展', title: '発展 — クラッタフィルタバンクとクラッタマップ', src: '§2.2 Moving-Target Detector（p.2.6–2.9）、§2.10 Clutter Filter Bank Design（p.2.52–2.56）、§2.15 Radar Clutter Maps（p.2.83–2.87、式2.61〜2.63）',
@@ -1262,12 +1265,12 @@ STEPS.push({short: '発展', title: '発展 — クラッタフィルタバン�
   why: 'マップが適応するまでの数スキャンは、残留クラッタがしきい値を超えて検出されます。マップの値が上がると、しきい値も上がり、同じ場所の残留クラッタは検出されなくなります。スキャンごとに別のセルへ移る航空機は、マップに記憶されないため検出されます。',
   read: {
     ana: '新しい部屋に入ると時計の音が気になりますが、しばらくすると慣れて気にならなくなります。そこへ突然、聞き慣れない音がすると、直ちに気付きます。クラッタマップは場所ごとの「平常時の音」を記憶する方式です。',
-    what: 'キャンセラは「速度 0 の成分を除去するフィルタ 1 本」でした。その発展が速度ごとに分けたフィルタを並べるドップラフィルタバンクと、[[map|クラッタマップ（clutter map）]]です（<a class=gt data-g=g-clutter-map tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>クラッタマップ</a>）。||クラッタマップはセルごとに過去の出力を平均して記憶し、それに係数を掛けたものを[[thr|しきい値]]にします。同じセルにとどまる残留クラッタは検出されなくなり、通過する目標は検出されます。レーダが移動せず、周波数が一定である場合に有効に機能します。',
+    what: 'キャンセラは「速度 0 の成分を除去するフィルタ 1 本」でした。その発展として、速度ごとに分けたフィルタを並べるドップラフィルタバンクと、[[map|セルごとに過去の出力を記憶する]]<a class=gt data-g=g-clutter-map tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>クラッタマップ</a>（clutter map）があります。||クラッタマップはセルごとに過去の出力を平均して記憶し、それに係数を掛けたものを[[thr|しきい値]]にします。同じセルにとどまる残留クラッタは検出されなくなり、通過する目標は検出されます。レーダが移動せず、周波数が一定である場合に有効に機能します。',
     eq: '<i>y</i>(<i>i</i>) = (1 − α)·<i>y</i>(<i>i</i>−1) + α·<i>x</i>(<i>i</i>)',
     sym: '<i>y</i>(<i>i</i>)：<i>i</i> 回目のスキャン後のマップの値。<i>x</i>(<i>i</i>)：今回のスキャンの出力。α：更新の係数（0〜1）。α = 0.125 の場合、約 15 回分の過去の平均に当たります。',
     mis: '「α は大きいほどよい」という理解は誤りです。早く適応する代わりに平均の精度が低くなり、しきい値が変動して誤警報や見逃しが増えます。'},
   hosoku: ['時計の音のたとえ', '10 スキャン目から残留クラッタが現れ、40 スキャン目に目標が 1 回通過するという場面の設定', 'しきい値の係数を 12 dB に固定していること'],
-  memo: 'つまずきやすい点は、横軸が「距離」ではなく「スキャンの回数（時間）」であることです。1 つのセルを観測し続けている図です。||声かけの例：「α を小さくすると、適応するまでに何スキャンかかりますか」「40 スキャン目の目標を見逃すのは、どのような場合ですか」（第4回のステップ10 で再び扱います）',
+  memo: 'つまずきやすい点は、横軸が「距離」ではなく「スキャンの回数（時間）」であることです。1 つのセルを観測し続けている図です。||声かけの例：「α を小さくすると、適応するまでに何スキャンかかりますか」「40 スキャン目の目標を見逃すのは、どのような場合ですか」（第4回のステップ 10 で再び扱います）',
   init: {al: 0.03, seed: 1}, ctl: ['al'], fixed: [], fixT: ['しきい値の係数 12 dB（振幅で約 4 倍）', '残留クラッタの強度 雑音より 20 dB 上（電力 100 倍）', '目標 40 スキャン目に 1 回だけ通過'], plots: [{h: 280}], acts: [{t: '別の乱数にする', f: () => { S.seed++; }}],
   mission: {t: '残留クラッタを誤って検出する回数を 3 回以下にし、かつ 40 スキャン目の目標を検出できる α を見つけましょう。', ok: r => r.fa <= 3 && r.hit}, sol: {al: 0.3},
   draw(P){

@@ -5,7 +5,7 @@
 const STATE = {pred: [], shown: [], ms: [], touched: false};
 let cur = 0, PL = [], playT = null, hlT = null, lastR = {};
 /* dB の値に「何倍か」を添える（電力の比）。例：−20.0 dB（電力 1/100） */
-function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + ' 倍' : '1/' + s; }
+function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + (s.endsWith('万') ? '倍' : ' 倍') : '1/' + s; }
 function dbx(d, dg){ return isFinite(d) ? fx(d, dg === undefined ? 1 : dg) + ' dB（電力 ' + ratioTxt(d) + '）' : '—'; }
 /* 読み物の書き方：[[キー|表示]] はシミュレータ側を強調するリンク、{H} は「補足」の印 */
 function rt(s){ return String(s || '').replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '<a class="term" data-hl="$1" role="button" tabindex="0">$2</a>').replace(/\{H\}/g, H); }
