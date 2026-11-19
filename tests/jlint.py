@@ -187,7 +187,7 @@ class Lint:
                 if ends and s.endswith('。') and t and not t.endswith(('」', '』')) and t[-1] in PLAIN_LAST and not t.endswith(POLITE_END) and not t.endswith(('ますか', 'ですか', 'ほか', 'なか')) and field not in ('sym',) and not eqline:
                     self.add(f, st, field, '文体', t[-10:] + '。', s)
             else:
-                m = POLITE.search(no_quote(s))
+                m = None if field == 'preq' else POLITE.search(no_quote(s))      # 前提の補足は入門と共通（です・ます）
                 if m:
                     self.add(f, st, field, '文体', no_quote(s)[max(0, m.start() - 8):m.end() + 2], s)
 
@@ -270,7 +270,7 @@ def main():
             if text is None or text == '':
                 return
             seen.append(strip(text)); L.check(f, st, field, text, mid)
-        ck(0, 'title', e['title']); ck(0, 'pret', e.get('pret', [])); ck(0, 'ct', [[c[1]] + c[2] for c in e.get('ct', [])])
+        ck(0, 'title', e['title']); ck(0, 'pret', e.get('pret', [])); ck(0, 'preq', [list(v) if isinstance(v, (list, tuple)) else v for k, v in (e.get('preq') or {}).items() if k in [p for p in e.get('pre', []) if isinstance(p, str)]]); ck(0, 'ct', [[c[1]] + c[2] for c in e.get('ct', [])])
         cnt = 0
         for i, s in enumerate(e['steps'], 1):
             for k in ('short', 'title', 'q', 'ch', 'why', 'memo', 'do', 'solve', 'mission', 'ctl', 'fixed', 'fixT', 'acts', 'plots', 'tiles', 'small', 'seg', 'legend', 'pcfg', 'sheet', 'uiq', 'hosoku'):
