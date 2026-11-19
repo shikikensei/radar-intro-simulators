@@ -598,12 +598,12 @@ const GLOSS = [
   [-1, '重み付け（weighting）', 'データの端を小さくするような係数を掛けて、サイドローブを下げる処理。代わりに主ローブが少し広がり、S/N が少し下がる。', 'g-weighting'],
   [-1, 'FFT（高速フーリエ変換）', '信号を周波数の成分に分ける計算を、高速に行う方法。', 'g-fft'],
   [1, 'パルス圧縮（pulse compression）', '変調をかけた長いパルスを送信し、受信側のフィルタで短いパルスに圧縮する方法です。長いパルスのエネルギーと、短いパルスの距離分解能を両立させます。', 'g-pulse-compression'],
-  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域 B の積 TB。パルス圧縮比にほぼ等しい。', 'g-time-bandwidth-product'],
+  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域幅 B の積 TB です。パルス圧縮比にほぼ等しくなります。', 'g-time-bandwidth-product'],
   [1, 'パルス圧縮比（pulse compression ratio）', '送信パルス幅と圧縮後のパルス幅の比。およそ TB。', 'g-pulse-compression-ratio'],
   [1, '距離分解能（range resolution）', '近接した 2 つの目標を分離できる最小の距離差です。帯域幅 B で決まり、およそ c/(2B) です。', 'g-range-resolution'],
-  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変える変調。代表的なパルス圧縮波形。', 'g-lfm'],
-  [1, '整合フィルタ（matched filter）', '送信波形に合わせて作った受信フィルタ。雑音の中の信号に対して、出力のピークの S/N を最大にする。', 'g-matched-filter'],
-  [1, '時間サイドローブ（time sidelobe）', '圧縮後のパルスで主ローブの前後（距離方向）に出る小さな山。', 'g-time-sidelobe'],
+  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変化させる変調です。パルス圧縮に最も広く使われます。', 'g-lfm'],
+  [1, '整合フィルタ（matched filter）', '送信波形に合わせて設計し、出力の S/N を最大にする受信フィルタです。', 'g-matched-filter'],
+  [1, '時間サイドローブ（time sidelobe、レンジサイドローブ）', 'パルス圧縮後の波形で、メインローブの前後に現れる小さなピークです。強い目標のサイドローブが弱い目標を隠すことがあります。', 'g-time-sidelobe'],
   [1, 'テイラー重み付け（Taylor weighting）', 'LFM の時間サイドローブを下げるための、代表的な周波数領域の重み付け。', 'g-taylor-weighting'],
   [1, 'ミスマッチ損失（mismatch loss）', '重み付けなどで整合フィルタからわざと外したために生じる S/N の低下。', 'g-mismatch-loss'],
   [1, '距離ドップラ結合（range-Doppler coupling）', 'LFM で目標のドップラ周波数によって圧縮後のピークの位置（距離）がずれる現象。', 'g-range-doppler-coupling'],
@@ -623,7 +623,7 @@ const GLOSS = [
   [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分けて目標を検出する方式。', 'g-pulse-doppler'],
   [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通すフィルタ。FFT で多数並べて作る。', 'g-doppler-filter'],
   [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ処理を行う 1 組のパルス列、またはその時間です。CPI が長いほどドップラ分解能（速度分解能）が高くなります。', 'g-cpi'],
-  [3, '距離のあいまいさ（range ambiguity）', 'エコーがどの送信パルスのものか区別できず、距離が決まらないこと。PRF が高いほど起きやすい。', 'g-range-ambiguity'],
+  [3, '距離のアンビギュイティ（range ambiguity、距離のあいまいさ）', 'エコーがどの送信パルスによるものかを区別できず、距離が一意に決まらないことです。PRF が高いほど生じやすくなります。', 'g-range-ambiguity'],
   [3, 'ドップラのアンビギュイティ（Doppler ambiguity、ドップラのあいまいさ）', 'ドップラ周波数が PRF の整数倍だけ異なる目標を区別できないことです。PRF が低いほど生じやすくなります。', 'g-doppler-ambiguity'],
   [3, 'メインビームクラッタ（mainbeam clutter）', 'アンテナの主ビームが地面に当たって返ってくる強いクラッタ。', 'g-mainbeam-clutter'],
   [3, 'サイドローブクラッタ（sidelobe clutter）', 'アンテナのサイドローブを通って、あらゆる方向の地面から返ってくるクラッタ。', 'g-sidelobe-clutter'],
@@ -963,13 +963,13 @@ GLOSS.push(
   [102, '量子化雑音（quantization noise）', 'A/D 変換器の量子化による丸め誤差です。パルスごとに不規則であるため、キャンセラでは抑圧されません。', 'g-quantization-noise']
 );
 GLOSS.push(
-  [103, 'あいまいにならない距離（unambiguous range、R_u）', '次のパルスを出す前に、エコーが戻ってくる距離。c/(2·PRF)。これより遠い目標は、近い距離に折り返して現れる。', 'g-unambiguous-range'],
-  [103, 'あいまいにならない速度の幅', '区別できる速度の幅。PRF·λ/2（±半分ずつ）。MTI の最初のブラインド速度と同じ値。', 'g-unambiguous-velocity'],
-  [103, '低・中・高 PRF', '何があいまいになるかで分けた PRF の区分。低：距離があいまいでない。高：速度があいまいでない。中：どちらもあいまい。', 'g-prf-classes'],
-  [103, 'あいまいさの番号（ambiguity number）', '見かけの距離（速度）が、本当の値から何回折り返したものかを表す整数。', 'g-ambiguity-number'],
-  [103, 'ゴースト（range ghost）', '複数の PRF で距離を解くとき、別々の目標の候補がたまたまそろって現れる、本物でない距離。', 'g-range-ghost'],
-  [103, 'デューティ比と見えない距離', '送信している時間の割合。高 PRF ではほぼこの割合の距離が、エクリプシングで見えなくなる。', 'g-duty-and-blind-range'],
-  [103, '距離とドップラの結びつき（range-doppler coupling）', 'LFM で目標のドップラ周波数のぶんだけ、圧縮後の頂上の時刻がずれること。ずれは f_d·T/B。', 'g-range-doppler-coupling-m']
+  [103, 'あいまいさのない最大距離（アンアンビギュアスレンジ、unambiguous range、R_u）', '次のパルスを送信する前にエコーが戻る最大の距離であり、c/(2·PRF) で求められます。これより遠い目標は、近い距離に折り返して現れます。', 'g-unambiguous-range'],
+  [103, 'あいまいさのない速度幅（unambiguous velocity）', 'アンビギュイティなしに区別できる速度の幅であり、PRF·λ/2（±半分ずつ）で求められます。MTI の最初のブラインド速度と同じ値です。', 'g-unambiguous-velocity'],
+  [103, '低・中・高 PRF', 'アンビギュイティの生じ方によって分けた PRF の区分です。低 PRF では距離のアンビギュイティがなく、高 PRF では速度のアンビギュイティがなく、中 PRF では両方にアンビギュイティがあります。', 'g-prf-classes'],
+  [103, 'アンビギュイティ番号（ambiguity number）', '見かけの距離（または速度）が、真の値から何回折り返した値であるかを表す整数です。', 'g-ambiguity-number'],
+  [103, 'ゴースト（range ghost）', '複数の PRF で距離を決定するときに、別々の目標の候補が偶然一致して現れる、実在しない距離です。', 'g-range-ghost'],
+  [103, 'デューティ比とエクリプシング', 'デューティ比は送信している時間の割合です。高 PRF ではほぼこの割合の距離が、エクリプシングによって受信できなくなります。', 'g-duty-and-blind-range'],
+  [103, '距離ドップラ結合の計算（range-doppler coupling）', 'LFM で目標のドップラ周波数に比例して圧縮後のピークの時刻が偏移する現象です。時間の偏移は f_d·T/B で求められます。', 'g-range-doppler-coupling-m']
 );
 GLOSS.push(
   [104, 'モノパルス傾斜（誤差傾斜、monopulse slope、k_m）', 'モノパルスにおいて、目標の方向がビーム幅に等しい角度だけ変化したときの、差 ÷ 和の変化量です。給電方式によって 1.2〜1.9 の値をとり、大きいほど測角精度が高くなります。', 'g-monopulse-slope'],
