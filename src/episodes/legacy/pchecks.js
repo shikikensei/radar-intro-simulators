@@ -13,16 +13,16 @@ function runChecks(){
     const o = base({t: one(9, 45)}), sim = simulate(o, {noClutter: true, noNoise: true}), t = sim.tg[0];
     add('ドップラ周波数（シミュレーションのスペクトルのピーク）', '10 GHz（λ = 3 cm）、接近速度 45 m/s', fineF(sim, t.g), 2 * 45 / 0.03, 'Hz', 10, 'fd = 2V/λ, p.4.1');
     const o2 = base({f: 3, t: one(9, -30)}), sim2 = simulate(o2, {noClutter: true, noNoise: true});
-    add('同：遠ざかる目標（負のドップラ）', '3 GHz（λ = 10 cm）、接近速度 −30 m/s', fineF(sim2, sim2.tg[0].g), -600, 'Hz', 10, 'p.4.1（遠ざかる目標は負）');
+    add('同：離隔する目標（負のドップラ周波数）', '3 GHz（λ = 10 cm）、接近速度 −30 m/s', fineF(sim2, sim2.tg[0].g), -600, 'Hz', 10, 'p.4.1（離隔する目標は負）');
   }
   /* 2) あいまいなし距離・速度 */
   {
     const D = derive(base({prf: 10}));
-    add('あいまいなし距離 Ru = c/(2·fR)', 'PRF 10 kHz', D.Ru / 1000, 15, 'km', 1e-9, 'p.4.2');
+    add('あいまいさのない最大距離 Ru = c/(2·fR)', 'PRF 10 kHz', D.Ru / 1000, 15, 'km', 1e-9, 'p.4.2');
     add('レンジゲートの大きさ', 'ゲート幅 1 µs', D.gate, 150, 'm', 1e-9, '150 m/µs, p.4.9');
     const sim = simulate(base({t: one(21, 45)}), {noClutter: true, noNoise: true}), m = rdMap(sim, 'none'); let gb = 1, vb = -1e9;
     for (let g = 1; g < m.ng; g++) for (let k = 0; k < m.N; k++) if (m.db[g * m.N + k] > vb){ vb = m.db[g * m.N + k]; gb = g; }
-    add('距離の折り返し（シミュレーションでピークが出るゲートの距離）', 'PRF 10 kHz、目標の真の距離 21 km', gb * D.gate / 1000, 6, 'km', 0.001, 'Ru = 15 km で折り返し, p.4.2');
+    add('距離の折り返し（シミュレーションでピークが現れるレンジゲートの距離）', 'PRF 10 kHz、目標の真の距離 21 km', gb * D.gate / 1000, 6, 'km', 0.001, 'Ru = 15 km で折り返し, p.4.2');
     add('PRF 速度（最初のブラインド速度）fR·λ/2', 'PRF 10 kHz、λ = 3 cm', D.vprf, 150, 'm/s', 1e-9, 'p.4.34, 図4.19');
     const sim2 = simulate(base({t: one(9, 200)}), {noClutter: true, noNoise: true});
     add('速度の折り返し（シミュレーションのピークの見かけの速度）', 'PRF 10 kHz、目標の真の速度 200 m/s', fineF(sim2, sim2.tg[0].g) * D.lam / 2, 50, 'm/s', 0.2, '式4.10（200 − 150 = 50 m/s）');
@@ -34,14 +34,14 @@ function runChecks(){
     const oa = base({t: [{on: true, r: 9, v: 20 * D.dv, s: 0}, {on: true, r: 9, v: 21 * D.dv, s: 0}, {on: false, r: 5, v: 0, s: 0}]});
     oa.t[1].r = 6; const sa = simulate(oa, {noClutter: true, noNoise: true}), ma = rdMap(sa, 'none');
     const k1 = peakOf(ma.db, sa.tg[0].g * 64, sa.tg[0].g * 64 + 64) % 64, k2 = peakOf(ma.db, sa.tg[1].g * 64, sa.tg[1].g * 64 + 64) % 64;
-    add('ドップラが 1/CPI だけ違う2目標のピークのフィルタ番号の差', 'シミュレーション（N = 64）', k2 - k1, 1, '', 0, '1/CPI = フィルタ1本分');
-    add('フィルタ中心から 1/CPI ずれた目標への応答（重みなし）', '応答の最初の零点', Math.max(-200, db10(winResp(getWin(64, 'none'), 1))), -200, 'dB', 1, '理論上 −∞', '数値誤差の範囲で 0');
-    add('重みなしフィルタの 3 dB 幅 × CPI', 'N = 64', winStats(64, 'none').w3, 0.886, '', 0.005, '（補足）sin x/x の 3 dB 幅');
+    add('ドップラ周波数が 1/CPI だけ異なる 2目標のピークのフィルタ番号の差', 'シミュレーション（N = 64）', k2 - k1, 1, '', 0, '1/CPI = フィルタ1本分');
+    add('フィルタ中心から 1/CPI 離れた目標への応答（重み付けなし）', '応答の最初の零点', Math.max(-200, db10(winResp(getWin(64, 'none'), 1))), -200, 'dB', 1, '理論上 −∞', '数値誤差の範囲で 0');
+    add('重み付けなしのフィルタの 3 dB 幅 × CPI', 'N = 64', winStats(64, 'none').w3, 0.886, '', 0.005, '（補足）sin x/x の 3 dB 幅');
     add('コヒーレント積分の利得（シミュレーション：ピーク ÷ 入力S/N）', 'N = 64、目標はフィルタ中心、雑音なし', ma.db[sa.tg[0].g * 64 + k1], 10 * Math.log10(64), 'dB', 0.01, '10 log N');
     add('2048 パルスのコヒーレント積分の利得', '10 log 2048', 10 * Math.log10(2048), 33.1, 'dB', 0.05, '表4.7, p.4.30');
     const sn = simulate(base({np: 256}), {noClutter: true, noTargets: true}), mn = rdMap(sn, 'c70'); let s = 0, c = 0;
     for (let i = 256; i < mn.db.length; i++){ s += Math.pow(10, mn.db[i] / 10); c++; }
-    add('雑音だけのマップの平均レベル', 'N = 256、チェビシェフ 70 dB（雑音で規格化）', 10 * Math.log10(s / c), 0, 'dB', 0.15, '（C+N)/N 表示, 図4.5');
+    add('雑音だけのマップの平均レベル', 'N = 256、チェビシェフ 70 dB（雑音で正規化）', 10 * Math.log10(s / c), 0, 'dB', 0.15, '（C+N)/N 表示, 図4.5');
   }
   /* 4) 重み付け */
   {
@@ -49,16 +49,16 @@ function runChecks(){
     add('チェビシェフ 90 dB：ピークサイドローブ', 'N = 2048', w.pslDb, -90, 'dB', 0.5, 'p.4.30–4.31');
     add('チェビシェフ 90 dB：重み付け損失', 'N = 2048（N·Σw²/(Σw)²）', w.lossDb, 2.66, 'dB', 0.02, '表4.7, p.4.31');
     add('表4.7：CFAR での熱雑音レベル', '−60 − 33.1 + 2.66 − 3.82', -60 - 10 * Math.log10(2048) + w.lossDb - 8 * Math.log10(3), -94.3, 'dBc', 0.06, '表4.7, p.4.30', 'PDI 3回の利得 10 log(3^0.8) = ' + (8 * Math.log10(3)).toFixed(2) + ' dB');
-    add('重みなし：ピークサイドローブ', 'N = 2048', winStats(2048, 'none').pslDb, -13.26, 'dB', 0.05, '（補足）sin x/x の値');
+    add('重み付けなし：ピークサイドローブ', 'N = 2048', winStats(2048, 'none').pslDb, -13.26, 'dB', 0.05, '（補足）sin x/x の値');
     const w64 = winStats(64, 'c90');
-    add('（参考）チェビシェフ 90 dB：重み付け損失', 'N = 64（初期設定のパルス数）', w64.lossDb, 2.66, 'dB', null, '表4.7 は N = 2048', 'パルス数が少ないと少し変わる');
+    add('（参考）チェビシェフ 90 dB：重み付け損失', 'N = 64（初期設定のパルス数）', w64.lossDb, 2.66, 'dB', null, '表4.7 は N = 2048', 'パルス数が少ないとわずかに変わる');
   }
   /* 5) 航空機搭載のクラッタ */
   {
     const o = base({vr: 250, h: 3, az: 30, dep: 6, prf: 40, np: 256, cn: 60, t: one(9, 400)}), D = derive(o), cl = clutterModel(o, D);
     const Rmb = D.h / Math.sin(D.dep), g = Math.round((Rmb % D.Ru) / D.gate), M = cl.M, row = cl.P.subarray(g * M, (g + 1) * M), ip = peakOf(row, 0, M);
     const fOf = i => foldF(i * cl.fb, D.prf);
-    add('メインビームクラッタのドップラ（モデルのスペクトルのピーク）', 'VR 250 m/s、λ 3 cm、方位 30°、俯角 6°', fOf(ip), 2 * 250 / 0.03 * Math.cos(6 * Math.PI / 180) * Math.cos(30 * Math.PI / 180), 'Hz', 60, '(2VR/λ)cosψ0, p.4.4');
+    add('メインビームクラッタのドップラ周波数（モデルのスペクトルのピーク）', 'VR 250 m/s、λ 3 cm、方位 30°、俯角 6°', fOf(ip), 2 * 250 / 0.03 * Math.cos(6 * Math.PI / 180) * Math.cos(30 * Math.PI / 180), 'Hz', 60, '(2VR/λ)cosψ0, p.4.4');
     const sim = simulate(o, {noTargets: true}), sp = gateSpectrum(sim, g, 'c70', 1), ks = peakOf(sp.db, 0, sp.M);
     add('同（シミュレーション：FFT のピークのフィルタの中心）', '同上、PRF 40 kHz、N = 256（フィルタ間隔 156 Hz）', sp.f0 + ks * sp.df, D.fmb, 'Hz', 160, '(2VR/λ)cosψ0, p.4.4', '許容差はフィルタ1本分');
     let a = ip, b = ip; while (row[(a - 1 + M) % M] > row[ip] / 4 && ip - a < M / 4) a--; while (row[(b + 1) % M] > row[ip] / 4 && b - ip < M / 4) b++;
@@ -66,12 +66,12 @@ function runChecks(){
     const wid = (b - a + fr(a, -1) + fr(b, 1)) * cl.fb, th = THB, e44 = D.F * (th * Math.cos(D.dep) * Math.sin(D.az) + th * th * Math.cos(D.dep) * Math.cos(D.az) / 8 + C * D.tau * Math.pow(Math.sin(D.dep), 3) * Math.cos(D.az) / (2 * D.h * Math.cos(D.dep)));
     add('メインビームクラッタのスペクトル幅（ピークから 6 dB 下）', '同上、ビーム幅 3°、パルス幅 1 µs、高度 3 km', wid, e44, 'Hz', 40, '式4.4, p.4.16');
     const un = clutterUnfolded(o, D); let im = 0; for (let i = 0; i < un.U; i++) if (un.p[i] > 1e-12) im = i;
-    add('サイドローブクラッタの上端のドップラ', '同上（折り返しなしのスペクトル）', un.f0 + im * un.df, D.F, 'Hz', D.F * 0.02, '2VR/λ, 図4.2');
+    add('サイドローブクラッタの上端のドップラ周波数', '同上（折り返しなしのスペクトル）', un.f0 + im * un.df, D.F, 'Hz', D.F * 0.02, '2VR/λ, 図4.2');
     let gbest = 1, pbest = -1, cen = 0; const band = g => { let t = 0; for (let i = 0; i < M; i++) if (Math.abs(fOf(i)) < 0.5 * D.F) t += cl.P[g * M + i]; return t; };
     for (let g2 = 1; g2 < D.ng; g2++){ const t = band(g2); if (t > pbest){ pbest = t; gbest = g2; } }
-    add('高度線が現れる距離（メインビーム以外のクラッタが最も強いゲート）', '同上、高度 3 km', gbest * D.gate / 1000, 3, 'km', 0.151, '真下からの反射, p.4.5・p.4.18', '許容差はゲート1個分');
+    add('高度線が現れる距離（メインビーム以外のクラッタが最も強いレンジゲート）', '同上、高度 3 km', gbest * D.gate / 1000, 3, 'km', 0.151, '真下からの反射, p.4.5・p.4.18', '許容差はゲート1個分');
     for (let i = 0; i < M; i++) if (Math.abs(fOf(i)) < 0.5 * D.F) cen += fOf(i) * cl.P[gbest * M + i];
-    add('高度線のドップラ（そのゲートのスペクトルの重心）', '同上（メインビーム付近を除く）', cen / pbest, 0, 'Hz', cl.fb, 'ドップラ 0, p.4.5');
+    add('高度線のドップラ周波数（そのレンジゲートのスペクトルの重心）', '同上（メインビーム付近を除く）', cen / pbest, 0, 'Hz', cl.fb, 'ドップラ 0, p.4.5');
   }
   /* 6) あいまいさの解消 */
   {
@@ -81,7 +81,7 @@ function runChecks(){
     add('同：相関した距離', '同上（3本の平均）', h.r, (39.1 + 38.9 + 39.2) / 3, 'ゲート', 0.01, '図4.18（39.1・38.9・39.2）');
     add('同：粗いビンの番号', '9 ゲートごとのビン', Math.floor(h.r / 9) + 1, 5, '', 0, '図4.18（5番目のビン）');
     const ks = [0, 1, 2].map(p => (h.mem.find(m => m.p === p) || {k: NaN}).k);
-    add('同：PRF 1 のあいまいさの番号', '同上', ks[0], 4, '', 0, 'p.4.31（5周期目のエコー）'); add('同：PRF 2・3 のあいまいさの番号（和）', '同上', ks[1] + ks[2], 6, '', 0, 'p.4.32（どちらも 3）');
+    add('同：PRF 1 のアンビギュイティ番号', '同上', ks[0], 4, '', 0, 'p.4.31（5周期目のエコー）'); add('同：PRF 2・3 のアンビギュイティ番号（和）', '同上', ks[1] + ks[2], 6, '', 0, 'p.4.32（どちらも 3）');
     const o = base({t: one(43.7, 45)}), dets = [0, 1, 2].map(lk => { const sim = simulate(o, {noClutter: true, noNoise: true, look: lk}), m = rdMap(sim, 'none'); let gb = 1, vb = -1e9;
       for (let g = 1; g < m.ng; g++) for (let k = 0; k < m.N; k++) if (m.db[g * m.N + k] > vb){ vb = m.db[g * m.N + k]; gb = g; } return {ru: sim.D.Ru, amb: [gb * sim.D.gate]}; });
     const r2 = correlate(dets, 0, 60000, 150, 3);
@@ -93,7 +93,7 @@ function runChecks(){
   /* 7) エクリプシング */
   {
     for (const N of [5, 20]){ const D = derive(base({prf: 1000 / N, tau: 1}));
-      add('エクリプシングとゲートストラドルの平均損失', 'パルス間隔 = ' + N + ' ゲート（デューティ ' + (100 / N) + '%）、モデルの平均', -db10(eclipseAvg(D)), 10 * Math.log10(12 * N / (7 * N - 6)), 'dB', 0.01, '式4.17, p.4.41'); }
+      add('エクリプシングとゲートストラドルの平均損失', 'パルス繰り返し周期 = ' + N + ' ゲート（デューティ ' + (100 / N) + '%）、モデルの平均', -db10(eclipseAvg(D)), 10 * Math.log10(12 * N / (7 * N - 6)), 'dB', 0.01, '式4.17, p.4.41'); }
   }
   /* 8) ダイナミックレンジと安定度 */
   {
@@ -110,7 +110,7 @@ function runChecks(){
       let d = 0, c = 0; for (let k = 0; k < 64; k++){ if (Math.abs(k - 32) < 6) continue; d += Math.pow(10, m1.db[g * 64 + k] / 10) - Math.pow(10, m0.db[g * 64 + k] / 10); c++; }
       acc += d / c / pr; cnt++;
     }
-    add('シミュレーション：位相雑音が作る雑音の床（クラッタ比）', '位相雑音 −64 dBc、C/N が 30 dB 以上のゲートの平均', 10 * Math.log10(acc / cnt), -64, 'dBc', 0.3, '式4.8 の前提（クラッタに比例する雑音）');
+    add('シミュレーション：位相雑音による雑音フロア（クラッタ比）', '位相雑音 −64 dBc、C/N が 30 dB 以上のレンジゲートの平均', 10 * Math.log10(acc / cnt), -64, 'dBc', 0.3, '式4.8 の前提（クラッタに比例する雑音）');
   }
   add('M-of-N 検出の確率（3-of-8）', '1ルックの検出確率 0.5', mOfN(0.5, 3, 8), 219 / 256, '', 1e-9, '式4.26, p.4.47');
   return out;
