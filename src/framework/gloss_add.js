@@ -203,7 +203,7 @@ GLOSS.push(
   [12, '低被探知性（LPI、low probability of intercept）', '相手の受信機に見つかりにくいように、レーダの電波の出し方を工夫すること。', 'g-lpi'],
   [12, 'レーダ警報受信機（RWR、radar warning receiver）', 'レーダの電波を受けて、照らされていることとその方向を知らせる受信機。', 'g-rwr'],
   [12, '電波管制（EMCON、emission control）', '位置や意図を知られないように、電波を出す時間・方向・周波数などを管理すること。', 'g-emcon'],
-  [12, 'ダイナミックレンジ（dynamic range）', '受信機がゆがめずに扱える信号の強さの範囲。強い妨害で飽和しないために、広い範囲が必要。', 'g-dynamic-range']
+  [12, 'ダイナミックレンジ（dynamic range）', '受信機が歪みなく扱える最大の信号と、雑音レベルとの比です。強いクラッタや妨害があっても飽和しないために必要です。', 'g-dynamic-range']
 );
 GLOSS.push(
   [13, 'レーダ資源管理（radar resource management）', 'レーダが持つ限られた時間とエネルギーを、捜索・追尾などの仕事にどう割り振るかを決めること。', 'g-radar-resource-management'],

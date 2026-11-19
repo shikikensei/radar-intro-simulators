@@ -552,7 +552,7 @@ const GLOSS = [
   [1, 'ストレッチ処理（stretch processing）', '受信した LFM に参照の LFM を掛け、周波数の違いとして距離を読み取る圧縮方法。', 'g-stretch-processing'],
   [2, 'MTI（moving target indication、移動目標指示）', 'パルスごとのエコーの変化を使って、止まっているクラッタを消し、動いている目標を残す処理。', 'g-mti'],
   [2, 'パルスキャンセラ（delay-line canceler）', '1 つ前のパルスのエコーを引き算する MTI フィルタ。固定物のエコーは毎回同じなので消える。', 'g-pulse-canceler'],
-  [2, 'ブラインド速度（blind speed）', 'MTI で目標まで消えてしまう速度。ドップラ周波数が PRF の整数倍になる速度。', 'g-blind-speed'],
+  [2, 'ブラインド速度（blind speed）', 'MTI で目標のエコーが静止クラッタと同様に抑圧される速度です。ドップラ周波数が PRF の整数倍になる速度に当たり、最初の値は λ·PRF/2 です。', 'g-blind-speed'],
   [2, '改善度（improvement factor）', 'MTI によって、信号対クラッタ比がどれだけ良くなったかを表す値（全速度で平均）。', 'g-improvement-factor'],
   [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比。', 'g-clutter-attenuation'],
   [2, 'スタガPRF（staggered PRF）', 'パルスの間隔を交互に変えることで、ブラインド速度を高い速度へ追いやる方法。', 'g-staggered-prf'],
@@ -796,7 +796,7 @@ GLOSS.push(
   [12, '低被探知性（LPI、low probability of intercept）', '相手の受信機に見つかりにくいように、レーダの電波の出し方を工夫すること。', 'g-lpi'],
   [12, 'レーダ警報受信機（RWR、radar warning receiver）', 'レーダの電波を受けて、照らされていることとその方向を知らせる受信機。', 'g-rwr'],
   [12, '電波管制（EMCON、emission control）', '位置や意図を知られないように、電波を出す時間・方向・周波数などを管理すること。', 'g-emcon'],
-  [12, 'ダイナミックレンジ（dynamic range）', '受信機がゆがめずに扱える信号の強さの範囲。強い妨害で飽和しないために、広い範囲が必要。', 'g-dynamic-range']
+  [12, 'ダイナミックレンジ（dynamic range）', '受信機が歪みなく扱える最大の信号と、雑音レベルとの比です。強いクラッタや妨害があっても飽和しないために必要です。', 'g-dynamic-range']
 );
 GLOSS.push(
   [13, 'レーダ資源管理（radar resource management）', 'レーダが持つ限られた時間とエネルギーを、捜索・追尾などの仕事にどう割り振るかを決めること。', 'g-radar-resource-management'],
