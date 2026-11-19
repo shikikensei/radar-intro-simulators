@@ -273,7 +273,7 @@ def main():
         ck(0, 'title', e['title']); ck(0, 'pret', e.get('pret', [])); ck(0, 'ct', [[c[1]] + c[2] for c in e.get('ct', [])])
         cnt = 0
         for i, s in enumerate(e['steps'], 1):
-            for k in ('short', 'title', 'q', 'ch', 'why', 'memo', 'do', 'solve', 'mission', 'ctl', 'fixed', 'fixT', 'acts', 'plots', 'tiles', 'small', 'seg', 'legend', 'pcfg', 'sheet', 'uiq', 'hosoku', 'src'):
+            for k in ('short', 'title', 'q', 'ch', 'why', 'memo', 'do', 'solve', 'mission', 'ctl', 'fixed', 'fixT', 'acts', 'plots', 'tiles', 'small', 'seg', 'legend', 'pcfg', 'sheet', 'uiq', 'hosoku'):
                 ck(i, k, s.get(k))
             for k, v in (s.get('read') or {}).items():
                 ck(i, k, v)
