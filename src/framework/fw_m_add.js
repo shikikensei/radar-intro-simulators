@@ -41,12 +41,12 @@ function judge(){
   const st = STEPS[cur], i = cur, vals = {}, fb = $('#askFb'); let all = true, firstBad = null;
   for (const a of st.ask){ const e = document.querySelector('#asks input[data-id="' + a.id + '"]'), v = askParse(e.value), ok = askOk(a, v); vals[a.id] = e.value; e.classList.toggle('good', ok); e.classList.toggle('bad', !ok); e.setAttribute('aria-invalid', String(!ok)); if (!ok){ all = false; if (!firstBad) firstBad = a; } }
   MST.val[i] = vals;
-  if (all){ MST.ok[i] = true; MST.fb[i] = '<p class="okline"><b>正解です。</b>下のスライダーで、条件を変えたときの動き（感度）を確かめよう。</p>'; }
+  if (all){ MST.ok[i] = true; MST.fb[i] = '<p class="okline"><b>正解。</b>下のスライダーで条件を変え、答えの変化（感度）を確認する。</p>'; }
   else {
     MST.tries[i] = (MST.tries[i] || 0) + 1; const n = MST.tries[i], hs = firstBad.hints || [];
-    let h = '<p class="ngline"><b>' + (isFinite(askParse(vals[firstBad.id])) ? '「' + firstBad.label + '」が、許容の範囲（' + askTol(firstBad) + '）に入っていません。' : '「' + firstBad.label + '」に、数値を入れてください。') + '</b>（' + n + ' 回目）</p>';
+    let h = '<p class="ngline"><b>' + (isFinite(askParse(vals[firstBad.id])) ? '「' + firstBad.label + '」が許容範囲（' + askTol(firstBad) + '）に入っていない。' : '「' + firstBad.label + '」に数値が入力されていない。') + '</b>（' + n + ' 回目）</p>';
     for (let k = 0; k < Math.min(n, hs.length, 2); k++) h += '<p class="hintline">ヒント ' + (k + 1) + '：' + rt(hs[k]) + '</p>';
-    if (n >= 3){ MST.rev[i] = true; h += '<p class="hintline">3 回目なので、下に解き方をすべて出しました。確かめてから、もう一度入力してみよう。</p>'; }
+    if (n >= 3){ MST.rev[i] = true; h += '<p class="hintline">3 回目のため、下に解き方をすべて表示した。確認してから、もう一度入力する。</p>'; }
     MST.fb[i] = h;
   }
   fb.innerHTML = MST.fb[i];
@@ -56,8 +56,8 @@ function judge(){
 function renderRead(st, i){
   const r = st.read || {}, para = s => rt(s).split('||').map(p => '<p>' + p + '</p>').join(''); let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>', n = 0; const no = () => '①②③④⑤⑥'[n++];
   if (i === 0 && typeof PRE !== 'undefined'){
-    h += '<div class="pre"><b>この回に必要な前提知識</b>　' + H + '（入門の回で扱った内容です）';
-    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">くわしくは第' + L[0] + '回のステップ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">' + (SERIES[p.no].label || '入門 第' + p.no + '回') + 'のステップ' + p.step + '</a></p>'; }
+    h += '<div class="pre"><b>この回に必要な前提知識</b>　' + H + '（入門の回で扱った内容である）';
+    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">詳細は入門 第' + L[0] + '回 ステップ ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">' + (SERIES[p.no].label || '入門 第' + p.no + '回') + ' ステップ ' + p.step + '</a></p>'; }
     h += '</div>';
   }
   if (r.ana) h += '<h3>' + no() + ' たとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
@@ -68,7 +68,7 @@ function renderRead(st, i){
   if (r.fail) h += '<h3>' + no() + ' 崩れる条件</h3>' + para(r.fail);
   if (r.mis) h += '<h3>' + no() + ' よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
   if (st.extra) h += '<div id="extra"></div>';
-  if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; h += nx && nx.ready ? '<p class="nextsim">この回はここまでです。次は　<a class="btn primary" href="' + nx.file + '">' + nx.label + ' ' + nx.name + ' →</a></p>' : '<p class="nextsim">この回はここまでです。<a href="00_index.html">目次へ戻る</a></p>'; }
+  if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; h += nx && nx.ready ? '<p class="nextsim">この回はここまでである。次は　<a class="btn primary" href="' + nx.file + '">' + nx.label + ' ' + nx.name + ' →</a></p>' : '<p class="nextsim">この回はここまでである。<a href="00_index.html">目次へ戻る</a></p>'; }
   h += '<div class="src"><b>出典</b>　' + (st.srcRaw ? '' : 'Radar Handbook 3rd ed.　') + st.src + '</div>';
   if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + para(st.memo) + '</details>';
   $('#read').innerHTML = h;
@@ -80,25 +80,25 @@ function renderSim(st, i){
   if (st.ask){
     const v = MST.val[i] || {};
     const q = el('div', 'card q', '<span class="lbl">計算</span><div class="qm">' + rt(st.q).split('||').map(p => '<p>' + p + '</p>').join('') + '</div><div class="asks" id="asks">' + st.ask.map(a => '<label class="ask"><span class="al">' + a.label + '</span><span class="ai"><input type="text" inputmode="decimal" autocomplete="off" data-id="' + a.id + '" value="' + (v[a.id] === undefined ? '' : String(v[a.id]).replace(/"/g, '')) + '" aria-label="' + a.label.replace(/<[^>]*>/g, '') + '"><span class="au">' + (a.unit || '') + '</span><small>許容 ' + askTol(a) + '</small></span></label>').join('') +
-      '</div><button type="button" class="btn primary" id="judgeBtn">判定する</button><div class="hint">手で計算して、数値を入れよう（電卓を使ってよい）。外れたら、ヒントが 1 段ずつ出ます。</div><div id="askFb" class="fb">' + (MST.fb[i] || '') + '</div>');
+      '</div><button type="button" class="btn primary" id="judgeBtn">判定する</button><div class="hint">手計算で求めた数値を入力する（電卓を使用してよい）。外れた場合はヒントが 1 段ずつ表示される。</div><div id="askFb" class="fb">' + (MST.fb[i] || '') + '</div>');
     sim.appendChild(q);
     $('#judgeBtn', q).addEventListener('click', judge);
     $('#asks', q).addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); judge(); } });
   }
-  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">計算してから触ろう</div><span class="lbl">' + (st.ask ? '感度を見る' : '操作') + '</span><span class="hint" style="margin:0">' + (st.do || (st.ask ? '答え合わせのあと、条件を変えて、答えがどう動くかを確かめよう' : 'スライダーを動かして確かめよう')) + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
+  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">先に計算して入力する</div><span class="lbl">' + (st.ask ? '感度を見る' : '操作') + '</span><span class="hint" style="margin:0">' + (st.do || (st.ask ? '答え合わせのあとで条件を変え、答えの変化を確認する' : 'スライダーを動かして確認する')) + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
   op.id = 'opCard'; sim.appendChild(op);
   for (const c of (st.ctl || [])) buildCtl($('#ctls', op), c);
   const acts = $('#acts', op);
   for (const a of (st.acts || [])){ const b = el('button', 'btn sm', a.t); b.type = 'button'; b.addEventListener('click', () => { a.f(); userChanged(); }); acts.appendChild(b); }
   for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
-  const sh = el('div', 'card sheetc', '<span class="lbl">計算書</span><span class="hint" style="margin:0">' + (st.free ? '前提から探知距離まで、今の設定の値で 1 枚にまとめたものです。' : 'ステップが進むたびに、行が埋まります。値は、標準の条件（P<sub>d</sub> 0.9 など）のものです。') + '</span><div id="sheet"></div>'); sim.appendChild(sh);
+  const sh = el('div', 'card sheetc', '<span class="lbl">計算書</span><span class="hint" style="margin:0">' + (st.free ? '前提から結果までを、現在の設定の値で 1 枚にまとめた表である。' : 'ステップが進むごとに行が埋まる。値は標準の条件（P<sub>d</sub> 0.9 など）でのものである。') + '</span><div id="sheet"></div>'); sim.appendChild(sh);
   if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
-  if (st.ask){ const a = el('div', 'card ans', '<div class="body" id="ansBody" hidden></div><span class="hint" id="ansWait">解き方は、正解したとき（または 3 回外れたとき）に、ここに出ます。</span>'); sim.appendChild(a); showSolve(); }
+  if (st.ask){ const a = el('div', 'card ans', '<div class="body" id="ansBody" hidden></div><span class="hint" id="ansWait">解き方は正解したとき（または 3 回外れたとき）にここに表示される。</span>'); sim.appendChild(a); showSolve(); }
 }
 /* 強調（marks）に高さの範囲がないとき、上を 2 割あける。ラベルが、枠の上（図の中）に出て、横軸の目盛りに重ならない */
 const plotSetIntro = Plot.prototype.set;
 Plot.prototype.set = function(cfg){ if (cfg && cfg.marks && cfg.yr) for (const k in cfg.marks){ const mk = cfg.marks[k]; if (mk.y0 === undefined && mk.y1 === undefined) mk.y1 = cfg.yr[1] - 0.2 * (cfg.yr[1] - cfg.yr[0]); } return plotSetIntro.call(this, cfg); };
 function bootM(){
-  STEPS.forEach((s, i) => { if (s.ask && !s.mission) s.mission = {t: '手で計算した値を入力して、「正解」と判定されること。', ok: () => !!MST.ok[i]}; });
+  STEPS.forEach((s, i) => { if (s.ask && !s.mission) s.mission = {t: '手計算で求めた値を入力し、「正解」と判定されること。', ok: () => !!MST.ok[i]}; });
   boot();
 }
