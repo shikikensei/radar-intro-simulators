@@ -90,8 +90,7 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <header class="top">
   <h1>レーダ 入門シミュレータ</h1>
   <div id="msbar">入門 18 回・中級 '''+str(len([m for m in MINFO if m[0] in D]))+''' 回</div>
-  <a class="btn sm" href="glossary.html" title="入門と中級のすべての用語（五十音順・回ごと）">用語集のページ</a>
-  <button class="btn sm" id="glBtn" type="button">用語集</button>
+  <a class="btn sm" id="glBtn" href="glossary.html" title="入門と中級のすべての用語（五十音順・回ごと）">用語集</a>
   <button class="btn sm" id="themeBtn" type="button" title="ライト／ダーク表示を切り替える">表示: ライト</button>
 </header>
 <main class="wrap">
@@ -128,7 +127,7 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 <ul class="pl">
  <li><b>ミッション</b>：各ステップに 1 つ、小さな課題があります。条件を満たすと「達成！」と表示され、画面上部の丸にチェックが付きます（ページを読み込み直すと消えます）。</li>
  <li><b>読み物</b>：左側に、①身近なたとえ ②何が起きているか ③大事な式 ④よくある誤解 ⑤出典 の順で書いています。<span style="color:var(--hl);font-weight:700;text-decoration:underline dotted">色の付いた用語</span>を押すと、右のグラフの対応する場所が光ります。</li>
- <li><b>用語集</b>：画面の右端のタブ、または右上の「用語集」ボタンで開きます。入門と中級のすべての用語を、五十音順と回ごとに並べた<a href="glossary.html">用語集のページ</a>もあります。本文で破線の下線と「?」の付いた用語を押すと、その場に短い説明が出ます（書き直しの済んだ回から順に対応）。</li>
+ <li><b>用語集</b>：各回の画面の右端のタブ、または右上の「用語集」ボタンで開きます。入門と中級のすべての用語を、五十音順と回ごとに並べた<a href="glossary.html">用語集のページ</a>もあります。本文で破線の下線と「?」の付いた用語を押すと、その場に短い説明が出ます（書き直しの済んだ回から順に対応）。</li>
  <li><b>自由実験</b>：各回の最後のステップでは、全部の値を自由に動かせます。ハンドブックの値との照合表もここにあります。</li>
  <li>所要時間は、1 ステップ 5〜8 分として見積もった目安です。途中のステップから始めることもできます。</li>
 </ul>
@@ -140,22 +139,10 @@ ul.pl{margin:4px 0 8px;padding-left:22px}
 </details>
 <p class="sym" style="margin-top:14px">動作環境：Microsoft Edge または Google Chrome。インターネット接続は不要です（HTML ファイルをすべて同じフォルダに置いて使います）。乱数は種を固定しているので、同じ操作なら同じ結果になります。</p>
 </main>
-<button id="glTab" type="button" aria-label="用語集を開く">用語集</button>
-<aside id="gloss" hidden aria-label="用語集"></aside>
 <script>
 'use strict';
-'''+rd('fw_gloss2.js')+'''
 (function(){
-  const $ = s => document.querySelector(s), g = $('#gloss');
-  const HB = '<span class="hosoku">補足</span>';
-  const grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
-  let h = '<h2>用語集（全回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList"><h3>基礎の用語　' + HB + '</h3>' + grp(-1);
-  for (let n = 0; n < SERIES.length; n++) if (GLOSS.some(t => t[0] === n)) h += '<h3>第' + n + '回 ' + SERIES[n].name + '</h3>' + grp(n);
-  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は、Radar Handbook 3rd ed. の用語を新人向けに言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
-  const toggle = on => { g.hidden = !on; if (on) $('#glFind').focus(); };
-  $('#glBtn').addEventListener('click', () => toggle(g.hidden)); $('#glTab').addEventListener('click', () => toggle(g.hidden)); $('#glClose').addEventListener('click', () => toggle(false));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
-  $('#glFind').addEventListener('input', e => { const q = e.target.value.trim().toLowerCase(); for (const dt of g.querySelectorAll('dt')){ const hit = !q || (dt.textContent + dt.nextElementSibling.textContent).toLowerCase().indexOf(q) >= 0; dt.hidden = !hit; dt.nextElementSibling.hidden = !hit; } });
+  const $ = s => document.querySelector(s);
   const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   let theme = mq && mq.matches ? 'dark' : 'light';
   const apply = () => { document.documentElement.setAttribute('data-theme', theme); $('#themeBtn').textContent = '表示: ' + (theme === 'dark' ? 'ダーク' : 'ライト'); };

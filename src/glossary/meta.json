@@ -236,7 +236,7 @@
  "g-emcon": {"y": "でんぱかんせい"},
  "g-dynamic-range": {"y": "だいなみっくれんじ"},
  "g-radar-resource-management": {"y": "れーだしげんかんり"},
- "g-dwell": {"y": "どうぇる"},
+ "g-dwell": {"y": "どうぇる", "alt": ["1 つの方向を見る時間", "照射の時間", "1 つのビーム位置の観測時間"], "rel": ["g-revisit-time"]},
  "g-scheduler": {"y": "すけじゅーら"},
  "g-occupancy": {"y": "せんゆうりつ"},
  "g-scheduler-efficiency": {"y": "すけじゅーらのこうりつ"},

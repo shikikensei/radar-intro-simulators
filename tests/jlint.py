@@ -12,7 +12,7 @@
   用語  ：STYLE.md の対応表の左の語（たとえ話 ana の中は除く）
   話し言：話し言葉（だから、／〜ぶん／要る／高くつく／得を　など）
   文体  ：入門の回に「である」調の文、中級の回に「です」「ます」
-補足の一覧（hosoku）は画面に出ないので、用語だけを調べる。指導者向けメモの「」の中（声かけの例）は、用語だけを調べる。
+補足の一覧（hosoku）も、ほかの欄と同じに調べる（項目は名詞で止めてよい）。指導者向けメモの「」の中（声かけの例）は、用語だけを調べる。
 画面に出ていない文字（条件によって出る文など）は、ステップ定義と計算部分の文字列から拾い、用語・話し言葉・文体だけを調べる（欄は「src」）。"""
 import sys, re, json
 from pathlib import Path
@@ -155,7 +155,7 @@ class Lint:
         if not text or not re.search(r'[ぁ-んァ-ヶ一-龥]', str(text)):
             return
         polite = gloss or not mid
-        raw = strip(text); words_only = field == 'hosoku'
+        raw = strip(text); words_only = False
         body = raw if field != 'memo' else no_quote(raw)
         if field != 'ana':
             for name, rx in TERMS:
