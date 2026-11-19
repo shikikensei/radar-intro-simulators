@@ -172,7 +172,7 @@ class Lint:
         for s in sentences(body if field == 'memo' else text):
             for h in short_commas(s):
                 self.add(f, st, field, '読点', h, s)
-            if comma_count(s) >= 4:
+            if comma_count(s) >= 4 and not re.match(r'[(（]\d+[)）]|・', s):      # 箇条書きの項目は、名詞の並びを許す
                 self.add(f, st, field, '読点4', '読点 %d' % comma_count(s), s)
             n = len(re.sub(r'\s', '', s))
             if n > 120:
