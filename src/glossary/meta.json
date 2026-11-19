@@ -290,7 +290,7 @@
  "g-resolution-and-accuracy": {"y": "ぶんかいのうとせいど"},
  "g-snr-ledger": {"y": "えすえぬばじぇっと", "alt": ["S/N の家計簿"]},
  "g-multifunction-radar": {"y": "たきのうれーだ"},
- "g-minimum-range": {"y": "さいしょうたんちきょり"},
+ "g-minimum-range": {"y": "さいしょうたんちきょり", "alt": ["近くが見えない距離"]},
  "g-design-table": {"y": "せっけいひょう"},
  "g-calc-sheet": {"y": "けいさんしょ"},
  "g-sensitivity": {"y": "かんど"},

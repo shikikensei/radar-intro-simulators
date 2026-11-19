@@ -44,28 +44,28 @@ function paNeed(Rkm, lsDb, share){ const R = Rkm * 1000; return Math.pow(R, 4) *
 function rows(s, d){
   s = s || S; d = d || design(s);
   return [
-    {k: '捜索の距離（1 m² の目標）', req: fx(s.R, 0) + ' km 以上', val: fx(d.rs, 0) + ' km', ok: d.rs >= s.R, st: 1},
-    {k: '低く飛ぶ目標（高さ 10 m）の見通し', req: REQ.lowR + ' km 以上', val: fx(d.los, 1) + ' km', ok: d.los >= REQ.lowR, st: 2},
-    {k: 'ビーム幅（角度の細かさ）', req: REQ.bw + '° 以下', val: fx(d.bw, 2) + '°', ok: d.bw <= REQ.bw, st: 3},
-    {k: '1 つの向きに当たるパルス', req: REQ.nmin + ' 個以上', val: fx(d.npulse, 2) + ' 個', ok: d.npulse >= REQ.nmin, st: 3},
-    {k: '近くが見えない距離', req: REQ.rmin + ' km 以下', val: fx(d.rmin, 2) + ' km', ok: d.rmin <= REQ.rmin + 1e-9, st: 4},
-    {k: '追尾できる目標の数', req: REQ.ntrk + ' 以上', val: s.ntrk + '（時間の ' + fx(d.u * 100, 0) + '%）', ok: s.ntrk >= REQ.ntrk && d.u < 1, st: 5},
+    {k: '捜索の探知距離（1 m² の目標）', req: fx(s.R, 0) + ' km 以上', val: fx(d.rs, 0) + ' km', ok: d.rs >= s.R, st: 1},
+    {k: '低高度の目標（高度 10 m）の見通し距離', req: REQ.lowR + ' km 以上', val: fx(d.los, 1) + ' km', ok: d.los >= REQ.lowR, st: 2},
+    {k: 'ビーム幅（角度分解能）', req: REQ.bw + '° 以下', val: fx(d.bw, 2) + '°', ok: d.bw <= REQ.bw, st: 3},
+    {k: '1 つのビーム位置に当たるパルス数', req: REQ.nmin + ' 個以上', val: fx(d.npulse, 2) + ' 個', ok: d.npulse >= REQ.nmin, st: 3},
+    {k: '最小探知距離', req: REQ.rmin + ' km 以下', val: fx(d.rmin, 2) + ' km', ok: d.rmin <= REQ.rmin + 1e-9, st: 4},
+    {k: '追尾できる目標数', req: REQ.ntrk + ' 以上', val: s.ntrk + '（時間の ' + fx(d.u * 100, 0) + '%）', ok: s.ntrk >= REQ.ntrk && d.u < 1, st: 5},
     {k: '見込むシステム損失', req: REQ.ls + ' dB 以上', val: fx(s.ls, 0) + ' dB', ok: s.ls >= REQ.ls, st: 6}];
 }
 const allOk = (s, d) => rows(s, d).every(r => r.ok);
 const with_ = o => Object.assign({}, DEFAULTS, o);
 function runChecks(){
   const R = [], add = (item, ref, calc, st, note) => R.push({item, ref, calc, st, note});
-  { const a = paNeed(200, 0, 1), b = paNeed(400, 0, 1); add('式1.6：捜索の距離を 2 倍にするのに要る電力開口積', '16 倍（距離の 4 乗に比例）', fx(b / a, 3) + ' 倍（200 km：' + fx(a, 0) + ' W·m²、400 km：' + fx(b, 0) + ' W·m²。損失なし）', near(b / a, 16, 1e-9), '式1.6（p.1.12）。第15回 ステップ 8'); }
-  { const d = design(with_({})), back = paNeed(d.rs, 12, d.share); add('式1.6 で求めた捜索の距離と、その距離に要る電力開口積', '今の設計の電力開口積に戻る', '距離 ' + fx(d.rs, 2) + ' km → 要る電力開口積 ' + fx(back, 1) + ' W·m²（今の設計：' + fx(d.pa, 1) + ' W·m²）', near(back / d.pa, 1, 1e-9), '式を逆に解いた paNeed の自己点検。標準の設計（65 kW、65 µs、500 Hz、10 m²）'); }
-  { const d = design(with_({})), n15 = 4 * Math.PI * d.p16.ts / (d.g * OMEGA) * FIX.fp, r15 = rmax15({pav: d.pav, g: d.g, ae: FIX.ae, rcs: 1, n: n15, ei: 1, F: 1, Fn: d.p16.Fn, fp: FIX.fp, snr1: d.p16.snr1, Ls: d.p16.Ls}) / 1000; add('式1.5 に n/fp = 4π·ts/(G·Ω) を入れた値と、式1.6 の値（標準の設計）', '同じ値になる（式1.6 の導き方）', '式1.5：' + fx(r15, 3) + ' km、式1.6：' + fx(d.rs, 3) + ' km（n = ' + fx(n15, 2) + '）', near(r15, d.rs, 1e-6), '式1.5・1.6（p.1.12）。第15回の rmax15・rmax16 と同じ式。n は「1 つの向きに当たるパルス」と同じ値'); }
-  { const rs = [2, 3, 6, 10].map(f => design(with_({fg: f})).rs), dd = Math.max(...rs) - Math.min(...rs); add('式1.6：周波数を 2／3／6／10 GHz に変えたときの捜索の距離（有効開口面積と平均電力は固定）', '変わらない（周波数があらわに出てこない）', rs.map(v => fx(v, 2)).join('／') + ' km', dd < 1e-9 ? 'ok' : 'ng', 'p.1.12。位相をそろえて足す（Ei = 1）とした場合。第15回 ステップ 8 と同じ注意'); }
-  { const a = horiz(20, KE) / 1000, b = 4.12 * Math.sqrt(20); add('水平線までの距離（アンテナの高さ 20 m）', '第9回：√(2·k·a·h)。k = 4/3 で 4.12·√h [km]', fx(a, 2) + ' km（4.12√h = ' + fx(b, 2) + ' km）', Math.abs(a - b) < 0.05 ? 'ok' : 'ng', '第9回の horiz と同じ式（第26章には式がなく、第9回でも補足として使った）'); }
-  { const d = design(with_({})); add('低く飛ぶ目標（高さ 10 m）の見通し距離（アンテナの高さ 20 m）', '（基準なし）', fx(d.los, 2) + ' km（アンテナの水平線 ' + fx(horiz(20, KE) / 1000, 2) + ' km + 目標の水平線 ' + fx(horiz(10, KE) / 1000, 2) + ' km）', 'ref', '補足のモデル。海面の反射や回折は入れていない（第9回 ステップ 3・4）'); }
-  { const d = design(with_({})); add('パルス圧縮：時間帯域幅積と、距離の細かさ（帯域幅 5 MHz、長さ 65 µs）', '利得は時間帯域幅積（第1回、第16回 ステップ 4）。細かさは c/(2B)', fx(d.tb, 0) + '（' + fx(db10(d.tb), 1) + ' dB）、' + fx(d.dR, 0) + ' m', near(d.tb, 325, 1e-9) === 'ok' && near(d.dR, 30, 1e-9) === 'ok' ? 'ok' : 'ng', '式1.6 は平均電力で書かれているので、この利得は式の中に入っている'); }
-  { const d = design(with_({})); add('平均電力（尖頭 65 kW、長さ 65 µs、PRF 500 Hz）', 'Pav = Pt·fp·τ（p.1.12）', fx(d.pav, 1) + ' W（デューティ比 ' + fx(FIX.fp * d.tau * 100, 2) + '%）', near(d.pav, 2112.5, 1e-9), '第15回 ステップ 6'); }
-  { const d = design(with_({})); add('追尾に使う時間の割合（20 目標、1 秒ごとに 10 ms）', '照射の時間の合計 ÷ 全体の時間（第13回の占有率と同じ考え方）', fx(d.u * 100, 1) + '%（捜索に使える時間 ' + fx(d.share * 100, 1) + '%）', near(d.u, 0.2, 1e-12), '追尾 1 回の照射時間と更新の間隔は、説明用の値'); }
-  { const a = design(with_({ls: 0})).rs, b = design(with_({ls: 12})).rs; add('システム損失 12 dB を入れたときの捜索の距離', '10 の −12/40 乗 = 0.501 倍（第15回 ステップ 7）', fx(b / a, 3) + ' 倍（' + fx(a, 1) + ' km → ' + fx(b, 1) + ' km）', Math.abs(b / a - Math.pow(10, -0.3)) < 1e-9 ? 'ok' : 'ng', 'p.1.12「すべての損失を数えると 10〜20 dB になることも珍しくない」'); }
-  { const d = design(with_({})); add('標準の設計の、ビーム幅・向きの数・1 つの向きに当たるパルス', '（基準なし）', fx(d.bw, 2) + '°、' + fx(d.nbeam, 0) + ' 個、' + fx(d.npulse, 2) + ' 個', 'ref', '補足のモデル（Ω0 = λ²/Ae、ビーム幅 = √Ω0）。第15回・第16回と同じ置き方'); }
+  { const a = paNeed(200, 0, 1), b = paNeed(400, 0, 1); add('式1.6：捜索の探知距離を 2 倍にするために必要な電力開口積', '16 倍（距離の 4 乗に比例）', fx(b / a, 3) + ' 倍（200 km：' + fx(a, 0) + ' W·m²、400 km：' + fx(b, 0) + ' W·m²。損失なし）', near(b / a, 16, 1e-9), '式1.6（p.1.12）。第15回 ステップ 8'); }
+  { const d = design(with_({})), back = paNeed(d.rs, 12, d.share); add('式1.6 で求めた捜索の探知距離と、その距離での所要電力開口積', '現在の設計の電力開口積に戻る', '距離 ' + fx(d.rs, 2) + ' km → 所要電力開口積 ' + fx(back, 1) + ' W·m²（現在の設計：' + fx(d.pa, 1) + ' W·m²）', near(back / d.pa, 1, 1e-9), '式を逆に解いた paNeed の自己点検。標準の設計（65 kW、65 µs、500 Hz、10 m²）'); }
+  { const d = design(with_({})), n15 = 4 * Math.PI * d.p16.ts / (d.g * OMEGA) * FIX.fp, r15 = rmax15({pav: d.pav, g: d.g, ae: FIX.ae, rcs: 1, n: n15, ei: 1, F: 1, Fn: d.p16.Fn, fp: FIX.fp, snr1: d.p16.snr1, Ls: d.p16.Ls}) / 1000; add('式1.5 に n/fp = 4π·ts/(G·Ω) を代入した値と式1.6 の値（標準の設計）', '一致する（式1.6 の導出）', '式1.5：' + fx(r15, 3) + ' km、式1.6：' + fx(d.rs, 3) + ' km（n = ' + fx(n15, 2) + '）', near(r15, d.rs, 1e-6), '式1.5・1.6（p.1.12）。第15回の rmax15・rmax16 と同じ式。n は「1 つのビーム位置に当たるパルス数」と同じ値'); }
+  { const rs = [2, 3, 6, 10].map(f => design(with_({fg: f})).rs), dd = Math.max(...rs) - Math.min(...rs); add('式1.6：周波数を 2／3／6／10 GHz に変えた場合の捜索の探知距離（有効開口面積と平均電力は固定）', '変わらない（周波数が陽に現れない）', rs.map(v => fx(v, 2)).join('／') + ' km', dd < 1e-9 ? 'ok' : 'ng', 'p.1.12。コヒーレント積分（Ei = 1）とした場合。第15回 ステップ 8 と同じ注意'); }
+  { const a = horiz(20, KE) / 1000, b = 4.12 * Math.sqrt(20); add('レーダ水平線までの距離（アンテナ高 20 m）', '第9回：√(2·k·a·h)。k = 4/3 で 4.12·√h [km]', fx(a, 2) + ' km（4.12√h = ' + fx(b, 2) + ' km）', Math.abs(a - b) < 0.05 ? 'ok' : 'ng', '第9回の horiz と同じ式（第26章に式の記載はなく、第9回でも補足として使用）'); }
+  { const d = design(with_({})); add('低高度の目標（高度 10 m）の見通し距離（アンテナ高 20 m）', '（基準なし）', fx(d.los, 2) + ' km（アンテナのレーダ水平線 ' + fx(horiz(20, KE) / 1000, 2) + ' km + 目標のレーダ水平線 ' + fx(horiz(10, KE) / 1000, 2) + ' km）', 'ref', '補足のモデル。海面反射や回折は含めていない（第9回 ステップ 3・4）'); }
+  { const d = design(with_({})); add('パルス圧縮：時間帯域幅積と距離分解能（帯域幅 5 MHz、パルス幅 65 µs）', '利得は時間帯域幅積（第1回、第16回 ステップ 4）。距離分解能は c/(2B)', fx(d.tb, 0) + '（' + fx(db10(d.tb), 1) + ' dB）、' + fx(d.dR, 0) + ' m', near(d.tb, 325, 1e-9) === 'ok' && near(d.dR, 30, 1e-9) === 'ok' ? 'ok' : 'ng', '式1.6 は平均電力で表されているため、この利得は式の中に含まれている'); }
+  { const d = design(with_({})); add('平均電力（尖頭 65 kW、パルス幅 65 µs、PRF 500 Hz）', 'Pav = Pt·fp·τ（p.1.12）', fx(d.pav, 1) + ' W（デューティ比 ' + fx(FIX.fp * d.tau * 100, 2) + '%）', near(d.pav, 2112.5, 1e-9), '第15回 ステップ 6'); }
+  { const d = design(with_({})); add('追尾に使う時間の割合（20 目標、1 秒ごとに 10 ms）', '照射時間の合計 ÷ 全体の時間（第13回の占有率と同じ考え方）', fx(d.u * 100, 1) + '%（捜索に使える時間 ' + fx(d.share * 100, 1) + '%）', near(d.u, 0.2, 1e-12), '追尾 1 回の照射時間と更新間隔は、説明用の値'); }
+  { const a = design(with_({ls: 0})).rs, b = design(with_({ls: 12})).rs; add('システム損失 12 dB を含めた場合の捜索の探知距離', '10 の −12/40 乗 = 0.501 倍（第15回 ステップ 7）', fx(b / a, 3) + ' 倍（' + fx(a, 1) + ' km → ' + fx(b, 1) + ' km）', Math.abs(b / a - Math.pow(10, -0.3)) < 1e-9 ? 'ok' : 'ng', 'p.1.12「すべての損失を数えると 10〜20 dB になることも珍しくない」'); }
+  { const d = design(with_({})); add('標準の設計の、ビーム幅・ビーム位置数・1 つのビーム位置に当たるパルス数', '（基準なし）', fx(d.bw, 2) + '°、' + fx(d.nbeam, 0) + ' 個、' + fx(d.npulse, 2) + ' 個', 'ref', '補足のモデル（Ω0 = λ²/Ae、ビーム幅 = √Ω0）。第15回・第16回と同じ設定'); }
   return R;
 }
