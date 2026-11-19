@@ -184,7 +184,7 @@ const MARG = 40;            // 両端の外側に作っておく余分なセル�
 const NT = NC + 2 * MARG;
 const T1CELL = 60;          // 目標1の距離セル
 const SWN = ['非変動', 'Swerling 1', 'Swerling 2', 'Swerling 3', 'Swerling 4'];
-const CFARN = {ca: 'セル平均', cens: '大きい2個を除外', min: '平均が小さい側だけを使用', log: '対数ビデオ', edge: '境界の同じ側だけを使用'};
+const CFARN = {ca: 'セル平均', cens: '大きい 2 個を除外', min: '平均が小さい側だけを使用', log: '対数ビデオ', edge: '境界の同じ側だけを使用'};
 const NCENS = 2;            // 「大きい K 個を除く」検出器で除く個数（p.7.16 の D2 にあたる）
 
 /* 共通設定（全ステップで共有） */
@@ -471,7 +471,7 @@ function mcRun(acc, nTrials, seedBase){
 function wilson(k, n){ if (!(n > 0)) return [NaN, NaN]; const z = 1.959964, p = k / n, d = 1 + z * z / n, c = p + z * z / (2 * n), e = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)); return [k <= 0 ? 0 : Math.max(0, (c - e) / d), k >= n ? 1 : Math.min(1, (c + e) / d)]; }
 
 /* ---------- 理論値（モンテカルロと比べるための値） ---------- */
-const DETN = {fixed: '固定しきい値', bin: '2値積分（固定しきい値）', ca: 'セル平均 CFAR', cens: 'CFAR：大きい2個を除外', min: 'CFAR：平均が小さい側だけを使用', log: 'CFAR：対数ビデオ', edge: 'CFAR：境界の同じ側だけを使用'};
+const DETN = {fixed: '固定しきい値', bin: '2 値積分（固定しきい値）', ca: 'セル平均 CFAR', cens: 'CFAR：大きい 2 個を除外', min: 'CFAR：平均が小さい側だけを使用', log: 'CFAR：対数ビデオ', edge: 'CFAR：境界の同じ側だけを使用'};
 function pfaKind(kind, n, m, alpha){ return kind === 'min' ? pfaMin(n, m, alpha) : kind === 'cens' ? pfaCens(n, m, alpha) : kind === 'log' ? pfaLog(n, m, alpha) : pfaCA(n, m, alpha); }
 /* 目標 t の参照窓（ガードの外側 m 個）が一様か：ほかの目標も、クラッタの境目も入っていない */
 function tgClean(sc, t){
@@ -670,9 +670,9 @@ function runChecks(){
   /* --- モンテカルロと理論値 --- */
   { const run = (mod, dets, N, label) => { const o = Object.assign(cloneDef(), mod), sc = scenario(o), acc = mcNew(sc, dets); mcRun(acc, N);
       for (const d of dets){ const th = theory(sc, d);
-        add('モンテカルロ', label + '：' + DETN[d] + ' の P_D（目標1）', f3(th.pd[0]), ciTxt(acc.det[d][0], N), inCI(acc.det[d][0], N, th.pd[0]) ? 'ok' : 'ng', N + ' 回');
-        add('モンテカルロ', label + '：' + DETN[d] + ' の P_fa（雑音だけの領域）', fP(th.pfa[0]), ciTxt(acc.fa[d][0], acc.ncls[0] * N), inCI(acc.fa[d][0], acc.ncls[0] * N, th.pfa[0]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[0] + ' セル');
-        if (sc.C > 0 && d !== 'bin') add('モンテカルロ', label + '：' + DETN[d] + ' の P_fa（クラッタの内側）', fP(th.pfa[1]), ciTxt(acc.fa[d][1], acc.ncls[1] * N), inCI(acc.fa[d][1], acc.ncls[1] * N, th.pfa[1]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[1] + ' セル'); } };
+        add('モンテカルロ', label + '：' + DETN[d] + (/[A-Za-z]$/.test(DETN[d]) ? ' の' : 'の') + ' P_D（目標1）', f3(th.pd[0]), ciTxt(acc.det[d][0], N), inCI(acc.det[d][0], N, th.pd[0]) ? 'ok' : 'ng', N + ' 回');
+        add('モンテカルロ', label + '：' + DETN[d] + (/[A-Za-z]$/.test(DETN[d]) ? ' の' : 'の') + ' P_fa（雑音だけの領域）', fP(th.pfa[0]), ciTxt(acc.fa[d][0], acc.ncls[0] * N), inCI(acc.fa[d][0], acc.ncls[0] * N, th.pfa[0]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[0] + ' セル');
+        if (sc.C > 0 && d !== 'bin') add('モンテカルロ', label + '：' + DETN[d] + (/[A-Za-z]$/.test(DETN[d]) ? ' の' : 'の') + ' P_fa（クラッタの内側）', fP(th.pfa[1]), ciTxt(acc.fa[d][1], acc.ncls[1] * N), inCI(acc.fa[d][1], acc.ncls[1] * N, th.pfa[1]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[1] + ' セル'); } };
     run({}, ['fixed', 'ca'], 4000, '初期設定（1 パルス、S/N 10 dB、P_fa 10⁻³）');
     run({n: 8, M: 5, snr: 3, sw: 1, cnr: 0}, ['fixed', 'bin', 'ca'], 3000, '8 パルス・Swerling 1・S/N 3 dB'); }
   return R;
@@ -1260,10 +1260,10 @@ STEPS.push({short: '自動検出とは', title: '自動検出とは — しき�
   why: 'しきい値を下げると、雑音だけのセルも偶然大きな値になった場合にしきい値を超えやすくなります。見逃しと誤警報は一方を減らすと他方が増える関係にあります。そこでレーダでは「誤警報の割合を決めたうえで、できるだけ多くの目標を検出する」という考え方を採ります。',
   read: {
     ana: '火災報知器の感度を上げると、小さな火災も見逃しませんが、調理の湯気でも作動します。感度を下げると誤報は減りますが、実際の火災の検知が遅れます。作動させるレベルを決める線が、しきい値です。',
-    what: '自動検出（automatic detection）は、受信信号を距離などのセルに区切り、セルごとに「目標がある」か「雑音だけ」かを計算機が判定する処理です。基本は受信強度を[[thr|しきい値（threshold）]]と比較することです（<a class=gt data-g=g-threshold tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>しきい値</a>）。||誤りには 2 種類あります。目標がないにもかかわらず検出する[[fa|誤警報]]と、目標があるにもかかわらず検出しない[[miss|見逃し]]です。誤警報が生じる確率を<a class=gt data-g=g-probability-of-false-alarm tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>誤警報確率</a>（Pfa）、目標を正しく検出する確率を<a class=gt data-g=g-probability-of-detection tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>検出確率</a>（Pd）と呼びます。',
+    what: '自動検出（automatic detection）は、受信信号を距離などのセルに区切り、セルごとに「目標がある」か「雑音だけ」かを計算機が判定する処理です。基本は受信強度を[[thr|ある基準の値]]と比較することであり、この値を<a class=gt data-g=g-threshold tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>しきい値</a>（threshold）と呼びます。||誤りには 2 種類あります。目標がないにもかかわらず検出する[[fa|誤警報]]と、目標があるにもかかわらず検出しない[[miss|見逃し]]です。誤警報が生じる確率を<a class=gt data-g=g-probability-of-false-alarm tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>誤警報確率</a>（Pfa）、目標を正しく検出する確率を<a class=gt data-g=g-probability-of-detection tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>検出確率</a>（Pd）と呼びます。',
     eq: '受信強度 ＞ しきい値　→　「目標あり」と判定',
-    sym: '受信強度：そのセルの検波後の出力（複数のパルスを積分することもある）。しきい値：誤警報確率の設計値から決める値。誤警報が多すぎると、後段の追尾処理の負荷が過大になります。',
-    mis: '「しきい値を超えれば、そこに目標がある」とは限りません。雑音だけでもある確率でしきい値を超えます。検出は確率で考える判定です。'},
+    sym: '受信強度：そのセルの検波（受信信号から振幅を取り出す処理）後の出力（複数のパルスを積分することもある）。しきい値：誤警報確率の設計値から決める値。誤警報が多すぎると、後段の追尾処理の負荷が過大になります。',
+    mis: '「しきい値を超えれば、そこに目標がある」という理解は誤りです。雑音だけでもある確率でしきい値を超えます。検出は確率で考える判定です。'},
   hosoku: ['火災報知器のたとえ', '図の印は乱数で生成した 1 スキャン分のデータに対する結果であること', 'クラッタなし・目標 2 つの場面の設定'],
   memo: 'つまずきやすい点は、誤警報「確率」と、1 スキャンあたりの誤警報の「個数」（= 確率 × セル数）の違いです。||声かけの例：「セルが 200 個で Pfa が 1/100 の場合、誤警報は平均何個ですか」「別のデータにすると ✕ の位置が変わります。それはなぜですか」',
   init: {pfa: 1, snr: 13, t2: true, t2off: 20, s2: 11, n: 1}, ctl: ['pfa'], fixed: ['snr'], fixT: ['もう 1 つの目標の強度 11 dB', '距離セルの数 200 個'], plots: [{h: 280}], acts: [{t: '別のデータにする', f: () => { S.seed++; }}], do: 'スライダーを動かして確かめましょう（' + LEG + '）',
@@ -1281,7 +1281,7 @@ STEPS.push({short: '振幅の分布', title: '雑音と目標の振幅の分布 
   why: '雑音だけであるにもかかわらずしきい値を超えることが、誤警報です。このため、雑音の分布のうち、しきい値より右側の面積が誤警報確率になります。同様に、「目標＋雑音」の分布の右側の面積が検出確率です。',
   read: {
     ana: 'クラスの身長の分布を考えます。「170 cm 以上の人」の割合は分布のグラフで 170 cm より右側の面積です。線を右に移せば割合は減り、左に移せば増えます。',
-    what: '雑音だけの場合、検波後の振幅は[[noise|レイリー分布]]に従います。目標があると、分布は右へ移ります（非変動目標では[[sig|ライス分布]]）。S/N が大きいほど、2 つの分布は離れます。||2 つの分布は重なっているため、しきい値をどこに設定しても、誤警報と見逃しの両方を 0 にすることはできません。[[tail|しきい値より右側の面積]]が、それぞれの確率です。',
+    what: '雑音だけの場合、検波後の振幅は[[noise|レイリー分布]]（原点から立ち上がり、右側に長く裾を引く分布）に従います。目標があると、分布は右へ移ります（非変動目標では[[sig|ライス分布]]）。S/N が大きいほど、2 つの分布は離れます。||2 つの分布は重なっているため、しきい値をどこに設定しても、誤警報と見逃しの両方を 0 にすることはできません。[[tail|しきい値より右側の面積]]が、それぞれの確率です。',
     eq: '<i>T</i> = σ·√( −2·ln <i>P</i><sub>fa</sub> )',
     sym: '<i>T</i>：しきい値（振幅）。σ：雑音の大きさを表す量（I 成分・Q 成分それぞれの標準偏差）。ln：自然対数。<i>P</i><sub>fa</sub>：誤警報確率。P<sub>fa</sub> = 1/1000 の場合は T = 3.72σ です。',
     mis: '「誤警報確率を 10 分の 1 にするには、しきい値を大きく上げる必要がある」という理解は誤りです。実際にはわずかな変更で済みます（1/1000 → 1/1 万で 3.72σ → 4.29σ）。ただし、そのわずかな差によって、検出確率は確実に低下します。'},
@@ -1357,7 +1357,7 @@ STEPS.push({short: '2 値積分', title: '2 値積分（M-out-of-N）— 強度�
     what: '<a class=gt data-g=g-binary-integration tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>2 値積分</a>（binary integration）は、パルスごとに[[t1|第 1 のしきい値]]と比較して 0 か 1 にし、直近 N パルスのうち 1 が[[cnt|M 個以上]]あれば検出とします。「N 回中 M 回」方式とも呼びます。||強度の情報を使わないため、移動窓より感度はわずかに低下します。その代わり、実装が容易であること・1 発だけの強い干渉の影響を受けにくいこと・雑音の分布が想定と異なる場合にも性能が低下しにくいことが利点です。パルスが 2〜4 個と少ない場合は、この方式が推奨されています。',
     eq: '<i>M</i> ≈ 1.5·√<i>N</i>',
     sym: '<i>M</i>：「検出」とするために必要な回数（第 2 のしきい値）。<i>N</i>：数える対象のパルス数。N = 8 の場合は M ≈ 4.2 です。この目安で選ぶと、最適な M との差は小さい（ハンドブックでは 0.2 dB 以内）とされています。',
-    mis: '「M は小さいほど検出しやすい」とは限りません。M を小さくすると、誤警報確率を保つために第 1 のしきい値を高くする必要があり、かえって検出確率が低下します。'},
+    mis: '「M は小さいほど検出しやすい」という理解は誤りです。M を小さくすると、誤警報確率を保つために第 1 のしきい値を高くする必要があり、かえって検出確率が低下します。'},
   hosoku: ['多数決のたとえ', '干渉パルスを 1 発（+30 dB）加えた場面の設定', '検出確率の計算（二項分布）'],
   memo: 'つまずきやすい点は、しきい値が 2 つあることです（パルスごとの第 1、回数の第 2）。M を変えると、第 1 のしきい値もともに変わります。||声かけの例：「M = 1 と M = 8 には、それぞれどのような弱点がありますか」「上の図の赤い線（第 1 のしきい値）は、M を増やすとなぜ下がるのですか」',
   init: {snr: 6, n: 8, M: 1, pfa: 3}, ctl: ['M'], fixed: ['snr', 'pfa'], plots: [{h: 160}, {h: 150}], acts: [{t: '別のデータにする', f: () => { S.seed++; }}],
@@ -1401,7 +1401,7 @@ STEPS.push({short: 'セル平均 CFAR', title: 'セル平均 CFAR — 周囲の�
   why: 'しきい値は「周囲のセルの平均 × 一定の係数」です。背景が強い場所では、周囲のセルの平均が大きくなるため、しきい値も同じ割合で上がります。このため、背景の強度によらず、誤警報確率がほぼ一定に保たれます。',
   read: {
     ana: '騒がしい場所でも静かな場所でも、人は「周囲の音より際立って大きい音」に気付きます。周囲が騒がしければ、気付く基準が自然に上がります。セル平均 CFAR は、この「周囲と比較する」判定を計算によって行います。',
-    what: '<a class=gt data-g=g-cell-averaging-cfar tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>セル平均 CFAR</a>（cell-averaging CFAR）は、[[cut|注目セル]]の前後にある[[ref|参照セル（reference cells）]]の平均から背景の強度を推定し、それに係数を掛けてしきい値にします（<a class=gt data-g=g-reference-cells tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>参照セル</a>）。<a class=gt data-g=g-cfar tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>CFAR</a> は「一定誤警報率」の略です。||前提は参照セルの背景が注目セルと同じ強度であることです。注目セルに隣接するセルは、目標のエコーの漏れ込みを避けるため、参照セルに使いません（ガードセル）。「動かす」を押して、窓が移動していく様子を確かめてください。',
+    what: '<a class=gt data-g=g-cell-averaging-cfar tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>セル平均 CFAR</a>（cell-averaging CFAR）は、[[cut|注目セル]]の前後にあるセルの平均から背景の強度を推定し、それに係数を掛けてしきい値にします。平均に使う[[ref|これらのセル]]を<a class=gt data-g=g-reference-cells tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>参照セル</a>（reference cells）と呼びます。<a class=gt data-g=g-cfar tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>CFAR</a> は「一定誤警報率」の略です。||前提は参照セルの背景が注目セルと同じ強度であることです。注目セルに隣接するセルは、目標のエコーの漏れ込みを避けるため、参照セルに使いません（ガードセル）。「動かす」を押して、窓が移動していく様子を確かめてください。',
     eq: 'しきい値 = α ×（参照セルの平均）',
     sym: 'α：誤警報確率の設計値と参照セルの数から決まる係数（背景の強度にはよらない）。参照セルの平均：注目セルの前後の参照セルの、受信強度の平均。{H}1 パルス・参照セル m 個の場合、α = m·(P<sub>fa</sub><sup>−1/m</sup> − 1) です。',
     mis: '「CFAR はクラッタを除去する」という理解は誤りです。しきい値をクラッタより上に上げるだけです。クラッタより弱い目標は、CFAR でも検出できません。'},
@@ -1414,11 +1414,11 @@ STEPS.push({short: 'セル平均 CFAR', title: 'セル平均 CFAR — 周囲の�
     const sc = scenario(S), d = genScan(sc, S.seed), ev = evalDet(sc, d, 'ca'), pos = S.pos, h = sc.m / 2, g = sc.g, w = h + g + 4, xr = [], yr_ = [], xg = [], yg = [], val = c => db10(d.Y[c + MARG]);
     for (let c = pos - w; c <= pos + w; c++){ if (c + MARG < 0 || c + MARG >= NT) continue; const a = Math.abs(c - pos); if (a > g && a <= g + h){ xr.push(c); yr_.push(val(c)); } else if (a){ xg.push(c); yg.push(val(c)); } }
     const est = db10(ev.est[pos]), thr = db10(ev.thr[pos]), hit = !!ev.hits[pos];
-    P[0].set(profCfg(sc, d, ev, {title: 'セル平均 CFAR のしきい値と判定（1 スキャン分）', ymax: 45, thrName: 'しきい値（セルごとに決定）', bands: [{x0: pos - g - h - 0.5, x1: pos - g - 0.5, color: 'band'}, {x0: pos + g + 0.5, x1: pos + g + h + 0.5, color: 'band'}], vl: [{x: pos, label: '注目セル', color: 'text2'}],
+    P[0].set(profCfg(sc, d, ev, {title: 'セル平均 CFAR のしきい値と判定（1 スキャン分）', ymax: 45, thrName: 'しきい値（セルごとに決定）', bands: [{x0: pos - g - h - 0.5, x1: pos - g - 0.5, color: 'band'}, {x0: pos + g + 0.5, x1: pos + g + h + 0.5, color: 'band'}], vl: [{x: pos, label: '注目セル', color: 'text2', row: 1}],
       marks: {cut: {x0: pos - 1, x1: pos + 1, t: '注目セル'}, ref: {x0: pos - g - h, x1: pos + g + h, t: '参照セル（前後 ' + h + ' 個ずつ）'}}}));
     P[1].set({title: '注目セルの周囲を拡大', xr: [pos - w - 0.7, pos + w + 0.7], yr: [-15, 45], xl: '距離セルの番号', yl: '強度 [dB]', noHover: true, series: [{name: '参照セル', color: 's1', x: xr, y: yr_, stem: true, base: -15, mk: 3, w: 2}, {name: 'ガードセル・窓の外', color: 'ref', x: xg, y: yg, stem: true, base: -15, mk: 2.5, w: 1.5}, {name: '注目セル', color: 's2', x: [pos], y: [val(pos)], stem: true, base: -15, mk: 4.5, w: 3}],
       hl: [{y: est, label: '参照セルの平均', color: 's1', left: true}, {y: thr, label: 'しきい値 = 平均 +' + fx(thr - est, 1) + ' dB', color: 's2', dash: [6, 3]}]});
-    return {hit, tiles: [{k: '参照セルの平均（背景の推定値）', v: fx(est, 1) + ' <small>dB</small>'}, {k: 'しきい値', v: fx(thr, 1) + ' <small>dB</small>', s: '平均の ' + ratioTxt(thr - est) + '（係数 α）'}, {k: '注目セル ' + pos + ' の判定', v: hit ? '検出' : '検出なし', s: '強度' + fx(val(pos), 1) + ' dB'}]};
+    return {hit, tiles: [{k: '参照セルの平均（背景の推定値）', v: fx(est, 1) + ' <small>dB</small>'}, {k: 'しきい値', v: fx(thr, 1) + ' <small>dB</small>', s: '平均の ' + ratioTxt(thr - est) + '（係数 α）'}, {k: '注目セル ' + pos + ' の判定', v: hit ? '検出' : '検出なし', s: '強度 ' + fx(val(pos), 1) + ' dB'}]};
   }});
 
 /* 8 */
@@ -1430,10 +1430,10 @@ STEPS.push({short: 'CFAR 損失', title: 'CFAR 損失 — 背景を推定する�
   why: '参照セルが少ないと、背景の強度の推定値が、スキャンごとに大きくばらつきます。推定値が偶然低くなった場合に誤警報が増えないように、係数を大きめにする必要があり、その分だけ目標を検出しにくくなります。これが CFAR 損失です。',
   read: {
     ana: 'クラスの平均点を知りたいとき、3 人だけに聞いた平均は、聞く相手によって大きく変わります。30 人に聞けば、ほぼ正しい値になります。信頼性の低い平均をもとにして合格の基準を決める場合は、安全のために余裕を大きく取るほかありません。',
-    what: 'CFAR のしきい値は、有限個の参照セルから推定した背景の強度によって決まります。推定値がばらつく分だけ、背景の強度が正確に分かっている場合より、しきい値を高めにしなければなりません。同じ検出確率を得るために余分に必要な S/N が、[[loss|CFAR 損失（CFAR loss）]]です（<a class=gt data-g=g-cfar-loss tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>CFAR 損失</a>）。||参照セルが多いほど、また積分するパルス数が多いほど、損失は小さくなります。図の[[tbl|白い丸]]はハンドブックの表の値です。目安は損失が 1 dB 未満になる数の参照セルを使うことです。',
+    what: 'CFAR のしきい値は、有限個の参照セルから推定した背景の強度によって決まります。推定値がばらつく分だけ、背景の強度が正確に分かっている場合より、しきい値を高めにしなければなりません。同じ検出確率を得るために[[loss|余分に必要な S/N]] を<a class=gt data-g=g-cfar-loss tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>CFAR 損失</a>（CFAR loss）と呼びます。||参照セルが多いほど、また積分するパルス数が多いほど、損失は小さくなります。図の[[tbl|中抜きの丸]]はハンドブックの表の値です。目安は損失が 1 dB 未満になる数の参照セルを使うことです。',
     eq: 'CFAR 損失 [dB] =（CFAR での必要 S/N）−（背景が既知の場合の必要 S/N）',
     sym: '必要 S/N：決めた誤警報確率と検出確率（図では 10⁻⁶ と 0.9）を得るために必要な S/N [dB]。ハンドブックの表7.1 の例では、1 パルスで参照セル 10 個の場合に 3.5 dB、10 パルスで 10 個の場合に 0.7 dB です。',
-    mis: '「参照セルは多いほどよい」とは限りません。窓が長くなると、背景の強度が途中で変化したり、別の目標が入ったりして、「背景は一様である」という前提が成り立たなくなります（次のステップ）。'},
+    mis: '「参照セルは多いほどよい」という理解は誤りです。窓が長くなると、背景の強度が途中で変化したり、別の目標が入ったりして、「背景は一様である」という前提が成り立たなくなります（次のステップ）。'},
   hosoku: ['平均点のたとえ', '損失の計算方法（非変動目標・2 乗検波・セル平均として、必要 S/N の差を計算）'],
   memo: 'つまずきやすい点は、損失が「誤警報確率を保つための代償」であることです。||声かけの例：「1 パルスで損失を 1 dB 未満にするには、参照セルは何個程度必要ですか」「参照セルを 64 個にすると、窓の長さは距離で何 m になりますか（セルの幅によります）」',
   init: {m: 2, n: 10, pfa: 6}, ctl: ['m'], fixed: ['pfa', 'n'], fixT: ['検出確率 0.9'], plots: [{h: 290}],
@@ -1443,7 +1443,7 @@ STEPS.push({short: 'CFAR 損失', title: 'CFAR 損失 — 背景を推定する�
     for (const nn of [1, 10]){ const x = [], y = []; for (const mm of ML){ if (nn === 1 && mm < 2) continue; x.push(Math.log2(mm)); y.push(loss8(nn, mm)); } ser.push({name: nn + ' パルス', color: cols[nn], x, y, w: nn === 10 ? 2.6 : 1.6}); for (const mm of [1, 2, 3, 5, 10]) if (TAB71[nn][mm] !== undefined) pts.push({x: Math.log2(mm), y: TAB71[nn][mm], color: cols[nn], hollow: true, r: 4.5, clipY: true}); }
     const L = loss8(10, S.m); pts.push({x: Math.log2(S.m), y: L, color: 's1', r: 6.5, label: fx(L, 2) + ' dB', clipY: true});
     P[0].set({title: 'CFAR 損失と参照セルの数（誤警報確率 10⁻⁶、検出確率 0.9）', xr: [-0.2, 6.2], yr: [0, 12], xl: '参照セルの数', yl: 'CFAR 損失 [dB]（余分に必要な S/N）', xticks: [[0, '1'], [1, '2'], [2, '4'], [3, '8'], [4, '16'], [5, '32'], [6, '64']], series: ser, hl: [{y: 1, label: '目安：1 dB', left: false}], pts,
-      marks: {loss: {x0: Math.log2(S.m) - 0.3, x1: Math.log2(S.m) + 0.3, y0: 0, y1: Math.min(11.5, L + 1), t: 'CFAR 損失'}, tbl: {t: '白い丸＝ハンドブックの表7.1 の値'}}, tipx: v => '参照セル ' + fx(Math.pow(2, v), 0) + ' 個', tipy: v => fx(v, 2) + ' dB'});
+      marks: {loss: {x0: Math.log2(S.m) - 0.3, x1: Math.log2(S.m) + 0.3, y0: 0, y1: Math.min(11.5, L + 1), t: 'CFAR 損失'}, tbl: {t: '中抜きの丸＝ハンドブックの表7.1 の値'}}, tipx: v => '参照セル ' + fx(Math.pow(2, v), 0) + ' 個', tipy: v => fx(v, 2) + ' dB'});
     return {L, tiles: [{k: 'CFAR 損失（10 パルス、参照セル ' + S.m + ' 個）', v: fx(L, 2) + ' <small>dB</small>', s: '必要 S/N が電力で ' + ratioTxt(L)}, {k: '1 パルスだけの場合', v: fx(loss8(1, S.m), 1) + ' <small>dB</small>', s: '同じ参照セル数で'}]};
   }});
 
@@ -1456,7 +1456,7 @@ STEPS.push({short: 'CFAR に適さない場面と対策', title: 'CFAR に適さ
   why: '強い目標が参照セルに入ると、「周囲の平均」が実際の背景より大きく推定されます。その結果、しきい値が上がり、弱いほうの目標がしきい値に達しなくなります。これを目標の抑圧（マスキング）と呼びます。',
   read: {
     ana: 'クラスの平均点で合格の基準を決めるとき、1 人だけ特に高得点の人がいると、平均が上がって、基準が不当に高くなります。「最も高い 2 人を除いて平均する」などの方法で影響を低減できます。',
-    what: 'セル平均 CFAR は、参照セルが注目セルと同じ強度の背景だけからなる、という前提に基づいています。参照セルに[[big|別の目標]]が入ると、[[up9|しきい値が上がり]]、目標が抑圧（target suppression）されます。クラッタの境界でも、同様に前提が成り立たなくなります。||対策の考え方は 2 つあります。<br>(1) 大きな値をしきい値の計算から除く（大きいものから数個を除いて平均する、前後のうち平均の小さい側だけを使う）<br>(2) 対数を取るなどして、大きな値の影響を小さくする（対数ビデオ）<br>いずれの方法もその代わりに損失がわずかに増えます。',
+    what: 'セル平均 CFAR は、参照セルが注目セルと同じ強度の背景だけからなる、という前提に基づいています。参照セルに[[big|別の目標]]が入ると、[[up9|しきい値が上がり]]、目標が抑圧（target suppression）されます。クラッタの境界でも、同様に前提が成り立たなくなります。||対策の考え方は 2 つあります。<br>(1) 大きな値をしきい値の計算から除く（大きいものから数個を除いて平均する、前後のうち平均の小さい側だけを使う）<br>(2) 対数を取るなどして、大きな値の影響を小さくする（対数ビデオ）<br>ただし、いずれの方法も一様な背景での損失がわずかに増えます。',
     eq: '<i>M</i><sub>log</sub> = 1.65·<i>M</i><sub>lin</sub> − 0.65',
     sym: '<i>M</i><sub>log</sub>：対数ビデオの CFAR で必要な参照セルの数。<i>M</i><sub>lin</sub>：同じ損失になる、通常（リニア）の CFAR の参照セルの数。対数ビデオは大きな値の影響を受けにくい代わりに、参照セルが約 1.65 倍必要です。',
     mis: '「工夫した CFAR であれば、どのような場面にも対応できる」という理解は誤りです。除外できる個数より多くの目標が入れば効果がなく、どの方式も一様な背景での損失はセル平均よりわずかに大きくなります。'},
@@ -1495,7 +1495,7 @@ STEPS.push({short: 'クラッタマップ', title: 'クラッタマップ — �
     sym: '<i>S</i><sub>i</sub>：<i>i</i> 回目のスキャン後のマップの値。<i>X</i><sub>i</sub>：<i>i</i> 回目のスキャンの受信強度。<i>K</i>：1 よりわずかに小さい係数（7/8 の場合は約 8 スキャン分の過去の平均に当たる）。<i>A</i>：誤警報確率で決まる係数。',
     mis: '「クラッタマップがあれば、クラッタの中の目標も検出できる」という理解は誤りです。検出できるのは、クラッタより強い目標か、クラッタのないセルを通過する目標です。クラッタそのものを除去する処理ではありません。'},
   hosoku: ['見慣れた景色のたとえ', '静止している目標がマップに記憶されるという実験（目標B）と、点状のクラッタを置いた場面の設定', '係数 A の求め方', '1 スキャン 1 サンプル（積分なし）・K = 7/8 で計算していること'],
-  memo: 'つまずきやすい点は、下の図の横軸が「時間（スキャンの回数）」であることです。上の図とは軸が異なります。||声かけの例：「目標B が現れた直後のスキャンでは検出できています。それはなぜですか」「第2回のステップ10 のクラッタマップと、同じ点・異なる点は何ですか」',
+  memo: 'つまずきやすい点は、下の図の横軸が「時間（スキャンの回数）」であることです。上の図とは軸が異なります。||声かけの例：「目標B が現れた直後のスキャンでは検出できています。それはなぜですか」「第2回のステップ 10 のクラッタマップと、同じ点・異なる点は何ですか」',
   init: {snr: 12, cnr: 15, edge: 120, pfa: 3, ks: 10}, ctl: ['ks'], fixed: ['snr', 'cnr', 'pfa'], fixT: ['マップの係数 K = 7/8（約 8 スキャン分の平均）'], plots: [{h: 230}, {h: 170}], do: 'スライダーを動かして確かめましょう（' + LEG + '）',
   acts: [{t: '▶ 再生', play: {k: 'ks', min: 0, max: 60, step: 1, ms: 260, once: true}}, {t: '別のデータにする', f: () => { S.seed++; }}],
   mission: {t: '静止している目標B は、スキャン 15 に現れます。最初に見逃されるスキャンを探して、スライダーをその回に合わせましょう。', ok: r => S.ks === r.firstMiss}, sol: {},
@@ -1532,7 +1532,7 @@ STEPS.push({short: '発展：プロット抽出', title: '発展 — 検出の�
     P[0].set({title: '距離ごとの受信強度と、統合した検出（緑の帯）', xr: [-8, 8], yr: [-15, 32], xl: '距離（パルス幅を 1 とする）', yl: '強度 [dB]（雑音 = 0）', series: [{name: '受信強度', color: 's1', x0: X(0), dx: 1 / SPC, y, w: 1.5, mk: 2.2}], hl: [{y: db10(T), label: 'しきい値', color: 's2', dash: [6, 3]}],
       bands: plots.map(q => ({x0: X(q.i0 - 0.5), x1: X(q.i1 + 0.5), color: 'band3'})), vl: tg.map(t => ({x: X(t.pos), color: 'text2', dash: [3, 3]})), pts: plots.map(q => ({x: X(q.c), y: db10(T), color: 's3', r: 5.5})), notes: [{x: 0, y: 28, t: near.length >= 2 ? '2 つに分離した' : '1 つに統合された', dx: 60, dy: 0}],
       marks: {plot: {x0: near.length ? X(near[0].i0 - 0.5) : -1, x1: near.length ? X(near[near.length - 1].i1 + 0.5) : 1, t: '統合した検出'}, cen: {x0: near.length ? X(near[0].c) - 0.3 : -0.3, x1: near.length ? X(near[0].c) + 0.3 : 0.3, y0: db10(T) - 4, y1: db10(T) + 4, t: '重心'}}, tipx: v => fx(v, 2), tipy: v => fx(v, 1) + ' dB'});
-    P[1].set({title: '2 つに分離して出力される割合（各 600 回の試行）', xr: [0.5, 4], yr: [0, 1.05], xl: '2 つの目標の間隔（パルス幅を 1 とする）', yl: '2 つに分離する割合', series: [{name: '2 つに分離する割合', color: 's1', x: c.x, y: c.two, w: 2, mk: 2.8}], hl: [{y: 0.9, label: '0.9', left: true}], vl: [{x: S.sep, label: '現在の間隔', color: 'text2', dash: [2, 2]}], pts: [{x: S.sep, y: p2, color: 's1', r: 6, label: fx(p2, 2), left: S.sep > 3}], tipx: v => '間隔 ' + fx(v, 2), tipy: v => fx(v, 2)});
+    P[1].set({title: '2 つに分離して出力される割合（各 600 回の試行）', xr: [0.5, 4], yr: [0, 1.05], xl: '2 つの目標の間隔（パルス幅を 1 とする）', yl: '2 つに分離する割合', series: [{name: '2 つに分離する割合', color: 's1', x: c.x, y: c.two, w: 2, mk: 2.8}], hl: [{y: 0.9, label: '0.9', left: true}], vl: [{x: S.sep, label: '現在の間隔', color: 'text2', dash: [2, 2], row: 4}], pts: [{x: S.sep, y: p2, color: 's1', r: 6, label: fx(p2, 2), left: S.sep > 3}], tipx: v => '間隔 ' + fx(v, 2), tipy: v => fx(v, 2)});
     return {p2, pPrev, tiles: [{k: 'このデータでの出力', v: near.length + ' <small>個の目標</small>', s: '真の数は 2 個'}, {k: '2 つに分離する割合（この間隔）', v: fx(p2, 2), s: '600 回の試行'}]};
   }});
 
@@ -1564,7 +1564,7 @@ STEPS.push({short: '自由実験', title: '自由実験とまとめ — 試行�
   extra: checkTable4,
   draw(P){
     const sc = scenario(S), d = genScan(sc, S.seed), ev = evalDet(sc, d, S.det), acc = mcGet(), N = acc.trials, th = theory(sc, S.det), k1 = acc.det[S.det][0], kf = acc.fa[S.det][0], nf = acc.ncls[0] * N, w1 = wilson(k1, N), wf = wilson(kf, nf), kc = acc.fa[S.det][1], nc = acc.ncls[1] * N;
-    P[0].set(profCfg(sc, d, ev, {title: (S.det === 'ca' ? 'セル平均 CFAR' : '固定しきい値') + 'による判定（1 スキャン分）', ymax: Math.max(35, S.cnr + 25), thrName: 'しきい値'}));
+    P[0].set(profCfg(sc, d, ev, {title: (S.det === 'ca' ? 'セル平均 CFAR による判定' : '固定しきい値による判定') + '（1 スキャン分）', ymax: Math.max(35, S.cnr + 25), thrName: 'しきい値'}));
     return {N, pd1: N ? k1 / N : 0, pfaN: nf ? kf / nf : 1, msHint: N ? '試行 ' + N + ' 回' : 'まだ試行していない', tiles: [
       {k: '目標1 の検出確率：理論値', v: fx(th.pd[0], 3), s: N ? '試行 ' + fx(k1 / N, 3) + '（95% 区間 ' + fx(w1[0], 3) + '〜' + fx(w1[1], 3) + '、' + N + ' 回）' : '「試行」を押すと数えます'},
       {k: '誤警報確率（雑音だけの領域）：設計値', v: fP(th.pfa[0]), s: N ? '試行 ' + fP(kf / nf) + '（95% 区間 ' + fP(wf[0]) + '〜' + fP(wf[1]) + '）' : ''},

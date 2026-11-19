@@ -69,9 +69,9 @@ function runChecks(){
   /* --- モンテカルロと理論値 --- */
   { const run = (mod, dets, N, label) => { const o = Object.assign(cloneDef(), mod), sc = scenario(o), acc = mcNew(sc, dets); mcRun(acc, N);
       for (const d of dets){ const th = theory(sc, d);
-        add('モンテカルロ', label + '：' + DETN[d] + ' の P_D（目標1）', f3(th.pd[0]), ciTxt(acc.det[d][0], N), inCI(acc.det[d][0], N, th.pd[0]) ? 'ok' : 'ng', N + ' 回');
-        add('モンテカルロ', label + '：' + DETN[d] + ' の P_fa（雑音だけの領域）', fP(th.pfa[0]), ciTxt(acc.fa[d][0], acc.ncls[0] * N), inCI(acc.fa[d][0], acc.ncls[0] * N, th.pfa[0]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[0] + ' セル');
-        if (sc.C > 0 && d !== 'bin') add('モンテカルロ', label + '：' + DETN[d] + ' の P_fa（クラッタの内側）', fP(th.pfa[1]), ciTxt(acc.fa[d][1], acc.ncls[1] * N), inCI(acc.fa[d][1], acc.ncls[1] * N, th.pfa[1]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[1] + ' セル'); } };
+        add('モンテカルロ', label + '：' + DETN[d] + (/[A-Za-z]$/.test(DETN[d]) ? ' の' : 'の') + ' P_D（目標1）', f3(th.pd[0]), ciTxt(acc.det[d][0], N), inCI(acc.det[d][0], N, th.pd[0]) ? 'ok' : 'ng', N + ' 回');
+        add('モンテカルロ', label + '：' + DETN[d] + (/[A-Za-z]$/.test(DETN[d]) ? ' の' : 'の') + ' P_fa（雑音だけの領域）', fP(th.pfa[0]), ciTxt(acc.fa[d][0], acc.ncls[0] * N), inCI(acc.fa[d][0], acc.ncls[0] * N, th.pfa[0]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[0] + ' セル');
+        if (sc.C > 0 && d !== 'bin') add('モンテカルロ', label + '：' + DETN[d] + (/[A-Za-z]$/.test(DETN[d]) ? ' の' : 'の') + ' P_fa（クラッタの内側）', fP(th.pfa[1]), ciTxt(acc.fa[d][1], acc.ncls[1] * N), inCI(acc.fa[d][1], acc.ncls[1] * N, th.pfa[1]) ? 'ok' : 'ng', N + ' 回 × ' + acc.ncls[1] + ' セル'); } };
     run({}, ['fixed', 'ca'], 4000, '初期設定（1 パルス、S/N 10 dB、P_fa 10⁻³）');
     run({n: 8, M: 5, snr: 3, sw: 1, cnr: 0}, ['fixed', 'bin', 'ca'], 3000, '8 パルス・Swerling 1・S/N 3 dB'); }
   return R;
