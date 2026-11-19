@@ -70,7 +70,7 @@ function renderRead(st, i){
   if (st.extra) h += '<div id="extra"></div>';
   if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; h += nx && nx.ready ? '<p class="nextsim">この回はここまで。次は　<a class="btn primary" href="' + nx.file + '">' + nx.label + ' ' + nx.name + ' →</a></p>' : '<p class="nextsim">この回はここまで。<a href="00_index.html">目次へ戻る</a></p>'; }
   h += '<div class="src"><b>出典</b>　' + (st.srcRaw ? '' : 'Radar Handbook 3rd ed.　') + st.src + '</div>';
-  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + para(st.memo) + '</details>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声かけの例）</summary>' + para(st.memo) + '</details>';
   $('#read').innerHTML = h;
   if (st.extra) $('#extra').innerHTML = st.extra();
 }

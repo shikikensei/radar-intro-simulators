@@ -924,17 +924,17 @@ function renderRead(st, i){
   const r = st.read || {}; let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>';
   if (i === 0 && typeof PRE !== 'undefined'){
     h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと、30 秒ほどで読める説明が表示されます）';
-    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && L[0] !== SIM_NO && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">くわしくは第' + L[0] + '回のステップ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回 ステップ ' + p.step + ' を先に確認してください</a></p>'; }
+    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && L[0] !== SIM_NO && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">詳しくは第' + L[0] + '回 ステップ ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回 ステップ ' + p.step + ' を先に確認してください</a></p>'; }
     h += '</div>';
   }
   if (r.ana) h += '<h3>① 身近なたとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
   if (r.what) h += '<h3>② 何が起きているか</h3>' + rt(r.what).split('||').map(p => '<p>' + p + '</p>').join('');
-  if (r.eq) h += '<h3>③ 大事な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
+  if (r.eq) h += '<h3>③ 重要な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
   if (r.mis) h += '<h3>④ よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
   if (st.extra) h += '<div id="extra"></div>';
   if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; if (nx && nx.ready) h += '<p class="nextsim">この回はここまでです。次は　<a class="btn primary" href="' + nx.file + '">第' + nx.no + '回 ' + nx.name + ' →</a></p>'; else h += '<p class="nextsim">この回はここまでです。<a href="00_index.html">目次へ戻る</a></p>'; }
   h += '<div class="src"><b>出典</b>　' + (st.srcRaw ? '' : 'Radar Handbook 3rd ed.　') + st.src + '</div>';
-  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声かけの例）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
   $('#read').innerHTML = h;
   if (st.extra) $('#extra').innerHTML = st.extra();
 }
@@ -985,7 +985,7 @@ function highlight(key){
 }
 function buildGloss(){
   const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt' + (t[3] ? ' id="' + t[3] + '"' : '') + '>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
-  let h = '<h2>用語集（全回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><p class="glpage"><a href="glossary.html" target="_blank" rel="noopener">用語集のページを開く</a>（五十音順と回ごとの一覧。入門と中級のすべての用語）</p><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';
+  let h = '<h2>用語集（全回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><p class="glpage"><a href="glossary.html" target="_blank" rel="noopener">用語集のページを開く</a>（五十音順と回ごとの一覧。入門と中級のすべての用語）</p><input type="search" id="glFind" placeholder="用語を検索" aria-label="用語を検索"><dl id="glList">';
   h += '<h3>この回（第' + SIM_NO + '回 ' + SERIES[SIM_NO].name + '）の用語</h3>' + grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(-1);
   for (let n = 0; n < SERIES.length; n++) if (n !== SIM_NO && GLOSS.some(t => t[0] === n)) h += '<h3>第' + n + '回 ' + SERIES[n].name + '</h3>' + grp(n);
   g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は Radar Handbook 3rd ed. の用語を言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
@@ -1123,9 +1123,9 @@ STEPS.push({short: '距離の測定', title: '距離の測定 — 往復時間�
   why: '電波は 1 秒に 30 万 km 進みます。150 km 先の目標までは往復で 300 km であるため、300 km ÷ 30 万 km/秒 = 1/1000 秒です。ハンドブックの例のレーダも、パルス繰り返し周期が 1 ミリ秒です。',
   read: {
     ana: '雷が光ってから音が聞こえるまでの秒数を数えると、雷までの距離が分かります（音は 1 秒に約 340 m 進みます）。レーダは音の代わりに電波を自ら送信し、往復にかかった時間を測ります。',
-    what: 'レーダの最大の特徴は、目標までの距離を測定できることです。短い時間だけ電波を送信し（[[pulse|パルス]]）、[[echo|エコー]]が戻るまでの時間を測ります。電波は光速で進むため、時間が分かれば距離が分かります。||電波は目標まで往復するため、測った時間の半分が片道分に当たります。「▶ パルスを送信する」を押すと、上の図でパルスが目標まで進み、反射して戻る様子が表示されます。下の図はそのとき受信機に現れる信号です。',
+    what: 'レーダの最大の特徴は、目標距離を測定できることです。短い時間だけ電波を送信し（[[pulse|パルス]]）、[[echo|エコー]]が戻るまでの時間を測ります。電波は光速で進むため、時間が分かれば距離が分かります。||電波は目標まで往復するため、測った時間の半分が片道分に当たります。「▶ パルスを送信する」を押すと、上の図でパルスが目標まで進み、反射して戻る様子が表示されます。下の図はそのとき受信機に現れる信号です。',
     eq: '<i>R</i> = <i>c</i>·<i>t</i> / 2',
-    sym: '<i>R</i>：目標までの距離 [m]。<i>c</i>：光速（3×10<sup>8</sup> m/s）。<i>t</i>：電波を送信してからエコーが戻るまでの時間 [秒]。2 で割るのは、往復であるためです。1 µs が 150 m、1 ms が 150 km に相当します。{H}この式はハンドブックの説明を式に表したものです。',
+    sym: '<i>R</i>：目標距離 [m]。<i>c</i>：光速（3×10<sup>8</sup> m/s）。<i>t</i>：電波を送信してからエコーが戻るまでの時間 [秒]。2 で割るのは、往復であるためです。1 µs が 150 m、1 ms が 150 km に相当します。{H}この式はハンドブックの説明を式に表したものです。',
     mis: '「時間 × 光速」がそのまま距離であると考えがちですが、それは往復の経路長です。2 で割ることを忘れると、距離が 2 倍になります。'},
   hosoku: ['雷のたとえ', '式 R = c·t/2（ハンドブック第1章は文章による説明のみ）', '1 µs = 150 m、1 ms = 150 km という換算'],
   memo: 'つまずきやすい点は、往復であるため 2 で割ることと、µs と ms の取り違えです。||声かけの例：「パルス繰り返し周期が 1 ms のレーダで、200 km 先の目標のエコーはいつ戻りますか。次のパルスを送信した後ではどうなりますか」（距離のアンビギュイティ。第3回の予告）',
@@ -1172,14 +1172,14 @@ STEPS.push({short: 'dB とは', title: 'dB とは — 乗算を加算に変え�
 
 /* 4 */
 STEPS.push({short: 'レーダ方程式', title: 'レーダ方程式 — 受信電力は距離の 4 乗に反比例する', src: '§1.4 The Radar Equation（p.1.10–1.12、式1.2〜1.4）',
-  q: '目標までの距離が 2 倍になると、受信できるエコーの電力は何分の 1 になりますか。',
+  q: '目標距離が 2 倍になると、受信できるエコーの電力は何分の 1 になりますか。',
   ch: ['1/2', '1/4', '1/16'], ans: 2,
   why: '電波は進むほど広がり、距離が 2 倍になると、同じ面積に届く電力は 1/4 になります。これが往路と復路の 2 回生じるため、1/4 × 1/4 = 1/16 になります。dB では −12 dB に相当します。',
   read: {
     ana: '暗い部屋で懐中電灯を壁に向けます。壁が遠いほど光の輪は大きくなり、暗くなります（往路）。さらに、壁で散乱した光のうち自分の目に入る量は、壁が遠いほど少なくなります（復路）。暗くなる理由が 2 回重なります。',
     what: '<a class=gt data-g=g-radar-equation tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>レーダ方程式</a>（radar equation）は、受信電力を次の 3 つの量の積で表します。<br>(1) 目標の位置での電力密度（送信電力 × <a class=gt data-g=g-antenna-gain tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>アンテナ利得</a> ÷ 球の表面積）<br>(2) 目標で反射した電波が、レーダに戻るまでに広がって弱まる割合（<a class=gt data-g=g-rcs tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>レーダ断面積</a> ÷ 球の表面積）<br>(3) 受信アンテナが電波を捕捉する面積（<a class=gt data-g=g-effective-aperture tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>有効開口面積</a>）||球の表面積 4π<i>R</i>² が 2 回現れるため、[[curve|受信電力]]は距離の 4 乗に反比例します。受信電力が[[smin|最小検出信号]]と等しくなる距離が、最大探知距離です。最小検出信号は受信機雑音で決まります。',
     eq: '<i>P</i><sub>r</sub> = <i>P</i><sub>t</sub>·<i>G</i><sub>t</sub> / (4π<i>R</i><sup>2</sup>) × σ / (4π<i>R</i><sup>2</sup>) × <i>A</i><sub>e</sub>',
-    sym: '<i>P</i><sub>r</sub>：受信電力 [W]。<i>P</i><sub>t</sub>：送信電力 [W]。<i>G</i><sub>t</sub>：送信アンテナの利得（倍率）。<i>R</i>：目標までの距離 [m]。σ：目標のレーダ断面積 [m²]。<i>A</i><sub>e</sub>：受信アンテナの有効開口面積 [m²]。',
+    sym: '<i>P</i><sub>r</sub>：受信電力 [W]。<i>P</i><sub>t</sub>：送信電力 [W]。<i>G</i><sub>t</sub>：送信アンテナの利得（倍率）。<i>R</i>：目標距離 [m]。σ：目標のレーダ断面積 [m²]。<i>A</i><sub>e</sub>：受信アンテナの有効開口面積 [m²]。',
     mis: '「送信電力を 2 倍にすれば、探知距離も 2 倍になる」という理解は誤りです。距離は電力の 4 乗根に比例してしか延びません。距離を 2 倍にするには、16 倍の電力が必要です。'},
   hosoku: ['懐中電灯のたとえ', '図の数値例（送信 1 MW、利得 33 dB、波長 10 cm、RCS 1 m²、帯域 1 MHz、雑音指数 3 dB、必要な S/N 13 dB）は、このシミュレータで決めた例', '縦軸の単位 dBW（1 W を 0 dB とした表し方）'],
   memo: 'つまずきやすい点は、4 乗になる理由（往路と復路で 2 乗が 2 回）と、dBW の読み方です。||声かけの例：「距離を 10 倍にすると、受信電力は何 dB 下がりますか」「最大探知距離を 2 倍にしたい場合、送信電力のほかに何を変えられますか」',

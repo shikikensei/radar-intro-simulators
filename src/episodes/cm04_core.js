@@ -28,7 +28,7 @@ function calc(s){
   return {snr, snrdb: db10(snr), q, sA, sR, sV, gl, glm: EXA.kg * s.L, fix: EXA.fix, tot, K, totF, sRF: sR * K, cross: sA * s.R, crossF: totF * s.R};      // 角度は mrad、距離 m、速度 m/s。cross：横方向の位置の誤差 [m]
 }
 function rCross(L){ let lo = 1, hi = 200; for (let i = 0; i < 60; i++){ const m = (lo + hi) / 2, c = calc(Object.assign({}, DEFAULTS, {R: m, L})); if (c.sA < c.gl) lo = m; else hi = m; } return (lo + hi) / 2; }      // 熱雑音とグリントが等しくなる距離 [km]
-function multi(s){ s = s || S; const e = Math.atan((s.ht - EXA.ha) / (s.Rm * 1000)) / RAD, im = -Math.atan((s.ht + EXA.ha) / (s.Rm * 1000)) / RAD, sep = e - im, r = sep / EXA.thb; return {e, im, sep, r, reg: r < 0.5 ? '鏡像が主ビームの中（誤差が大きい）' : r < 1.5 ? '中間（見積もりが難しい）' : '鏡像はサイドローブ（誤差は小さい）'}; }
+function multi(s){ s = s || S; const e = Math.atan((s.ht - EXA.ha) / (s.Rm * 1000)) / RAD, im = -Math.atan((s.ht + EXA.ha) / (s.Rm * 1000)) / RAD, sep = e - im, r = sep / EXA.thb; return {e, im, sep, r, reg: r < 0.5 ? '鏡像がメインビームの中（誤差が大きい）' : r < 1.5 ? '中間（見積もりが難しい）' : '鏡像はサイドローブ（誤差は小さい）'}; }
 const with_ = o => Object.assign({}, DEFAULTS, o);
 function runChecks(){
   const R = [], add = (item, ref, calc, st, note) => R.push({item, ref, calc, st, note}), nr = (a, b, t) => Math.abs(a - b) <= t ? 'ok' : 'ng';

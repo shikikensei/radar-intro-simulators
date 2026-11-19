@@ -78,7 +78,7 @@ def main():
         if rel:
             a += '<p class="re"><span class="k">関係する用語</span>%s</p>' % rel
         if links:
-            a += '<p class="wh"><span class="k">くわしく扱う回</span>%s</p>' % ''.join(links)
+            a += '<p class="wh"><span class="k">詳しく扱う回</span>%s</p>' % ''.join(links)
         a += '</article>'
         arts.append((skey(m['y']), row_of(m['y']), a))
     arts.sort(key=lambda x: (x[1] == '英字・数字・記号', x[0]))
@@ -171,7 +171,7 @@ article.term.hit h3::before{content:"▶";color:var(--hl);font-size:12px}
 <div class="wrap">
 <p class="lead">入門（第0〜17回）と中級（第1〜8回）で使う %%N%% 語をまとめています。各回の本文で下線の付いた用語を押すと短い説明が表示され、そこからこのページの該当する用語を開けます。説明は Radar Handbook 3rd ed. の用語を言い換えたもので、「基礎の用語」は一般的な知識による補足です。</p>
 <div class="tools">
-  <input type="search" id="q" placeholder="用語をさがす（見出し・読み・英語・別の言い方・説明）" aria-label="用語をさがす">
+  <input type="search" id="q" placeholder="用語を検索（見出し・読み・英語・別の言い方・説明）" aria-label="用語をさがす">
   <span class="seg" role="group" aria-label="並べ方"><button type="button" data-v="kana" aria-pressed="true">五十音順</button><button type="button" data-v="ep" aria-pressed="false">回ごと</button></span>
   <span class="seg" role="group" aria-label="入門と中級"><button type="button" data-l="" aria-pressed="true">すべて</button><button type="button" data-l="入門" aria-pressed="false">入門</button><button type="button" data-l="中級" aria-pressed="false">中級</button></span>
   <span class="cnt" id="cnt" aria-live="polite"></span>

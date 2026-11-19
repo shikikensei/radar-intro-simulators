@@ -1170,17 +1170,17 @@ function renderRead_intro(st, i){
   const r = st.read || {}; let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>';
   if (i === 0 && typeof PRE !== 'undefined'){
     h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと、30 秒ほどで読める説明が表示されます）';
-    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && L[0] !== SIM_NO && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">くわしくは第' + L[0] + '回のステップ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回 ステップ ' + p.step + ' を先に確認してください</a></p>'; }
+    for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && L[0] !== SIM_NO && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">詳しくは第' + L[0] + '回 ステップ ' + L[1] + '</a>' : '') + '</p></details>'; } else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回 ステップ ' + p.step + ' を先に確認してください</a></p>'; }
     h += '</div>';
   }
   if (r.ana) h += '<h3>① 身近なたとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
   if (r.what) h += '<h3>② 何が起きているか</h3>' + rt(r.what).split('||').map(p => '<p>' + p + '</p>').join('');
-  if (r.eq) h += '<h3>③ 大事な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
+  if (r.eq) h += '<h3>③ 重要な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
   if (r.mis) h += '<h3>④ よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
   if (st.extra) h += '<div id="extra"></div>';
   if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; if (nx && nx.ready) h += '<p class="nextsim">この回はここまでです。次は　<a class="btn primary" href="' + nx.file + '">第' + nx.no + '回 ' + nx.name + ' →</a></p>'; else h += '<p class="nextsim">この回はここまでです。<a href="00_index.html">目次へ戻る</a></p>'; }
   h += '<div class="src"><b>出典</b>　' + (st.srcRaw ? '' : 'Radar Handbook 3rd ed.　') + st.src + '</div>';
-  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声かけの例）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
   $('#read').innerHTML = h;
   if (st.extra) $('#extra').innerHTML = st.extra();
 }
@@ -1231,7 +1231,7 @@ function highlight(key){
 }
 function buildGloss(){
   const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt' + (t[3] ? ' id="' + t[3] + '"' : '') + '>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
-  let h = '<h2>用語集（全回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><p class="glpage"><a href="glossary.html" target="_blank" rel="noopener">用語集のページを開く</a>（五十音順と回ごとの一覧。入門と中級のすべての用語）</p><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';
+  let h = '<h2>用語集（全回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><p class="glpage"><a href="glossary.html" target="_blank" rel="noopener">用語集のページを開く</a>（五十音順と回ごとの一覧。入門と中級のすべての用語）</p><input type="search" id="glFind" placeholder="用語を検索" aria-label="用語を検索"><dl id="glList">';
   h += '<h3>この回（' + SERIES[SIM_NO].label + ' ' + SERIES[SIM_NO].name + '）の用語</h3>' + grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(-1);
   for (let n = 0; n < SERIES.length; n++) if (n !== SIM_NO && SERIES[n] && GLOSS.some(t => t[0] === n)) h += '<h3>' + (SERIES[n].label || '入門 第' + n + '回') + ' ' + SERIES[n].name + '</h3>' + grp(n);
   g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は Radar Handbook 3rd ed. の用語を言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
@@ -1383,7 +1383,7 @@ function renderRead(st, i){
   if (st.extra) h += '<div id="extra"></div>';
   if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; h += nx && nx.ready ? '<p class="nextsim">この回はここまで。次は　<a class="btn primary" href="' + nx.file + '">' + nx.label + ' ' + nx.name + ' →</a></p>' : '<p class="nextsim">この回はここまで。<a href="00_index.html">目次へ戻る</a></p>'; }
   h += '<div class="src"><b>出典</b>　' + (st.srcRaw ? '' : 'Radar Handbook 3rd ed.　') + st.src + '</div>';
-  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + para(st.memo) + '</details>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声かけの例）</summary>' + para(st.memo) + '</details>';
   $('#read').innerHTML = h;
   if (st.extra) $('#extra').innerHTML = st.extra();
 }
@@ -1537,7 +1537,7 @@ STEPS.push({short: '変動目標', title: '変動目標 — 検出確率が高�
     fail: '目標の RCS 変動が CPI の間で部分的に相関をもつ場合（1 と 2 の中間）は、型を一方に決めると数 dB の差が生じる。||原本の式4.25 は、分子の最初の項が K<sub>m</sub><sup>−1</sup>(P<sub>d</sub>, 2n<sub>e</sub>) と印刷されているように読める。その形では P<sub>FA</sub> が式から消え、式4.24 の逆関数にならない。この教材では式4.24 を SNR について解いた形（上の式）で計算している。',
     mis: '「RCS が変動しても、平均値が同じであれば検出確率も同じである」という理解は誤りである。平均値が同じでも、RCS が小さい瞬間がある分だけ、高い確率での検出は難しくなる。仕様に「P<sub>d</sub> 0.9」と書くか「0.5」と書くかによって、変動目標では必要 S/N が 8 dB、探知距離が 1.6 倍変わる。'},
   hosoku: ['「RCS が偶然小さい瞬間に観測すると検出できない」という説明', 'Swerling 1 の P_d 0.99 での変動損失 17 dB と、「約 0.3 より下では変動目標のほうが有利」は、この教材の計算（式4.23・4.25）による値', '式4.25 の印刷についての注意と、「調べた範囲での差」。厳密な計算は Swerling 2・4 は閉じた式、1・3 は RCS の分布についての数値的な平均', '図は N_pdi = 1 の場合。このとき Swerling 1 と 2、3 と 4 はそれぞれ同じ曲線'],
-  memo: 'つまずきやすい点は、K_m⁻¹ という見慣れない記号である。自由度 2 ならば −2·ln p であり、電卓で計算できることを先に示す。||声かけの例：「P_d 0.5 で同じ計算をしてみよう。変動損失は何 dB か」「探知距離で表すと、8 dB は何倍か（10^(8/40) ≈ 1.58 倍）」「目標の変動モデルが分からないとき、どちらの型で計算書を書くか。その理由は何か」',
+  memo: 'つまずきやすい点は、K_m⁻¹ という見慣れない記号である。自由度 2 ならば −2·ln p であり、電卓で計算できることを先に示す。||声かけの例：「P_d 0.5 で同じ計算をするとどうなるか。変動損失は何 dB か」「探知距離で表すと、8 dB は何倍か（10^(8/40) ≈ 1.58 倍）」「目標の変動モデルが分からないとき、どちらの型で計算書を書くか。その理由は何か」',
   init: {}, ctl: ['pd', 'x'], fixed: [], fixT: ['1 つの CPI で判定（N_pdi = 1）'], plots: [{h: 250}, {h: 200}],
   sol: {pd: 0.5},
   draw(P){
