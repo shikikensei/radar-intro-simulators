@@ -52,6 +52,7 @@ PLAIN_LAST = set('るいただうくすつむぶぐぬか')
 def strip(s):
     s = re.sub(r'\[\[[^|\]]+\|([^\]]+)\]\]', r'\1', str(s)); s = re.sub(r'\{\{g-[a-z0-9-]+\|([^{}|]+)\}\}', r'\1', s)
     s = s.replace('{H}', '').replace('<br>', '\n')
+    s = re.sub(r'</t[dh]>|</tr>|</h3>|</p>', '\n', s)      # 表の升目と見出しは、1 つずつ別の行として調べる
     s = re.sub(r'<sup>([^<]*)</sup>', r'^\1', s); s = re.sub(r'<[^>]+>', '', s)
     return s.replace('&nbsp;', ' ').replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
 
