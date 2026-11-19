@@ -613,12 +613,12 @@ const GLOSS = [
   [4, '検出確率（探知確率、probability of detection、Pd）', '目標が存在するときに、それを正しく検出できる確率です。', 'g-probability-of-detection'],
   [4, '誤警報確率（probability of false alarm、Pfa）', '目標が存在しないにもかかわらず、雑音などによって「目標あり」と判定する確率です。', 'g-probability-of-false-alarm'],
   [4, '積分（integration）', '複数のパルスの受信信号を加算して、目標を検出しやすくする処理です。', 'g-integration'],
-  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器。', 'g-moving-window-integrator'],
+  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器です。', 'g-moving-window-integrator'],
   [4, '2 値積分（binary integration）', '各回の判定結果（検出したかどうか）だけを数え、N 回のうち M 回以上で検出した場合に「目標あり」と判定する方法です。', 'g-binary-integration'],
   [4, 'CFAR（constant false alarm rate、一定誤警報率）', '周囲のセルから雑音やクラッタのレベルを推定し、誤警報確率が一定になるようにしきい値を自動的に調整する処理です。', 'g-cfar'],
-  [4, 'セル平均CFAR（cell-averaging CFAR）', '注目するセルの周りのセル（参照セル）の平均から背景の強さを推定する CFAR。', 'g-cell-averaging-cfar'],
-  [4, '参照セル（reference cells）', 'CFAR で背景の強さを推定するために使う周りのセル。', 'g-reference-cells'],
-  [4, 'CFAR損失（CFAR loss）', '背景を推定で求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N。', 'g-cfar-loss'],
+  [4, 'セル平均 CFAR（cell-averaging CFAR）', '注目セルの周囲のセル（参照セル）の平均から背景の強度を推定する CFAR です。', 'g-cell-averaging-cfar'],
+  [4, '参照セル（reference cells）', 'CFAR で背景の強度を推定するために使う、注目セルの周囲のセルです。', 'g-reference-cells'],
+  [4, 'CFAR 損失（CFAR loss）', '背景を推定によって求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N です。', 'g-cfar-loss'],
   [4, 'Swerling モデル（Swerling models）', '目標の RCS 変動を表す代表的なモデルです。変動がスキャンごとに生じるか、パルスごとに生じるかなどによって区別します。', 'g-swerling-models']
 ];
 /* 前提知識の補足（30秒で読める長さ。すべてハンドブックにない一般知識＝補足） */

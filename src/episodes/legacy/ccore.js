@@ -9,8 +9,8 @@ const NC = 200;             // 表示する距離セルの数
 const MARG = 40;            // 両端の外側に作っておく余分なセル（CFAR の参照窓が端で欠けないようにする）
 const NT = NC + 2 * MARG;
 const T1CELL = 60;          // 目標1の距離セル
-const SWN = ['ゆらぎなし', 'Swerling 1', 'Swerling 2', 'Swerling 3', 'Swerling 4'];
-const CFARN = {ca: 'セル平均', cens: '大きい2個を除く', min: '平均が小さい側だけ', log: '対数ビデオ', edge: '境目の同じ側だけ'};
+const SWN = ['非変動', 'Swerling 1', 'Swerling 2', 'Swerling 3', 'Swerling 4'];
+const CFARN = {ca: 'セル平均', cens: '大きい2個を除外', min: '平均が小さい側だけを使用', log: '対数ビデオ', edge: '境界の同じ側だけを使用'};
 const NCENS = 2;            // 「大きい K 個を除く」検出器で除く個数（p.7.16 の D2 にあたる）
 
 /* 共通設定（全ステップで共有） */
@@ -297,7 +297,7 @@ function mcRun(acc, nTrials, seedBase){
 function wilson(k, n){ if (!(n > 0)) return [NaN, NaN]; const z = 1.959964, p = k / n, d = 1 + z * z / n, c = p + z * z / (2 * n), e = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)); return [k <= 0 ? 0 : Math.max(0, (c - e) / d), k >= n ? 1 : Math.min(1, (c + e) / d)]; }
 
 /* ---------- 理論値（モンテカルロと比べるための値） ---------- */
-const DETN = {fixed: '固定しきい値', bin: '2値積分（固定しきい値）', ca: 'セル平均 CFAR', cens: 'CFAR：大きい2個を除く', min: 'CFAR：平均が小さい側だけ', log: 'CFAR：対数ビデオ', edge: 'CFAR：境目の同じ側だけ'};
+const DETN = {fixed: '固定しきい値', bin: '2値積分（固定しきい値）', ca: 'セル平均 CFAR', cens: 'CFAR：大きい2個を除外', min: 'CFAR：平均が小さい側だけを使用', log: 'CFAR：対数ビデオ', edge: 'CFAR：境界の同じ側だけを使用'};
 function pfaKind(kind, n, m, alpha){ return kind === 'min' ? pfaMin(n, m, alpha) : kind === 'cens' ? pfaCens(n, m, alpha) : kind === 'log' ? pfaLog(n, m, alpha) : pfaCA(n, m, alpha); }
 /* 目標 t の参照窓（ガードの外側 m 個）が一様か：ほかの目標も、クラッタの境目も入っていない */
 function tgClean(sc, t){

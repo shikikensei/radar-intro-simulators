@@ -175,7 +175,7 @@ class Lint:
             if comma_count(s) >= 4 and not re.match(r'[(（]\d+[)）]|・|[①-⑨]', s) and field not in ('sheet', 'tiles', 'fixT', 'fixed', 'pcfg', 'small', 'legend'):      # 箇条書きの項目は、名詞の並びを許す
                 self.add(f, st, field, '読点4', '読点 %d' % comma_count(s), s)
             n = len(re.sub(r'\s', '', s))
-            if n > 120:
+            if n > 120 and not (field == 'checks' and len(re.findall(r'\d', s)) > 0.25 * n):      # 照合表の、数値を並べた行は文ではない
                 self.add(f, st, field, '長文', '%d 字' % n, s)
             ends = s[-1:] in '。？！?'
             eqline = bool(re.search(r'[=≈→]', s))
