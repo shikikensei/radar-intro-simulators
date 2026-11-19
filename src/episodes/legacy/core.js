@@ -258,7 +258,7 @@ function runChecks(){
   add('LFM 重み付けなし：6 dB幅 × B', '同上', m1.w6 * B1, 1.21, '', 0.01, '表8.2');
   /* 2) テイラー重み付け（TB=400） */
   const r2 = response(w1, 0, 'taylor'), m2 = metrics(r2);
-  add('テイラー：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m2.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TBが有限であるため約2 dB高い（下の TB=3200 の行と式8.11の行を参照）');
+  add('テイラー：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m2.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TB が有限であるため約 2 dB 高い（下の TB=3200 の行と式8.11 の行を参照）');
   add('テイラー：3 dB幅 × B', '同上', m2.w3 * B1, 1.25, '', 0.02, '表8.2');
   add('テイラー：6 dB幅 × B', '同上', m2.w6 * B1, 1.73, '', 0.02, '表8.2');
   add('テイラー：ミスマッチ損失', '同上', r2.lossDb, 1.15, 'dB', 0.03, '表8.2, p.8.3');
@@ -273,7 +273,7 @@ function runChecks(){
   add('式(8.12) のミスマッチ損失', '係数 F1〜F5 から計算', 10*Math.log10(1 + 2*s2), 1.15, 'dB', 0.01, '式8.12, 表8.2');
   /* 3) バーカー13 */
   const mb = metrics(response(makeWave('barker', 13, 0, 13), 0, 'none'));
-  add('バーカー13：ピークサイドローブ', 'T=13 µs（1チップ=10サンプル）', mb.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
+  add('バーカー13：ピークサイドローブ', 'T=13 µs（1 チップ = 10 サンプル）', mb.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
   const mb2 = metrics(response(makeWave('barker', 40, 0, 13), 0, 'none'));
   add('バーカー13：ピークサイドローブ', 'T=40 µs 設定（実効 40.3 µs）', mb2.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
   /* 4) 距離ドップラ結合：ピーク位置のずれ t = −fd·T/B */
@@ -298,9 +298,9 @@ function runChecks(){
   }
   /* 参考：TBが小さいと表の値からずれる */
   const ms = metrics(response(makeWave('lfm', 10, 1), 0, 'none'));
-  add('（参考）LFM 重み付けなし：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', ms.psl, -13.2, 'dB', null, '表8.2 は TB≫1 が前提', 'TBが小さいために一致しない例');
+  add('（参考）LFM 重み付けなし：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', ms.psl, -13.2, 'dB', null, '表8.2 は TB≫1 が前提', 'TB が小さいために一致しない例');
   const mst = metrics(response(makeWave('lfm', 10, 1), 0, 'taylor'));
-  add('（参考）テイラー：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', mst.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TBが小さいために一致しない例');
+  add('（参考）テイラー：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', mst.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TB が小さいために一致しない例');
   const md = metrics(response(makeWave('lfm', 40, 2), 0, 'taylor'));
   add('（参考）テイラー：ピークサイドローブ', '初期設定 T=40 µs, B=2 MHz（TB=80）', md.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TB=80 での値');
   return out;
