@@ -40,7 +40,7 @@ TERMS = [
 ]
 COLLOQ = [
     ('だから、', r'だから、'), ('〜ぶん', r'ぶん'), ('要る', r'要[るりら]|要れば|要っ[てた]'), ('高くつく', r'[高安]くつ'), ('得をする', r'(?<![一-龥])得を(し|す)|(?<![一-龥])得する'), ('ずっと', r'ずっと'), ('かなり', r'(?<!し)かなり(?!ませ|ます)'),
-    ('とても', r'とても'), ('けた違い', r'けた違い|桁違い'), ('けれど', r'けれど'), ('でも、', r'(^|。)でも、'), ('いちばん', r'いちばん|一番'), ('もっと', r'もっと'), ('たくさん', r'たくさん'),
+    ('とても', r'とても'), ('けた違い', r'けた違い|桁違い'), ('けれど', r'けれど'), ('でも、', r'(^|。)でも、'), ('いちばん', r'いちばん|一番'), ('もっと', r'もっと(?!も)'), ('たくさん', r'たくさん'),
     ('ぎりぎり', r'ぎりぎり'), ('ばらばら', r'ばらばら'), ('ちゃんと／ちょっと／すごく／だんだん／ずいぶん', r'ちゃんと|ちょっと|すごく|だんだん|ずいぶん'), ('〜てね', r'てね[。）」]|てね$'),
     ('わけ', r'わけ(では|でも|です|だ)'), ('ほんの／ごく', r'ほんの'), ('〜っぱなし／〜ちゃう', r'ちゃ[うっ]'), ('なので、（文頭）', r'(^|。)なので、'), ('いくら〜ても', r'いくら[^。]{0,12}ても|いくらでも'),
 ]
@@ -172,14 +172,14 @@ class Lint:
         for s in sentences(body if field == 'memo' else text):
             for h in short_commas(s):
                 self.add(f, st, field, '読点', h, s)
-            if comma_count(s) >= 4 and not re.match(r'[(（]\d+[)）]|・', s) and field not in ('sheet', 'tiles', 'fixT', 'fixed', 'pcfg', 'small', 'legend'):      # 箇条書きの項目は、名詞の並びを許す
+            if comma_count(s) >= 4 and not re.match(r'[(（]\d+[)）]|・|[①-⑨]', s) and field not in ('sheet', 'tiles', 'fixT', 'fixed', 'pcfg', 'small', 'legend'):      # 箇条書きの項目は、名詞の並びを許す
                 self.add(f, st, field, '読点4', '読点 %d' % comma_count(s), s)
             n = len(re.sub(r'\s', '', s))
             if n > 120:
                 self.add(f, st, field, '長文', '%d 字' % n, s)
             ends = s[-1:] in '。？！?'
             eqline = bool(re.search(r'[=≈→]', s))
-            item = bool(re.match(r'[(（]\d+[)）]|・', s))      # 箇条書きの項目は、名詞で止めてよい
+            item = bool(re.match(r'[(（]\d+[)）]|・|[①-⑨]', s))      # 箇条書きの項目は、名詞で止めてよい
             if field in EXPL and not eqline and not item and not has_pred(s, polite):
                 self.add(f, st, field, '体言止', tail(s)[-12:], s)
             if polite:
