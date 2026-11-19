@@ -38,9 +38,10 @@ def load_meta():
     return json.loads((SRC / 'glossary' / 'meta.json').read_text(encoding='utf-8'))
 
 
-def expand(text, name, mid=False):
-    """本文の印を、用語のリンクに直す。入門の回（mid=False）では、中級だけの用語（gloss_m.js）は使えない"""
-    ok = {t['id'] for t in load_gloss() if mid or t['src'] != 'gloss_m.js'}
+def expand(text, name, mid=False, legacy=False):
+    """本文の印を、用語のリンクに直す。入門の回（mid=False）では、中級だけの用語（gloss_m.js）は使えない。
+    第1〜4回（legacy=True）は、HTML に fw_gloss.js しか入らないので、その用語だけを使える"""
+    ok = {t['id'] for t in load_gloss() if (t['src'] == 'fw_gloss.js' if legacy else (mid or t['src'] != 'gloss_m.js'))}
 
     def rep(m):
         if m.group(1) not in ok:

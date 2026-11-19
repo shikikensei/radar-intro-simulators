@@ -17,22 +17,7 @@ rep("""let h = '<h2>用語集（4 回共通）<button""","""let h = '<h2>用語�
 rep("""grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(0);
   for (let n = 1; n <= 4; n++) if (n !== SIM_NO) h +=""","""grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(-1);
   for (let n = 0; n < SERIES.length; n++) if (n !== SIM_NO && GLOSS.some(t => t[0] === n)) h +=""")
-# 入門の画面の文言（STYLE.md の決まりに合わせる。第1〜4回の fw_core.js は、まだ変えない）
-for a_, b_ in [
-    ("""'予想とは違いましたね。外れても大丈夫、ここで「なぜ」を確かめれば身につきます。'""", """'予想とは異なりました。ここで理由を確かめることが、理解につながります。'"""),
-    ("""（開くと 30 秒で読める説明が出ます）""", """（開くと、30 秒ほどで読める説明が表示されます）"""),
-    ("""'">第' + p.no + '回のステップ' + p.step + 'を先に見てね</a></p>'""", """'">第' + p.no + '回 ステップ ' + p.step + ' を先に確認してください</a></p>'"""),
-    ("""<div class="hint">まず予想を 1 つ選ぼう（当たり外れは気にしなくて大丈夫）。選ぶと下の操作部が使えるようになります。</div>""", """<div class="hint">まず予想を 1 つ選びましょう（正否は問いません）。選ぶと、下の操作部が使えるようになります。</div>"""),
-    ("""<div class="lockmsg">予想してから触ろう</div>""", """<div class="lockmsg">先に予想を選びましょう</div>"""),
-    ("""(st.do || 'スライダーを動かして確かめよう')""", """(st.do || 'スライダーを動かして確かめましょう')"""),
-    ("""<span class="hint">操作して確かめてから押そう</span>""", """<span class="hint">操作して確かめてから押しましょう</span>"""),
-    ("""用語の訳と説明は、Radar Handbook 3rd ed. の用語を新人向けに言い換えたものです。""", """用語の訳と説明は Radar Handbook 3rd ed. の用語を言い換えたものです。""")]:
-    rep(a_, b_)
-# 用語集のパネル：用語に ID を付ける（本文のリンクから同じ用語を開けるように）。用語集のページへのリンクを置く
-rep("""GLOSS.filter(t => t[0] === n).map(t => '<dt>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');""",
-    """GLOSS.filter(t => t[0] === n).map(t => '<dt' + (t[3] ? ' id="' + t[3] + '"' : '') + '>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');""")
-rep("""<input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';""",
-    """<p class="glpage"><a href="glossary.html" target="_blank" rel="noopener">用語集のページを開く</a>（五十音順と回ごとの一覧。入門と中級のすべての用語）</p><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';""")
+# 入門の画面の文言、用語の ID（dt の id）、用語集のページへのリンクは、fw_core.js に入れてある（第1〜4回と共通）
 wr(GEN/'fw_core2.js',c+'\n'+rd('fw_gterm.js'))
 g=rd('fw_gloss.js')
 i0=g.index('const SERIES'); i1=g.index('/* [グループ')

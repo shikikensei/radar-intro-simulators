@@ -136,6 +136,16 @@ table.t th{color:var(--text2);font-weight:700;background:var(--surface2);white-s
 .tw{overflow-x:auto}
 .ok{color:var(--ok);font-weight:700;white-space:nowrap}.ng{color:var(--ng);font-weight:700;white-space:nowrap}.info{color:var(--muted);white-space:nowrap}
 @media print{nav#steps,.stepnav,header.top .btn,#glTab{display:none}}
+a.gt{color:inherit;text-decoration:underline dashed var(--accent);text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:help;border-radius:3px}
+a.gt::after{content:"?";font-size:.68em;font-weight:700;vertical-align:super;line-height:0;margin-left:1px;color:var(--accent)}
+a.gt:hover,a.gt[aria-expanded=true]{background:var(--accent-bg)}
+.gpop{position:absolute;z-index:38;width:min(340px,calc(100vw - 16px));background:var(--surface);border:1.5px solid var(--accent);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.28);padding:8px 12px 10px;font-size:13px;font-weight:400;line-height:1.65;color:var(--text)}
+.gpop:focus{outline:2px solid var(--accent);outline-offset:1px}
+.gpop .gh{display:block;font-size:14px;font-weight:700;margin:0 0 2px}
+.gpop p{margin:0 0 8px;color:var(--text2)}
+.gpop .gpa{display:flex;flex-wrap:wrap;gap:6px}
+#gloss dt.hit,#gloss dt.hit+dd{background:var(--accent-bg);box-shadow:-6px 0 0 var(--accent-bg),6px 0 0 var(--accent-bg)}
+#gloss .glpage{margin:0 0 8px;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -856,14 +866,14 @@ function showMission(){
 function showAnswer(){
   const st = STEPS[cur], body = $('#ansBody'), p = STATE.pred[cur]; if (!body || !STATE.shown[cur]) return;
   body.hidden = false;
-  body.innerHTML = '<p><b>' + (p === st.ans ? '予想どおりです。' : '予想とは違いましたね。外れても大丈夫、ここで「なぜ」を確かめれば身につきます。') + '</b></p><p>答え：<b>' + st.ch[st.ans] + '</b></p><p>' + rt(st.why) + '</p>';
+  body.innerHTML = '<p><b>' + (p === st.ans ? '予想どおりです。' : '予想とは異なりました。ここで理由を確かめることが、理解につながります。') + '</b></p><p>答え：<b>' + st.ch[st.ans] + '</b></p><p>' + rt(st.why) + '</p>';
   const bs = $('#choices').children; for (let i = 0; i < bs.length; i++) bs[i].classList.toggle('right', i === st.ans);
 }
 function renderRead(st, i){
   const r = st.read || {}; let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>';
   if (i === 0 && typeof PRE !== 'undefined'){
-    h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと 30 秒で読める説明が出ます）';
-    for (const p of PRE){ if (typeof p === 'string') h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + '</p></details>'; else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回のステップ' + p.step + 'を先に見てね</a></p>'; }
+    h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと、30 秒ほどで読める説明が表示されます）';
+    for (const p of PRE){ if (typeof p === 'string') h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + '</p></details>'; else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回 ステップ ' + p.step + ' を先に確認してください</a></p>'; }
     h += '</div>';
   }
   if (r.ana) h += '<h3>① 身近なたとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
@@ -880,11 +890,11 @@ function renderSim(st, i){
   const sim = $('#sim'); sim.innerHTML = ''; PL = []; PLOTS.length = 0;
   const unlocked = (st.free && !st.q) || STATE.pred[i] !== undefined;
   if (st.q){
-    const q = el('div', 'card q', '<span class="lbl">問い</span><p>' + st.q + '</p><div class="ch" id="choices">' + st.ch.map((c, k) => '<button type="button" data-k="' + k + '" aria-pressed="' + (STATE.pred[i] === k) + '">' + c + '</button>').join('') + '</div><div class="hint">まず予想を 1 つ選ぼう（当たり外れは気にしなくて大丈夫）。選ぶと下の操作部が使えるようになります。</div>');
+    const q = el('div', 'card q', '<span class="lbl">問い</span><p>' + st.q + '</p><div class="ch" id="choices">' + st.ch.map((c, k) => '<button type="button" data-k="' + k + '" aria-pressed="' + (STATE.pred[i] === k) + '">' + c + '</button>').join('') + '</div><div class="hint">まず予想を 1 つ選びましょう（正否は問いません）。選ぶと、下の操作部が使えるようになります。</div>');
     sim.appendChild(q);
     $('#choices', q).addEventListener('click', ev => { const k = ev.target && ev.target.dataset ? ev.target.dataset.k : undefined; if (k === undefined) return; STATE.pred[i] = Number(k); for (const b of $('#choices').children) b.setAttribute('aria-pressed', b.dataset.k === k); $('#opCard').classList.remove('locked'); $('#ansBtn').disabled = false; redraw(); });
   }
-  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">予想してから触ろう</div><span class="lbl">操作</span><span class="hint" style="margin:0">' + (st.do || 'スライダーを動かして確かめよう') + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
+  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">先に予想を選びましょう</div><span class="lbl">操作</span><span class="hint" style="margin:0">' + (st.do || 'スライダーを動かして確かめましょう') + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
   op.id = 'opCard'; sim.appendChild(op);
   for (const c of (st.ctl || [])) buildCtl($('#ctls', op), c);
   const acts = $('#acts', op);
@@ -897,7 +907,7 @@ function renderSim(st, i){
   for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
   if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
   if (st.q){
-    const a = el('div', 'card ans', '<button type="button" class="btn primary" id="ansBtn"' + (unlocked ? '' : ' disabled') + '>答えを見る</button>　<span class="hint">操作して確かめてから押そう</span><div class="body" id="ansBody" hidden></div>');
+    const a = el('div', 'card ans', '<button type="button" class="btn primary" id="ansBtn"' + (unlocked ? '' : ' disabled') + '>答えを見る</button>　<span class="hint">操作して確かめてから押しましょう</span><div class="body" id="ansBody" hidden></div>');
     sim.appendChild(a); $('#ansBtn', a).addEventListener('click', () => { STATE.shown[i] = true; showAnswer(); });
   }
 }
@@ -922,11 +932,11 @@ function highlight(key){
   hlT = setTimeout(() => { HLKEY = null; for (const e of document.querySelectorAll('.flash')) e.classList.remove('flash'); redrawAll(); }, 4000);
 }
 function buildGloss(){
-  const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
-  let h = '<h2>用語集（4 回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';
+  const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt' + (t[3] ? ' id="' + t[3] + '"' : '') + '>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
+  let h = '<h2>用語集（4 回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><p class="glpage"><a href="glossary.html" target="_blank" rel="noopener">用語集のページを開く</a>（五十音順と回ごとの一覧。入門と中級のすべての用語）</p><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';
   h += '<h3>この回（第' + SIM_NO + '回 ' + SERIES[SIM_NO].name + '）の用語</h3>' + grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(0);
   for (let n = 1; n <= 4; n++) if (n !== SIM_NO) h += '<h3>第' + n + '回 ' + SERIES[n].name + '</h3>' + grp(n);
-  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は、Radar Handbook 3rd ed. の用語を新人向けに言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
+  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は Radar Handbook 3rd ed. の用語を言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
   const toggle = on => { g.hidden = !on; if (on) $('#glFind').focus(); };
   $('#glBtn').addEventListener('click', () => toggle(g.hidden)); $('#glTab').addEventListener('click', () => toggle(g.hidden)); $('#glClose').addEventListener('click', () => toggle(false));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
@@ -951,6 +961,57 @@ function boot(){
   window.addEventListener('hashchange', () => { const m = /^#s(\d+)$/.exec(location.hash || ''); if (m && Number(m[1]) - 1 !== cur) goStep(Number(m[1]) - 1); });
   if (window.ResizeObserver) new ResizeObserver(() => redrawAll()).observe($('#sim')); else window.addEventListener('resize', redrawAll);
 }
+
+/* ============================================================
+   用語のリンク：本文の用語（a.gt）を押すと、ページを移らずに、その場に小さな説明を出す。
+   説明は、この HTML の中の GLOSS（[グループ, 見出し, 説明, ID]）から引く。印は、組み立てのときに gterm.py が a.gt に直す。
+   ============================================================ */
+let gPop = null, gFrom = null;
+function gClose(back){
+  if (!gPop) return;
+  gPop.remove(); gPop = null;
+  if (gFrom){ gFrom.setAttribute('aria-expanded', 'false'); if (back && document.contains(gFrom)) gFrom.focus(); }
+  gFrom = null;
+}
+function gPlace(){
+  if (!gPop || !gFrom || !document.contains(gFrom)){ gClose(false); return; }
+  const r = gFrom.getBoundingClientRect(), dw = document.documentElement.clientWidth, pw = gPop.offsetWidth, ph = gPop.offsetHeight;
+  const left = Math.max(8, Math.min(r.left, dw - pw - 8)) + window.scrollX;
+  const below = r.bottom + 6 + ph <= window.innerHeight || r.top - 6 - ph < 50;
+  gPop.style.left = left + 'px'; gPop.style.top = ((below ? r.bottom + 6 : r.top - 6 - ph) + window.scrollY) + 'px';
+}
+function gOpen(a){
+  const t = GLOSS.find(x => x[3] === a.dataset.g); if (!t) return;
+  gClose(false);
+  gPop = el('div', 'gpop', '<span class="gh">' + t[1] + '</span><p>' + t[2] + '</p><div class="gpa"><button type="button" class="btn sm" data-act="panel">この画面の用語集で開く</button><a class="btn sm" href="glossary.html#' + t[3] + '" target="_blank" rel="noopener">用語集で見る</a><button type="button" class="btn sm" data-act="close">閉じる</button></div>');
+  gPop.setAttribute('role', 'dialog'); gPop.setAttribute('aria-label', '用語の説明：' + t[1].replace(/<[^>]*>/g, '')); gPop.tabIndex = -1;
+  document.body.appendChild(gPop); gFrom = a; a.setAttribute('aria-expanded', 'true');
+  gPlace(); gPop.focus({preventScroll: true});
+}
+/* 右端の用語集のパネルを開いて、ID の用語を見せる */
+function glossAt(id){
+  const g = $('#gloss'), f = $('#glFind'); if (!g) return;
+  if (f && f.value){ f.value = ''; f.dispatchEvent(new Event('input')); }
+  g.hidden = false;
+  const dt = document.getElementById(id); if (!dt) return;
+  for (const e of g.querySelectorAll('dt.hit')) e.classList.remove('hit');
+  dt.classList.add('hit'); dt.scrollIntoView({block: 'center'}); dt.tabIndex = -1; dt.focus({preventScroll: true});
+}
+document.addEventListener('click', e => {
+  const t = e.target, a = t && t.closest ? t.closest('a.gt') : null;
+  if (a){ e.preventDefault(); if (gFrom === a) gClose(false); else gOpen(a); return; }
+  if (!gPop) return;
+  const b = t && t.closest ? t.closest('.gpop [data-act]') : null;
+  if (b){ const id = gFrom ? gFrom.dataset.g : null, act = b.dataset.act; gClose(act === 'close'); if (act === 'panel' && id) glossAt(id); return; }
+  if (!gPop.contains(t)) gClose(false);
+});
+document.addEventListener('keydown', e => {
+  const a = e.target && e.target.closest ? e.target.closest('a.gt') : null;
+  if (a && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); if (gFrom === a) gClose(true); else gOpen(a); }
+  else if (e.key === 'Escape' && gPop){ e.stopPropagation(); gClose(true); }
+}, true);
+window.addEventListener('resize', gPlace);
+window.addEventListener('hashchange', () => gClose(false));
 
 /* ============================================================
    第2回 MTI：ステップの定義
