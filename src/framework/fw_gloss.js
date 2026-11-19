@@ -41,7 +41,7 @@ const GLOSS = [
   [2, 'スタガPRF（staggered PRF）', 'パルスの間隔を交互に変えることで、ブラインド速度を高い速度へ追いやる方法。', 'g-staggered-prf'],
   [2, 'クラッタのスペクトル拡がり（clutter spectral spread）', '風で揺れる木やアンテナの走査などで、クラッタのドップラが 0 のまわりに幅を持つこと。', 'g-clutter-spectral-spread'],
   [2, '走査変調（scanning modulation）', 'アンテナの回転によって、クラッタのエコーの振幅がパルスごとに変化する現象です。クラッタのスペクトル幅が大きくなる原因の 1 つです。', 'g-scanning-modulation'],
-  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強さを記憶したもの。しきい値の設定などに使う。', 'g-clutter-map'],
+  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強度を記憶したものです。しきい値の設定などに使います。', 'g-clutter-map'],
   [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分けて目標を検出する方式。', 'g-pulse-doppler'],
   [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通すフィルタ。FFT で多数並べて作る。', 'g-doppler-filter'],
   [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ処理を行う 1 組のパルス列、またはその時間です。CPI が長いほどドップラ分解能（速度分解能）が高くなります。', 'g-cpi'],
