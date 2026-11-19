@@ -288,7 +288,7 @@
  "g-detection-decision": {"y": "はんてい"},
  "g-data-processing": {"y": "でーたしょり"},
  "g-resolution-and-accuracy": {"y": "ぶんかいのうとせいど"},
- "g-snr-ledger": {"y": "s/nのかけいぼ"},
+ "g-snr-ledger": {"y": "えすえぬばじぇっと", "alt": ["S/N の家計簿"]},
  "g-multifunction-radar": {"y": "たきのうれーだ"},
  "g-minimum-range": {"y": "さいしょうたんちきょり"},
  "g-design-table": {"y": "せっけいひょう"},
