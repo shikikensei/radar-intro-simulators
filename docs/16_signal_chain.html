@@ -618,7 +618,7 @@ const GLOSS = [
   [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比。', 'g-clutter-attenuation'],
   [2, 'スタガPRF（staggered PRF）', 'パルスの間隔を交互に変えることで、ブラインド速度を高い速度へ追いやる方法。', 'g-staggered-prf'],
   [2, 'クラッタのスペクトル拡がり（clutter spectral spread）', '風で揺れる木やアンテナの走査などで、クラッタのドップラが 0 のまわりに幅を持つこと。', 'g-clutter-spectral-spread'],
-  [2, '走査変調（scanning modulation）', 'アンテナが回ることで、クラッタのエコーの強さがパルスごとに変わること。スペクトル拡がりの原因の 1 つ。', 'g-scanning-modulation'],
+  [2, '走査変調（scanning modulation）', 'アンテナの回転によって、クラッタのエコーの振幅がパルスごとに変化する現象です。クラッタのスペクトル幅が大きくなる原因の 1 つです。', 'g-scanning-modulation'],
   [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強さを記憶したもの。しきい値の設定などに使う。', 'g-clutter-map'],
   [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分けて目標を検出する方式。', 'g-pulse-doppler'],
   [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通すフィルタ。FFT で多数並べて作る。', 'g-doppler-filter'],
@@ -701,21 +701,21 @@ GLOSS.push(
   [5, 'PDA／JPDA（probabilistic data association）', 'ゲート内の検出点を 1 つに絞らず、「その航跡のものである確率」で重み付けして、まとめて更新に使う方法です。', 'g-pda']
 );
 GLOSS.push(
-  [6, 'AMTI（airborne MTI、航空機搭載MTI）', '航空機に載せたレーダで使う MTI。レーダ自身が動くので、地面のクラッタにもドップラが付く点が、地上のレーダと違う。', 'g-amti'],
-  [6, 'プラットフォーム（platform）', 'レーダを載せている乗り物。ここでは航空機のこと。', 'g-platform'],
-  [6, '対地速度（ground speed）', '地面に対する機体の速さ。クラッタのドップラは、この速度で決まる。', 'g-ground-speed'],
-  [6, 'ボアサイト（boresight）', 'アンテナのビームの中心の方向。', 'g-boresight'],
-  [6, '俯角（depression angle）', '水平から下向きに測った、見下ろす角度。', 'g-depression-angle'],
-  [6, 'スラントレンジ（slant range）', 'レーダから地面の点までの、斜めの直線距離。', 'g-slant-range'],
-  [6, 'プラットフォーム運動スペクトル（platform-motion spectrum）', '機体が動くために、ビームの中の方向ごとにクラッタのドップラが少しずつ違い、その結果として広がったクラッタのスペクトル。真横を見たときにいちばん広い。', 'g-platform-motion-spectrum'],
-  [6, 'TACCAR（time-averaged clutter coherent airborne radar）', 'クラッタのエコーの平均的なドップラを測り、それが 0 になるように周波数をずらして、メインビームクラッタを MTI のノッチに合わせる方法。', 'g-taccar'],
-  [6, '位相中心（phase center）', 'アンテナが電波を出し入れしている「見かけの 1 点」。開口の中での重みの付け方で、位置を動かせる。', 'g-phase-center'],
-  [6, 'DPCA（displaced phase center antenna）', 'パルスごとにアンテナの位相中心をずらして、機体が進んだ分を打ち消し、クラッタからはアンテナが止まっているように見せる方法。', 'g-dpca'],
-  [6, '和パターンと差パターン（sum / difference pattern）', 'アンテナの左右半分の信号を、足して作るビーム（和）と、引いて作るビーム（差）。差パターンは中心で 0、左右で符号が反対になる。', 'g-sum-and-difference-pattern'],
-  [6, 'ステップ走査補償（step-scan compensation）', 'アンテナが回ることによるエコーの振幅の変化を、差パターンを使って打ち消す方法。ビームを電子的に少し前後に向け、止まっていたように見せる。', 'g-step-scan-compensation'],
-  [6, 'CPCT（coincident phase center technique）', '位相中心を開口の前後にもずらして、進行方向の動きによるクラッタの拡がりも打ち消す方法。', 'g-cpct'],
-  [6, 'STAP（space-time adaptive processing、時空間適応処理）', 'アンテナの素子ごと（空間）、パルスごと（時間）の信号に受信したデータから計算した重みを掛けて足し合わせ、クラッタや妨害を消す処理。', 'g-stap'],
-  [6, '自由度（degrees of freedom）', '適応処理で自由に決められる重みの数。素子の数 × パルスの数が上限。多いほど細かく消せるが、計算と必要なデータが増える。', 'g-degrees-of-freedom']
+  [6, 'AMTI（airborne MTI、航空機搭載 MTI）', '航空機に搭載したレーダで使う MTI です。レーダ自身が移動するため、地面のクラッタにもドップラ偏移が生じる点が、地上のレーダと異なります。', 'g-amti'],
+  [6, 'プラットフォーム（platform）', 'レーダを搭載している移動体です。この教材では航空機を指します。', 'g-platform'],
+  [6, '対地速度（ground speed）', '地面に対する機体の速度です。クラッタのドップラ周波数は、この速度で決まります。', 'g-ground-speed'],
+  [6, 'ボアサイト（boresight）', 'アンテナのビームの中心の方向です。', 'g-boresight'],
+  [6, '俯角（depression angle）', '水平から下向きに測った、見下ろす角度です。', 'g-depression-angle'],
+  [6, 'スラントレンジ（slant range）', 'レーダから地面の点までの、斜めの直線距離です。', 'g-slant-range'],
+  [6, 'プラットフォーム運動スペクトル（platform-motion spectrum）', '機体の移動のために、ビームの中の方向ごとにクラッタのドップラ周波数がわずかずつ異なり、その結果として幅をもつようになったクラッタのスペクトルです。真横を観測する場合に、幅が最大になります。', 'g-platform-motion-spectrum'],
+  [6, 'TACCAR（time-averaged clutter coherent airborne radar）', 'クラッタのエコーの平均的なドップラ周波数を測定し、それが 0 になるように周波数を偏移させて、メインビームクラッタを MTI のノッチに合わせる方法です。', 'g-taccar'],
+  [6, '位相中心（phase center）', 'アンテナが電波を送受信している見かけの 1 点です。開口の中での重み付けによって、位置を移動できます。', 'g-phase-center'],
+  [6, 'DPCA（displaced phase center antenna）', 'パルスごとにアンテナの位相中心を移動して、機体が進んだ距離を打ち消し、クラッタから見てアンテナが静止しているようにする方法です。', 'g-dpca'],
+  [6, '和パターンと差パターン（sum / difference pattern）', 'アンテナの左右半分の信号を、加算して形成するビーム（和パターン）と、減算して形成するビーム（差パターン）です。差パターンは中心で 0 になり、左右で符号が逆になります。', 'g-sum-and-difference-pattern'],
+  [6, 'ステップ走査補償（step-scan compensation）', 'アンテナの回転によるエコーの振幅の変化を、差パターンを使って打ち消す方法です。ビームを電子的にわずかに前後へ向け、静止していたかのように見せます。', 'g-step-scan-compensation'],
+  [6, 'CPCT（coincident phase center technique）', '位相中心を開口の前後にも移動して、進行方向の運動によるクラッタのスペクトル幅も打ち消す方法です。', 'g-cpct'],
+  [6, 'STAP（space-time adaptive processing、時空間適応処理）', 'アンテナの素子ごと（空間）・パルスごと（時間）の信号を受信データから計算した係数で重み付けして加算し、クラッタや妨害を抑圧する処理です。', 'g-stap'],
+  [6, '自由度（degrees of freedom）', '適応処理で自由に決められる係数の数です。素子数 × パルス数が上限になります。多いほど細かく抑圧できますが、計算量と必要なデータ量が増えます。', 'g-degrees-of-freedom']
 );
 GLOSS.push(
   [7, 'フェーズドアレイ（phased array）', '多数の素子を配列し、各素子の位相を制御することによって、アンテナを機械的に動かさずにビームを走査するアンテナです。', 'g-phased-array'],
