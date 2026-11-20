@@ -1521,7 +1521,7 @@ STEPS.push({short: '環境', title: '環境 — 電力より先にレーダ水�
   init: {}, ctl: ['ht', 'ha', 'rain'], fixed: [], fixT: FIXP.concat(['標準大気（k = 4/3）']), plots: [{h: 240}],
   sol: {ht: 150},
   draw(P){ const xs = [], ys = []; for (let h = 20; h <= 1000; h += 10){ xs.push(h); ys.push(losKm(S.ha, h)); } const c = calc();
-    P[0].set({title: '目標高度と見通し距離', xr: [0, 1000], yr: [0, 160], xl: '目標高度 [m]', yl: '距離 [km]', series: [{name: '見通し距離', color: 's1', x: xs, y: ys, w: 2.2}], hl: [{y: 60, label: '要求 60 km', color: 's2', left: true}, {y: c.rdet, label: '電力で決まる探知距離 ' + fx(c.rdet, 1) + ' km', color: 'ref'}], pts: [{x: S.ht, y: c.los, color: 's2', r: 6, label: fx(c.los, 1) + ' km'}], marks: {hzm: {t: '線より下の距離が見通し距離の内側'}, rnm: {t: '雨は灰の線を下げる'}}, tipx: v => fx(v, 0) + ' m', tipy: v => fx(v, 1) + ' km'});
+    P[0].set({title: '目標高度と見通し距離', xr: [0, 1000], yr: [0, 160], xl: '目標高度 [m]', yl: '距離 [km]', series: [{name: '見通し距離', color: 's1', x: xs, y: ys, w: 2.2}], hl: [{y: 60, label: '要求 60 km', color: 's2', left: true}, {y: c.rdet, label: '電力で決まる探知距離 ' + fx(c.rdet, 1) + ' km', color: 'ref'}], pts: [{x: S.ht, y: c.los, color: 's2', r: 6, label: fx(c.los, 1) + ' km'}], marks: {hzm: {t: '線より下の距離が見通し距離の内側'}, rnm: {t: '雨は「電力で決まる探知距離」の線を下げる'}}, tipx: v => fx(v, 0) + ' m', tipy: v => fx(v, 1) + ' km'});
     return {tiles: [{k: '見通し距離', v: fx(c.los, 1) + ' <small>km</small>', s: 'アンテナ高 ' + S.ha + ' m、目標高度 ' + S.ht + ' m'}, {k: '雨による減衰（往復、60 km）', v: fx(rainDb(S.rain, S.R), 2) + ' <small>dB</small>'}, {k: '60 km を制限する要因', v: c.los < 60 ? 'レーダ水平線' : c.mS < 0 ? '電力' : '（満たす）'}]}; }});
 
 /* 8 */
