@@ -79,5 +79,5 @@ a.gt:hover,a.gt[aria-expanded=true]{background:var(--accent-bg)}
 #gloss dt.hit,#gloss dt.hit+dd{background:var(--accent-bg);box-shadow:-6px 0 0 var(--accent-bg),6px 0 0 var(--accent-bg)}
 #gloss .glpage{margin:0 0 8px;font-size:12.5px}
 .tile .k,.tile .v,.tile .s,.plot-t,.ctl-h label,.ctl small,.ctl .chk,.ch button,.card.q p,.card.ms p,nav#steps,#read h2,.fixed{word-break:auto-phrase}
-.seg button{padding:2px 7px}
+.seg button{padding:2px 5px;font-size:12px}
 """
