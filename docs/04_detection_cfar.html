@@ -855,7 +855,9 @@ class Plot {
       if (p.shape === 'x'){ const r = p.r || 4; for (const pass of [0, 1]){ g.lineWidth = pass ? 2 : 4.5; g.strokeStyle = pass ? this.col(p.color) : cSurf; g.lineCap = 'round'; g.beginPath(); g.moveTo(px - r, py - r); g.lineTo(px + r, py + r); g.moveTo(px + r, py - r); g.lineTo(px - r, py + r); g.stroke(); } g.lineCap = 'butt'; }
       else if (p.hollow){ g.lineWidth = 4; g.strokeStyle = cSurf; g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.lineWidth = 2; g.strokeStyle = this.col(p.color); if (p.dash) g.setLineDash(p.dash); g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.setLineDash([]); }
       else { g.fillStyle = this.col(p.color); g.strokeStyle = cSurf; g.lineWidth = 2; g.beginPath(); g.arc(px, py, p.r || 4.5, 0, 2 * Math.PI); g.fill(); g.stroke(); }
-      if (p.label){ const dxl = (p.hollow ? (p.r || 7) + 3 : 7); g.fillStyle = cText; g.textAlign = p.left ? 'right' : 'left'; g.textBaseline = p.below ? 'top' : 'bottom'; ft(p.label, px + (p.left ? -dxl : dxl), py + (p.below ? 3 : -3)); }
+      if (p.label){ const dxl = (p.hollow ? (p.r || 7) + 3 : 7), tw = g.measureText(p.label).width;   /* 札が図の端からはみ出す場合は、反対側に書く */
+        const lf = p.left ? !(px - dxl - tw < m.l && px + dxl + tw <= m.l + pw) : (px + dxl + tw > m.l + pw && px - dxl - tw >= m.l);
+        g.fillStyle = cText; g.textAlign = lf ? 'right' : 'left'; g.textBaseline = p.below ? 'top' : 'bottom'; ft(p.label, px + (lf ? -dxl : dxl), py + (p.below ? 3 : -3)); }
     }
     /* 吹き出し（矢印つきの短い注記）：{x, y, t, dx, dy}。dx・dy は点から吹き出しまでのずれ [px] */
     g.font = 'bold 11.5px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
