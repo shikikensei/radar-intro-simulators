@@ -1483,7 +1483,7 @@ STEPS.push({short: '誤差の合成', title: '誤差の合成 — 独立な誤�
 
 /* 7 */
 STEPS.push({short: 'フィルタによる平滑', title: '追尾フィルタによる平滑 — 複数回の測定を平均して誤差を低減する', src: '第7章 §7.3（p.7.26–7.27、表7.3）、第9章 §9.10（式9.10 の f<sub>r</sub>/β<sub>n</sub>）',
-  q: '<a class=gt data-g=g-alpha-beta-filter tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>α-β フィルタ</a>（α = 0.5、β = α²/(2 − α) = 0.167）で測定値を平滑する。平滑後の位置誤差は、1 回の測定誤差の √[ (2α² + β(2 − 3α)) ÷ (α(4 − 2α − β)) ] 倍になる。||(1) この倍率（誤差低減比）はいくらか。||(2) 距離 100 km での測距誤差（1 回 23.5 m）は、平滑後に何 m になるか。',
+  q: '<a class=gt data-g=g-alpha-beta-filter tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>α-β フィルタ</a>（α = 0.5、β = α²/(2 − α) = 0.167）で測定値を平滑する。平滑後の位置誤差は、1 回の測定誤差の √[ (2α² + β(2 − 3α)) ÷ (α(4 − 2α − β)) ] 倍になる。||(1) この倍率（<a class=gt data-g=g-error-reduction-ratio tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>誤差低減比</a>）はいくらか。||(2) 距離 100 km での測距誤差（1 回 23.5 m）は、平滑後に何 m になるか。',
   ask: [{id: 'k', label: '(1) 誤差低減比', unit: '倍', ans: Z.K, tol: 0.01, tolType: 'abs', hints: ['分子：2 × 0.25 + 0.167 × (2 − 1.5) = 0.583。分母：0.5 × (4 − 1 − 0.167) = 1.417。', '0.583 ÷ 1.417 = 0.412 であり、その平方根を求める。']},
     {id: 'srf', label: '(2) 平滑後の測距誤差', unit: 'm', ans: Z.sRF, tol: 0.4, tolType: 'abs', hints: ['1 回の誤差に (1) の誤差低減比を掛ける。', '23.5 × 0.642 を計算する。']}],
   solve: '誤差低減比 = √(0.583 ÷ 1.417) = √0.412 = <b>0.642</b>。||平滑後の測距誤差 = 23.5 × 0.642 = <b>15.1 m</b>。||α を 0.2 に下げると、誤差低減比は 0.39 になる。その代わり、目標が旋回したときにフィルタの追従が遅れる（入門 第5回 ステップ 6）。',
