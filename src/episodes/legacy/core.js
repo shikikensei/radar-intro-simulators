@@ -253,17 +253,17 @@ function runChecks(){
   /* 1) LFM 重みなし（TB=400） */
   const w1 = makeWave('lfm', 100, 4), B1 = 4e6;
   const m1 = metrics(response(w1, 0, 'none'));
-  add('LFM 重みなし：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m1.psl, -13.2, 'dB', 0.2, '表8.2, p.8.3');
-  add('LFM 重みなし：3 dB幅 × B', '同上', m1.w3 * B1, 0.886, '', 0.01, '表8.1・表8.2');
-  add('LFM 重みなし：6 dB幅 × B', '同上', m1.w6 * B1, 1.21, '', 0.01, '表8.2');
+  add('LFM 重み付けなし：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m1.psl, -13.2, 'dB', 0.2, '表8.2, p.8.3');
+  add('LFM 重み付けなし：3 dB幅 × B', '同上', m1.w3 * B1, 0.886, '', 0.01, '表8.1・表8.2');
+  add('LFM 重み付けなし：6 dB幅 × B', '同上', m1.w6 * B1, 1.21, '', 0.01, '表8.2');
   /* 2) テイラー重み付け（TB=400） */
   const r2 = response(w1, 0, 'taylor'), m2 = metrics(r2);
-  add('テイラー：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m2.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TBが有限のため約2 dB高い（下の TB=3200 の行と式8.11の行を参照）');
+  add('テイラー：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m2.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TB が有限であるため約 2 dB 高い（下の TB=3200 の行と式8.11 の行を参照）');
   add('テイラー：3 dB幅 × B', '同上', m2.w3 * B1, 1.25, '', 0.02, '表8.2');
   add('テイラー：6 dB幅 × B', '同上', m2.w6 * B1, 1.73, '', 0.02, '表8.2');
   add('テイラー：ミスマッチ損失', '同上', r2.lossDb, 1.15, 'dB', 0.03, '表8.2, p.8.3');
   const m2b = metrics(response(makeWave('lfm', 800, 4), 0, 'taylor'));
-  add('テイラー：ピークサイドローブ', 'T=800 µs, B=4 MHz（TB=3200、スライダー範囲外の確認用）', m2b.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TBを大きくすると −40 dB に近づく');
+  add('テイラー：ピークサイドローブ', 'T=800 µs, B=4 MHz（TB=3200、スライダーの範囲外の確認用）', m2b.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TBを大きくすると −40 dB に近づく');
   /* 2b) 式(8.11)・式(8.12) を直接評価（TB→∞ の理論値） */
   const mt = metrics(theoryResp(taylorTheory, 40, 0.002));
   add('式(8.11) の理論曲線：ピークサイドローブ', 'TB≫1 の理論式', mt.psl, -40, 'dB', 0.3, '式8.11, 表8.2');
@@ -273,13 +273,13 @@ function runChecks(){
   add('式(8.12) のミスマッチ損失', '係数 F1〜F5 から計算', 10*Math.log10(1 + 2*s2), 1.15, 'dB', 0.01, '式8.12, 表8.2');
   /* 3) バーカー13 */
   const mb = metrics(response(makeWave('barker', 13, 0, 13), 0, 'none'));
-  add('バーカー13：ピークサイドローブ', 'T=13 µs（1チップ=10サンプル）', mb.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
+  add('バーカー13：ピークサイドローブ', 'T=13 µs（1 チップ = 10 サンプル）', mb.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
   const mb2 = metrics(response(makeWave('barker', 40, 0, 13), 0, 'none'));
   add('バーカー13：ピークサイドローブ', 'T=40 µs 設定（実効 40.3 µs）', mb2.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
   /* 4) 距離ドップラ結合：ピーク位置のずれ t = −fd·T/B */
   const dop = (T, B, fdk, tol, note) => {
     const w = makeWave('lfm', T, B), m = metrics(response(w, fdk * 1e3, 'none'));
-    add('LFM：ドップラによるピーク位置のずれ', 'T=' + T + ' µs, B=' + B + ' MHz, fd=' + fdk + ' kHz', m.tpk * 1e6, -fdk * 1e3 * (T * 1e-6) / (B * 1e6) * 1e6, 'µs', tol, '−fd·T/B, p.8.4', note);
+    add('LFM：ドップラ偏移によるピーク位置の変化', 'T=' + T + ' µs, B=' + B + ' MHz, fd=' + fdk + ' kHz', m.tpk * 1e6, -fdk * 1e3 * (T * 1e-6) / (B * 1e6) * 1e6, 'µs', tol, '−fd·T/B, p.8.4', note);
   };
   dop(40, 2, 100, 0.02);
   dop(100, 4, 200, 0.02);
@@ -287,20 +287,20 @@ function runChecks(){
   dop(10, 1, 500, 0.3, 'ハンドブックの例（5 µs, p.8.5）。TB=10');
   /* 4b) ドップラがあるときのピーク低下（式8.9）：1 − |fd|/B */
   const m4 = metrics(response(makeWave('lfm', 40, 2), 2e5, 'none'));
-  add('LFM：fd=B/10 のときのピーク低下', 'T=40 µs, B=2 MHz, fd=200 kHz', db(m4.pk), db(0.9), 'dB', 0.1, '式8.9 から 1−|fd|/B');
+  add('LFM：fd=B/10 の場合のピークの低下', 'T=40 µs, B=2 MHz, fd=200 kHz', db(m4.pk), db(0.9), 'dB', 0.1, '式8.9 から 1−|fd|/B');
   /* 5) ストレッチ処理：周波数オフセット δf = −(B/T)·td（式8.24）と 6 dB幅 1.21/T（式8.32） */
   {
     const w = makeWave('lfm', 40, 2), R0 = 20000, dR = 300, tauR = 2*R0/C;
     const st = stretch(makeScene(w, {fd: 0, targets: [{R: R0 + dR, A: 1, ph: 0}]}), w, tauR);
     const m = metrics({x0: st.f0, dx: st.df, mag: st.mag, n: st.n});
-    add('ストレッチ：周波数オフセット', 'T=40 µs, B=2 MHz, 参照より 300 m（2 µs）遠い目標', m.tpk / 1e3, -(2e6/40e-6) * (2*dR/C) / 1e3, 'kHz', 1.0, '式8.24, p.8.31');
+    add('ストレッチ：周波数オフセット', 'T=40 µs, B=2 MHz, 参照波形より 300 m（2 µs）遠い目標', m.tpk / 1e3, -(2e6/40e-6) * (2*dR/C) / 1e3, 'kHz', 1.0, '式8.24, p.8.31');
     add('ストレッチ：6 dB幅 × T', '同上（矩形窓）', m.w6 * 40e-6, 1.21, '', 0.02, '式8.32, p.8.34');
   }
   /* 参考：TBが小さいと表の値からずれる */
   const ms = metrics(response(makeWave('lfm', 10, 1), 0, 'none'));
-  add('（参考）LFM 重みなし：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', ms.psl, -13.2, 'dB', null, '表8.2 は TB≫1 が前提', 'TBが小さいため一致しない例');
+  add('（参考）LFM 重み付けなし：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', ms.psl, -13.2, 'dB', null, '表8.2 は TB≫1 が前提', 'TB が小さいために一致しない例');
   const mst = metrics(response(makeWave('lfm', 10, 1), 0, 'taylor'));
-  add('（参考）テイラー：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', mst.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TBが小さいため一致しない例');
+  add('（参考）テイラー：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', mst.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TB が小さいために一致しない例');
   const md = metrics(response(makeWave('lfm', 40, 2), 0, 'taylor'));
   add('（参考）テイラー：ピークサイドローブ', '初期設定 T=40 µs, B=2 MHz（TB=80）', md.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TB=80 での値');
   return out;

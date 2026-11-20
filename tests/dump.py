@@ -16,12 +16,21 @@ async () => {
     const nR = document.querySelectorAll('#ctls input[type=range]').length;
     out.steps.push({short: s.short, title: s.title, src: s.src, q: s.q, ch: s.ch, ans: s.ans, why: s.why, read: s.read, hosoku: s.hosoku || [], memo: s.memo, do: s.do || '',
       ask: (s.ask || []).map(a => ({label: a.label, unit: a.unit || '', ans: typeof a.ans === 'function' ? a.ans() : a.ans, tol: a.tol, tolType: a.tolType, hints: a.hints || []})), solve: s.solve || '', mission: s.mission ? s.mission.t : '', sol: s.solFn ? s.solFn() : (s.sol || null), solClicks: s.solClicks || null, free: !!s.free, ctl, fixed, acts, nR,
-      readLen: document.querySelector('#read').textContent.length, plots: [...document.querySelectorAll('#plots .plot-t')].map(e => e.textContent.trim())});
+      readLen: document.querySelector('#read').textContent.length, plots: [...document.querySelectorAll('#plots .plot-t')].map(e => e.textContent.trim()),
+      // 画面に出る、そのほかの文字（文章の検査 jlint.py と、数値の検査 numdiff.py が使う）
+      tiles: [...document.querySelectorAll('#tiles .tile')].map(e => [...e.children].map(c => c.textContent.trim())),
+      small: [...document.querySelectorAll('#ctls .ctl small')].map(e => e.textContent.trim()).filter(Boolean),
+      outv: [...document.querySelectorAll('#ctls .ctl output')].map(e => e.textContent.trim()),
+      seg: [...document.querySelectorAll('#ctls .seg button')].map(e => e.textContent.trim()),
+      legend: [...document.querySelectorAll('#plots .plot-lg span')].map(e => e.textContent.trim()),
+      pcfg: (() => { const o = [], seen = new Set(), walk = (v, d) => { if (typeof v === 'string'){ if (/[ぁ-んァ-ヶ一-龥]/.test(v) && !seen.has(v)){ seen.add(v); o.push(v); } } else if (v && typeof v === 'object' && d < 5 && !ArrayBuffer.isView(v)){ if (Array.isArray(v) && v.length > 60) return; for (const k in v) walk(v[k], d + 1); } }; for (const p of PLOTS) walk(p.cfg, 0); return o; })(),
+      sheet: (s.sheet || (typeof SHEET === 'function' ? SHEET : null)) ? (s.sheet || SHEET)(lastR).map(r => r.head ? [r.head] : [r.k, r.f || '', String(r.v), r.u || '']) : [],
+      msOk: s.mission ? String(s.mission.ok) : '', fixT: s.fixT || [], uiq: [...document.querySelectorAll('#sim .hint, #sim .lockmsg, #sim .lbl, #read h3, #read .pre > b, #read .nextsim, #read details.memo summary')].map(e => e.textContent.trim())});
   }
   goStep(STEPS.length - 1); await new Promise(r => setTimeout(r, 100));
   const tbs = document.querySelectorAll('#read table.t'), tb = tbs[tbs.length - 1];
   out.checks = tb ? [...tb.rows].map(r => [...r.cells].map(c => c.innerHTML.replace(/<br>\s*<small>/g, ' ／ ').replace(/<[^>]+>/g, '').trim())) : [];
-  out.gloss = GLOSS; out.preq = PREQ; out.series = SERIES; out.no = SIM_NO; out.prelink = (typeof PREQLINK !== 'undefined') ? PREQLINK : null;
+  out.ct = Object.keys(CT).map(k => [k, CT[k].l, (CT[k].seg || []).map(o => o[1])]); out.pret = PRE.filter(p => typeof p !== 'string').map(p => p.t); out.gloss = GLOSS; out.preq = PREQ; out.series = SERIES; out.no = SIM_NO; out.prelink = (typeof PREQLINK !== 'undefined') ? PREQLINK : null;
   return out;
 }
 """

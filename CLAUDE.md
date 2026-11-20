@@ -14,6 +14,8 @@
 - `src/generated/`、`tests/_shots/`：途中で作るファイル（git に入れない）。
 - `tests/`：ブラウザの自動操作テスト。`reports/`：作成報告。
 - `task/`：作業の指示書（どんな指示で作ったかの記録）。
+- `STYLE.md`：**文体の決まりと、用語の対応表。文章を書く・直すときは、先に読む。**
+- `src/glossary/meta.json`：用語集の用語ごとの読み・別の言い方・関係する用語。`docs/glossary.html`：用語集のページ。
 
 ## コマンド
 
@@ -30,15 +32,20 @@ python tests/itest.py && python tests/xlink.py            # 目次と、回を�
 python src/build/build_m.py 1 2 3 4 5 6 7 8               # 中級 第1〜8回を組み立てる（回の一覧は src/build/msims.py）
 node tests/harness/tm_common.js && node tests/harness/tm08.js  # 中級の計算部分の確認（共通の計算、回をまたいだ一致）
 python tests/stest.py m01_detection.html 1366 768 light a # 中級のテスト（入門と同じスクリプト）
+python src/build/build_glossary.py                        # 用語集のページ docs/glossary.html を作る（--unlinked：本文からリンクのない用語、--table：対応表の用語が見出しにあるか）
+python tests/jlint.py <ファイル名> ...                     # 文章の検査（STYLE.md。先に dump.py。--all で全回。合格は 0 件）
+python tests/numdiff.py <ファイル名> ...                   # 書き直す前（tests/baseline/）と、数値が変わっていないことの検査
+python tests/gtest.py                                     # 用語のリンク、その場の説明、用語集のページのテスト（3 通りの画面）
 ```
 
 テストには Playwright が要る（`pip install playwright`、`playwright install chromium`）。手元の Chrome を使うなら環境変数 `CHROME` に場所を入れる。合格の形は `missions N / N … errors [] | external [] | problem steps []`。
 
 ## 変えてはいけないもの
 
-- **第1〜4回の中身**（`docs/01_*.html`〜`04_*.html`）。リンクの追記だけは可。
-- **`fw_core.js`、`fw_gloss.js`、`tpl_head.html`**。第1〜4回がこれで組み立てられている。新しい回のための変更は `make_fw2.py` の中で差し替える。
-- 変更の前後で、第1〜4回のファイルが同じであることを確かめる（組み立て直して `git diff --stat docs/` が空になること）。
+- **第1〜4回の数値・式・計算・動作**（`docs/01_*.html`〜`04_*.html`）。文章は `STYLE.md` に従って直してよい（`task/jp_rewrite.md`）。用語集（`fw_gloss.js`）の見出しと説明、用語の ID の追加も可。
+- **`fw_core.js`、`tpl_head.html`** は、第1〜4回がこれで組み立てられている。文章の書き直しと、用語のリンクの仕組みに必要な範囲でだけ直す（画面の定型の文言と、用語の ID は `fw_core.js` に入れてあり、全回で共通）。新しい回のための変更は `make_fw2.py` の中で差し替える。第1〜4回の本文からリンクできる用語は、`fw_gloss.js` の用語だけ。
+- 文章を直した回は、`tests/numdiff.py` で、書き直す前（`tests/baseline/`）と数値・式・答え・ミッションの条件が同じであることを確かめる。`tests/baseline/` は書き直す前の記録なので、作り直さない。
+- **用語の ID（`g-…`）** は変えない。本文のリンクと、用語集のページの URL（`glossary.html#g-…`）が、これに依存している。
 
 ## 内容の決まり
 
@@ -50,6 +57,13 @@ python tests/stest.py m01_detection.html 1366 768 light a # 中級のテスト�
 - **資料の値と照合する。** 各回の `runChecks()` に行を足す。判定は 'ok'（一致）／'info'（差あり）／'ng'（不一致）／'ref'（基準なし）。**合わない値を無理に合わせない。** 理由を書いて 'info' にする。
 - **数値は説明用。** シミュレータの結果を、実際の装置の性能と読める書き方をしない。
 - **資料そのもの（PDF、取り出したテキスト、図の切り出し）をリポジトリに入れない。** `.gitignore` で `*.pdf` を外してあるが、テキストや画像にも気をつける。
+
+## 文体と用語（くわしくは `STYLE.md`）
+
+- **入門は「です・ます」調、中級は「である」調、用語集は「です・ます」調。** 教科書の地の文として書く。短い文を並べて切らない。体言止めにしない。読点は、読み誤りを防ぐ所と節の切れ目にだけ打つ。
+- **専門用語は標準の用語を使う**（`STYLE.md` の対応表）。入門では、初出にやさしい説明を括弧で添える。話し言葉を使わない。
+- **本文の用語から用語集へリンクを張る**：`{{g-ID|表示する文字}}`。各ステップで、その用語が最初に出る 1 か所だけ。押すと、ページを移らずに、その場に説明が出る。
+- 書いたら `tests/jlint.py` を 0 件にする。
 
 ## 教材としての決まり
 
@@ -67,7 +81,7 @@ python tests/stest.py m01_detection.html 1366 768 light a # 中級のテスト�
 
 - **回を足すとき**：`src/build/msims.py` に 1 項目足す（ファイル名、題、計算部分、説明）。目次のカード、「次の回へ」のリンク、`SERIES[100 + N]` は、ここから作られる。第2回以降の共通の計算（例のレーダの値、検出の式）は `src/episodes/cm_common.js`。回を足したら、中級の全回も組み立て直す。
 - **ファイル**：`src/episodes/cmNN_core.js`（計算）、`smNN_steps.js`（ステップ。最後は `bootM()`）。組み立ては `src/build/build_m.py`。共通部品は `make_fw_m.py` が `fw_core2.js` + `src/framework/fw_m_add.js` から作る（`src/generated/fw_core_m.js`）。**入門の HTML は 1 バイトも変えない。**
-- **用語は `src/framework/gloss_m.js`**（中級の HTML にだけ入る）。`gloss_add.js` に足すと、入門の全回が変わる。
+- **用語は `src/framework/gloss_m.js`**（中級の HTML にだけ入る）。`gloss_add.js` に足すと、入門の全回が変わる。用語は `[グループ, 見出し, 説明, ID]`。足すときは ID（`g-` で始まる英数字）を付け、`src/glossary/meta.json` に読みを書く。
 - **数値入力式**：各ステップは「前提を読む → 手計算 → 数値を入力 → 答え合わせ → 感度を見る」。3 択の予想は使わない。ステップ定義に `ask: [{id, label, unit, ans, tol, tolType: 'abs'|'rel', hints: [1 回目, 2 回目]}]` と `solve`（解き方）。入力欄は 1〜3 個。外れると、ヒントが 1 段ずつ出て、3 回目で解き方を全部見せる。正しく入力できたら、ミッション達成。
 - **計算書**：`SHEET()`（全ステップ共通）か、ステップの `sheet(r)` が行の配列を返す。行は `{k: 項目, f: 式・根拠, v: 値, u: 単位, st: 決めるステップ}`、見出しは `{head}`。ステップが進むと行が埋まる。
 - **1 ステップ 1 変数の縛りはない。** 手計算の対象は 1 つの量に絞り、スライダーは答え合わせのあとの感度の確認に使う。
@@ -91,16 +105,21 @@ python tests/stest.py m01_detection.html 1366 768 light a # 中級のテスト�
 - グラフの設定の `series` は省略できない（線がなければ `series: []`）。`rects` の `fill` は 0〜1 の数。
 - ステップを足したら、本文の中の「ステップ N」の番号と、`reports/`・`HANDOFF.md` のミッションの答えを直す。
 - 数値やモデルを変えたら、ミッションの答えが変わる。`tests/harness/` のスクリプト（Node.js）で確かめ直す。
+- **用語集（`fw_gloss.js`、`gloss_add.js`、`gloss_m.js`）を直すと、全回の HTML が変わる。** 全回を組み立て直し、`build_glossary.py` も実行する。
+- **用語のリンクの印 `{{g-ID|文字}}` は、組み立てのときに `<a class=gt …>` に直る**（`src/build/gterm.py`）。図の題や軸のラベルなど、canvas に描く文字には付けない（タグがそのまま出る）。図の強調の印 `[[キー|文字]]` の中にも入れない。
+- **文章だけを直すときは、文字列だけを差し替える。** コードを打ち直さない。直したあと、`numdiff.py` と `stest.py` で確かめる。
 
 ## 作業の終わりに
 
 1. 関係する回を 3 通り（1366 幅、820 幅、ダーク）でテストする。全回を組み立て直した場合は全回。
-2. 目次を作り直し、`itest.py` と `xlink.py` を通す。
+2. 目次と用語集のページを作り直し（`build_index2.py`、`build_glossary.py`）、`itest.py`、`xlink.py`、`gtest.py` を通す。文章を直したら、`jlint.py`（0 件）と `numdiff.py`（一致）も。
 3. `git diff --stat docs/` で、変えるつもりのない回が変わっていないことを確かめる。
 4. スクリーンショット（`tests/_shots/`）を見て、文字の重なりやはみ出しがないか確かめる。テストは色と配置までは見ていない。
 5. `HANDOFF.md` に、分かったこと・決めたことを追記する。
 
 ## 残っている作業
+
+- **文章の書き直し（`task/jp_rewrite.md`）**：全 26 回、目次、用語集（372 語）まで済み（`reports/report_jp_rewrite.md`）。全文の通し読み、全ステップの画面の確認、足した用語へのリンクも済み（同じ報告の 6）。残りは、回の題（「波形とあいまいさ」など）を標準の用語に合わせるかの判断。
 
 - 中級 第6回：回折の領域（水平線の少し先）の計算、雨の減衰の表（第19章）の確認、3 GHz の値。
 - 中級 第2回：クラッタの計算書の前提（50 km、ゆらがない目標）を、第8回の前提（60 km、Swerling 1）にそろえるか検討。

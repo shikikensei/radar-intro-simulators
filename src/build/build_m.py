@@ -5,6 +5,7 @@ from pathlib import Path
 from paths import rd, wr, DOCS
 subprocess.run([sys.executable, str(Path(__file__).with_name('make_fw_m.py'))], check=True)
 from msims import MSIMS
+from gterm import expand, GT_CSS
 SIMS = {n: (v[0], '中級 第%d回 %s' % (n, v[1]), v[2], v[3]) for n, v in MSIMS.items()}
 CSS = """.nextsim{margin:14px 0 4px;font-size:14px}
 .card.q .qm p{margin:4px 0 6px;font-size:14px;font-weight:400}
@@ -33,8 +34,8 @@ table.t.sheet tr.sh td{font-weight:700;color:var(--text2);background:var(--surfa
 for n in [int(a) for a in sys.argv[1:]]:
     f, title, cores, steps = SIMS[n]
     out = rd('tpl_head.html').replace('%%TITLE%%', title).replace('%%NO%%', str(100 + n))
-    out = out.replace('</style>', CSS + '</style>', 1)
+    out = out.replace('</style>', CSS + GT_CSS + '</style>', 1)
     out += rd('c_util.js') + '\n'
     for c in cores: out += rd(c) + '\n'
-    out += rd('fw_plot.js') + '\n' + rd('fw_gloss_m.js') + '\n' + rd('fw_core_m.js') + '\n' + rd(steps)
+    out += rd('fw_plot.js') + '\n' + rd('fw_gloss_m.js') + '\n' + rd('fw_core_m.js') + '\n' + expand(rd(steps), steps, True)
     wr(DOCS / f, out); print(f, len(out.encode('utf-8')))

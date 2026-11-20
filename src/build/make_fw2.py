@@ -7,7 +7,7 @@ def rep(a,b):
     global c
     assert c.count(a)==1,(a[:60],c.count(a)); c=c.replace(a,b)
 rep("""for (const p of PRE){ if (typeof p === 'string') h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + '</p></details>'; else""",
-    """for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && L[0] !== SIM_NO && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">くわしくは第' + L[0] + '回のステップ' + L[1] + '</a>' : '') + '</p></details>'; } else""")
+    """for (const p of PRE){ if (typeof p === 'string'){ const L = PREQLINK[p], ok = L && L[0] !== SIM_NO && SERIES[L[0]].ready; h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + (ok ? '　<a href="' + SERIES[L[0]].file + '#s' + L[1] + '">詳しくは第' + L[0] + '回 ステップ ' + L[1] + '</a>' : '') + '</p></details>'; } else""")
 rep("""  if (st.extra) h += '<div id="extra"></div>';""",
     """  if (st.extra) h += '<div id="extra"></div>';
   if (i === STEPS.length - 1){ const nx = SERIES[SIM_NO + 1]; if (nx && nx.ready) h += '<p class="nextsim">この回はここまでです。次は　<a class="btn primary" href="' + nx.file + '">第' + nx.no + '回 ' + nx.name + ' →</a></p>'; else h += '<p class="nextsim">この回はここまでです。<a href="00_index.html">目次へ戻る</a></p>'; }""")
@@ -17,7 +17,8 @@ rep("""let h = '<h2>用語集（4 回共通）<button""","""let h = '<h2>用語�
 rep("""grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(0);
   for (let n = 1; n <= 4; n++) if (n !== SIM_NO) h +=""","""grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(-1);
   for (let n = 0; n < SERIES.length; n++) if (n !== SIM_NO && GLOSS.some(t => t[0] === n)) h +=""")
-wr(GEN/'fw_core2.js',c)
+# 入門の画面の文言、用語の ID（dt の id）、用語集のページへのリンクは、fw_core.js に入れてある（第1〜4回と共通）
+wr(GEN/'fw_core2.js',c+'\n'+rd('fw_gterm.js'))
 g=rd('fw_gloss.js')
 i0=g.index('const SERIES'); i1=g.index('/* [グループ')
 ser='''const SERIES = [

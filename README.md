@@ -88,6 +88,7 @@ Chrome と Edge を想定しています（確認は Chrome で行いました�
 docs/            完成した HTML（GitHub Pages の公開元）
   index.html       目次（00_index.html）へ転送するだけのページ
   00_index.html    目次と用語集
+  glossary.html    用語集のページ（入門・中級のすべての用語。五十音順と回ごと。本文の用語のリンクから開ける）
   00_basics.html 〜 17_design_exercise.html
   m01_detection.html 〜 m08_performance_report.html   中級 第1〜8回
 src/
@@ -95,11 +96,14 @@ src/
   episodes/      回ごとの計算部分（cN_core.js）と、ステップの定義（sN_steps.js）
     legacy/        第1〜4回の計算部分
   build/         組み立てスクリプト
+  glossary/      用語ごとの読み・別の言い方・関係する用語（meta.json）
   generated/     組み立ての途中で作るファイル（git には入れない）
 tests/           ブラウザを自動操作するテスト、リンクの検査
   harness/         計算部分だけを Node.js で動かす確認用スクリプト
+  baseline/        文章を書き直す前の各回の内容（数値が変わっていないことの検査 numdiff.py が使う）
 reports/         作成報告（ステップ一覧、問いと正解、照合表、検証結果）
 HANDOFF.md       引き継ぎメモ（部品の使い方、決まりごと、はまりどころ）
+STYLE.md         文体の決まりと、用語の対応表（文章を書く・直すときに読む）
 ```
 
 1 つの回は、「ひな形 + 計算部分 + 共通の部品 + ステップの定義」を 1 本につなげたものです。組み立てたあとの HTML は、それだけで動きます。
@@ -117,13 +121,14 @@ python src/build/build_m.py 1 2 3 4 5 6 7 8               # 中級 第1〜8回�
 結果は `docs/` に書き出されます。このリポジトリの `docs/` は、上のコマンドで組み立てたものと 1 バイトも違わないことを確かめてあります。
 
 - 用語集と「次の回へ」のリンクは全回で共通です。回を足したり用語を足したりしたら、第0回・第5回以降を**全部**組み立て直してください。
-- 第1〜4回は、古い共通部品（`fw_core.js`、`fw_gloss.js`）で組み立てます。この 2 つを変えると第1〜4回の中身が変わるので、変えないでください。新しい回のための変更は、`make_fw2.py` の中で差し替えています。
+- 第1〜4回は、古い共通部品（`fw_core.js`、`fw_gloss.js`）で組み立てます。この 2 つを変えると第1〜4回の中身が変わります。数値・式・動作は変えないでください（文章と用語集の書き直しは `STYLE.md` に従います）。新しい回のための変更は、`make_fw2.py` の中で差し替えています。
 
 目次（`00_index.html`）は、各回の HTML から情報を読み取って作ります。テスト用の準備（次の節）をしたうえで、次の順に実行します。
 
 ```
 python tests/dump.py                  # 各回の内容を読み取る（src/generated/dump.json）
 python src/build/build_index2.py      # 目次を作る
+python src/build/build_glossary.py    # 用語集のページを作る（docs/glossary.html）
 ```
 
 ## テスト
@@ -142,7 +147,10 @@ python tests/stest.py 14_clutter_map.html 1366 768 light a   # 1 つの回の全
 python tests/stest.py 14_clutter_map.html 820 900 light n    # 狭い画面
 python tests/stest.py 14_clutter_map.html 1366 768 dark d    # ダーク表示
 python tests/itest.py                                         # 目次（リンク、用語集、はみ出し）
-python tests/xlink.py                                         # 回をまたぐリンク（tests/dump.py のあとで）
+python tests/xlink.py                                         # 回をまたぐリンク、用語集へのリンク（tests/dump.py のあとで）
+python tests/gtest.py                                         # 用語のリンク、その場の説明、用語集のページ
+python tests/jlint.py 15_radar_equation.html                  # 文章の検査（STYLE.md の決まり。合格は 0 件）
+python tests/numdiff.py 15_radar_equation.html                # 書き直す前と、数値が変わっていないことの検査
 ```
 
 `stest.py` は、各ステップで「予想を選ぶまで操作できないこと」「実際にスライダーを動かしてミッションが達成になること」「エラーや外部への通信がないこと」を確かめます。最後の行が `missions N / N … errors [] | external [] | problem steps []` なら合格です。スクリーンショットは `tests/_shots/` に出ます。

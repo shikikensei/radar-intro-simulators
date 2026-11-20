@@ -136,6 +136,18 @@ table.t th{color:var(--text2);font-weight:700;background:var(--surface2);white-s
 .tw{overflow-x:auto}
 .ok{color:var(--ok);font-weight:700;white-space:nowrap}.ng{color:var(--ng);font-weight:700;white-space:nowrap}.info{color:var(--muted);white-space:nowrap}
 @media print{nav#steps,.stepnav,header.top .btn,#glTab{display:none}}
+a.gt{color:inherit;text-decoration:underline dashed var(--accent);text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:help;border-radius:3px}
+a.gt::after{content:"?";font-size:.68em;font-weight:700;vertical-align:super;line-height:0;margin-left:1px;color:var(--accent)}
+a.gt:hover,a.gt[aria-expanded=true]{background:var(--accent-bg)}
+.gpop{position:absolute;z-index:38;width:min(340px,calc(100vw - 16px));background:var(--surface);border:1.5px solid var(--accent);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.28);padding:8px 12px 10px;font-size:13px;font-weight:400;line-height:1.65;color:var(--text)}
+.gpop:focus{outline:2px solid var(--accent);outline-offset:1px}
+.gpop .gh{display:block;font-size:14px;font-weight:700;margin:0 0 2px}
+.gpop p{margin:0 0 8px;color:var(--text2)}
+.gpop .gpa{display:flex;flex-wrap:wrap;gap:6px}
+#gloss dt.hit,#gloss dt.hit+dd{background:var(--accent-bg);box-shadow:-6px 0 0 var(--accent-bg),6px 0 0 var(--accent-bg)}
+#gloss .glpage{margin:0 0 8px;font-size:12.5px}
+.tile .k,.tile .v,.tile .s,.plot-t,.ctl-h label,.ctl small,.ctl .chk,.ch button,.card.q p,.card.ms p,nav#steps,#read h2,.fixed{word-break:auto-phrase}
+.seg button{padding:2px 5px;font-size:12px}
 </style>
 </head>
 <body>
@@ -415,17 +427,17 @@ function runChecks(){
   /* 1) LFM 重みなし（TB=400） */
   const w1 = makeWave('lfm', 100, 4), B1 = 4e6;
   const m1 = metrics(response(w1, 0, 'none'));
-  add('LFM 重みなし：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m1.psl, -13.2, 'dB', 0.2, '表8.2, p.8.3');
-  add('LFM 重みなし：3 dB幅 × B', '同上', m1.w3 * B1, 0.886, '', 0.01, '表8.1・表8.2');
-  add('LFM 重みなし：6 dB幅 × B', '同上', m1.w6 * B1, 1.21, '', 0.01, '表8.2');
+  add('LFM 重み付けなし：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m1.psl, -13.2, 'dB', 0.2, '表8.2, p.8.3');
+  add('LFM 重み付けなし：3 dB幅 × B', '同上', m1.w3 * B1, 0.886, '', 0.01, '表8.1・表8.2');
+  add('LFM 重み付けなし：6 dB幅 × B', '同上', m1.w6 * B1, 1.21, '', 0.01, '表8.2');
   /* 2) テイラー重み付け（TB=400） */
   const r2 = response(w1, 0, 'taylor'), m2 = metrics(r2);
-  add('テイラー：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m2.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TBが有限のため約2 dB高い（下の TB=3200 の行と式8.11の行を参照）');
+  add('テイラー：ピークサイドローブ', 'T=100 µs, B=4 MHz（TB=400）', m2.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TB が有限であるため約 2 dB 高い（下の TB=3200 の行と式8.11 の行を参照）');
   add('テイラー：3 dB幅 × B', '同上', m2.w3 * B1, 1.25, '', 0.02, '表8.2');
   add('テイラー：6 dB幅 × B', '同上', m2.w6 * B1, 1.73, '', 0.02, '表8.2');
   add('テイラー：ミスマッチ損失', '同上', r2.lossDb, 1.15, 'dB', 0.03, '表8.2, p.8.3');
   const m2b = metrics(response(makeWave('lfm', 800, 4), 0, 'taylor'));
-  add('テイラー：ピークサイドローブ', 'T=800 µs, B=4 MHz（TB=3200、スライダー範囲外の確認用）', m2b.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TBを大きくすると −40 dB に近づく');
+  add('テイラー：ピークサイドローブ', 'T=800 µs, B=4 MHz（TB=3200、スライダーの範囲外の確認用）', m2b.psl, -40, 'dB', 1.0, '表8.2, p.8.8', 'TBを大きくすると −40 dB に近づく');
   /* 2b) 式(8.11)・式(8.12) を直接評価（TB→∞ の理論値） */
   const mt = metrics(theoryResp(taylorTheory, 40, 0.002));
   add('式(8.11) の理論曲線：ピークサイドローブ', 'TB≫1 の理論式', mt.psl, -40, 'dB', 0.3, '式8.11, 表8.2');
@@ -435,13 +447,13 @@ function runChecks(){
   add('式(8.12) のミスマッチ損失', '係数 F1〜F5 から計算', 10*Math.log10(1 + 2*s2), 1.15, 'dB', 0.01, '式8.12, 表8.2');
   /* 3) バーカー13 */
   const mb = metrics(response(makeWave('barker', 13, 0, 13), 0, 'none'));
-  add('バーカー13：ピークサイドローブ', 'T=13 µs（1チップ=10サンプル）', mb.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
+  add('バーカー13：ピークサイドローブ', 'T=13 µs（1 チップ = 10 サンプル）', mb.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
   const mb2 = metrics(response(makeWave('barker', 40, 0, 13), 0, 'none'));
   add('バーカー13：ピークサイドローブ', 'T=40 µs 設定（実効 40.3 µs）', mb2.psl, -20*Math.log10(13), 'dB', 0.05, '−20 log N, p.8.17');
   /* 4) 距離ドップラ結合：ピーク位置のずれ t = −fd·T/B */
   const dop = (T, B, fdk, tol, note) => {
     const w = makeWave('lfm', T, B), m = metrics(response(w, fdk * 1e3, 'none'));
-    add('LFM：ドップラによるピーク位置のずれ', 'T=' + T + ' µs, B=' + B + ' MHz, fd=' + fdk + ' kHz', m.tpk * 1e6, -fdk * 1e3 * (T * 1e-6) / (B * 1e6) * 1e6, 'µs', tol, '−fd·T/B, p.8.4', note);
+    add('LFM：ドップラ偏移によるピーク位置の変化', 'T=' + T + ' µs, B=' + B + ' MHz, fd=' + fdk + ' kHz', m.tpk * 1e6, -fdk * 1e3 * (T * 1e-6) / (B * 1e6) * 1e6, 'µs', tol, '−fd·T/B, p.8.4', note);
   };
   dop(40, 2, 100, 0.02);
   dop(100, 4, 200, 0.02);
@@ -449,20 +461,20 @@ function runChecks(){
   dop(10, 1, 500, 0.3, 'ハンドブックの例（5 µs, p.8.5）。TB=10');
   /* 4b) ドップラがあるときのピーク低下（式8.9）：1 − |fd|/B */
   const m4 = metrics(response(makeWave('lfm', 40, 2), 2e5, 'none'));
-  add('LFM：fd=B/10 のときのピーク低下', 'T=40 µs, B=2 MHz, fd=200 kHz', db(m4.pk), db(0.9), 'dB', 0.1, '式8.9 から 1−|fd|/B');
+  add('LFM：fd=B/10 の場合のピークの低下', 'T=40 µs, B=2 MHz, fd=200 kHz', db(m4.pk), db(0.9), 'dB', 0.1, '式8.9 から 1−|fd|/B');
   /* 5) ストレッチ処理：周波数オフセット δf = −(B/T)·td（式8.24）と 6 dB幅 1.21/T（式8.32） */
   {
     const w = makeWave('lfm', 40, 2), R0 = 20000, dR = 300, tauR = 2*R0/C;
     const st = stretch(makeScene(w, {fd: 0, targets: [{R: R0 + dR, A: 1, ph: 0}]}), w, tauR);
     const m = metrics({x0: st.f0, dx: st.df, mag: st.mag, n: st.n});
-    add('ストレッチ：周波数オフセット', 'T=40 µs, B=2 MHz, 参照より 300 m（2 µs）遠い目標', m.tpk / 1e3, -(2e6/40e-6) * (2*dR/C) / 1e3, 'kHz', 1.0, '式8.24, p.8.31');
+    add('ストレッチ：周波数オフセット', 'T=40 µs, B=2 MHz, 参照波形より 300 m（2 µs）遠い目標', m.tpk / 1e3, -(2e6/40e-6) * (2*dR/C) / 1e3, 'kHz', 1.0, '式8.24, p.8.31');
     add('ストレッチ：6 dB幅 × T', '同上（矩形窓）', m.w6 * 40e-6, 1.21, '', 0.02, '式8.32, p.8.34');
   }
   /* 参考：TBが小さいと表の値からずれる */
   const ms = metrics(response(makeWave('lfm', 10, 1), 0, 'none'));
-  add('（参考）LFM 重みなし：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', ms.psl, -13.2, 'dB', null, '表8.2 は TB≫1 が前提', 'TBが小さいため一致しない例');
+  add('（参考）LFM 重み付けなし：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', ms.psl, -13.2, 'dB', null, '表8.2 は TB≫1 が前提', 'TB が小さいために一致しない例');
   const mst = metrics(response(makeWave('lfm', 10, 1), 0, 'taylor'));
-  add('（参考）テイラー：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', mst.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TBが小さいため一致しない例');
+  add('（参考）テイラー：ピークサイドローブ', 'T=10 µs, B=1 MHz（TB=10）', mst.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TB が小さいために一致しない例');
   const md = metrics(response(makeWave('lfm', 40, 2), 0, 'taylor'));
   add('（参考）テイラー：ピークサイドローブ', '初期設定 T=40 µs, B=2 MHz（TB=80）', md.psl, -40, 'dB', null, 'p.8.8（フレネルリップル）', 'TB=80 での値');
   return out;
@@ -646,7 +658,9 @@ class Plot {
       if (p.shape === 'x'){ const r = p.r || 4; for (const pass of [0, 1]){ g.lineWidth = pass ? 2 : 4.5; g.strokeStyle = pass ? this.col(p.color) : cSurf; g.lineCap = 'round'; g.beginPath(); g.moveTo(px - r, py - r); g.lineTo(px + r, py + r); g.moveTo(px + r, py - r); g.lineTo(px - r, py + r); g.stroke(); } g.lineCap = 'butt'; }
       else if (p.hollow){ g.lineWidth = 4; g.strokeStyle = cSurf; g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.lineWidth = 2; g.strokeStyle = this.col(p.color); if (p.dash) g.setLineDash(p.dash); g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.setLineDash([]); }
       else { g.fillStyle = this.col(p.color); g.strokeStyle = cSurf; g.lineWidth = 2; g.beginPath(); g.arc(px, py, p.r || 4.5, 0, 2 * Math.PI); g.fill(); g.stroke(); }
-      if (p.label){ const dxl = (p.hollow ? (p.r || 7) + 3 : 7); g.fillStyle = cText; g.textAlign = p.left ? 'right' : 'left'; g.textBaseline = p.below ? 'top' : 'bottom'; ft(p.label, px + (p.left ? -dxl : dxl), py + (p.below ? 3 : -3)); }
+      if (p.label){ const dxl = (p.hollow ? (p.r || 7) + 3 : 7), tw = g.measureText(p.label).width;   /* 札が図の端からはみ出す場合は、反対側に書く */
+        const lf = p.left ? !(px - dxl - tw < m.l && px + dxl + tw <= m.l + pw) : (px + dxl + tw > m.l + pw && px - dxl - tw >= m.l);
+        g.fillStyle = cText; g.textAlign = lf ? 'right' : 'left'; g.textBaseline = p.below ? 'top' : 'bottom'; ft(p.label, px + (lf ? -dxl : dxl), py + (p.below ? 3 : -3)); }
     }
     /* 吹き出し（矢印つきの短い注記）：{x, y, t, dx, dy}。dx・dy は点から吹き出しまでのずれ [px] */
     g.font = 'bold 11.5px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
@@ -726,73 +740,73 @@ const SERIES = [null,
   {no: 1, file: '01_pulse_compression.html', name: 'パルス圧縮'},
   {no: 2, file: '02_mti.html', name: 'MTI（移動目標指示）'},
   {no: 3, file: '03_pulse_doppler.html', name: 'パルスドップラ'},
-  {no: 4, file: '04_detection_cfar.html', name: '自動検出とCFAR'}];
+  {no: 4, file: '04_detection_cfar.html', name: '自動検出と CFAR'}];
 /* [グループ, 日本語（English）, 説明]。グループ 0＝基礎（補足）、1〜4＝各回 */
 const GLOSS = [
-  [0, 'dB（デシベル）', '比を対数で表す単位。電力が 10 倍で +10 dB、100 倍で +20 dB、半分で約 −3 dB。掛け算が足し算になるので、レーダの計算でよく使う。'],
-  [0, 'S/N（信号対雑音比、signal-to-noise ratio）', '信号の電力が雑音の電力の何倍かを表す値。大きいほど目標を見つけやすい。'],
-  [0, 'I/Q（複素信号）', '受信信号を「振幅」と「位相」の両方が分かる形で表したもの。I（同相）と Q（直交）の 2 つの成分を持ち、平面上の矢印（フェーザ）として描ける。'],
-  [0, '位相（phase）', '波の「1 周期のうちのどこにいるか」を角度で表したもの。360° で 1 周する。'],
-  [0, 'ドップラ周波数（Doppler frequency）', '目標が近づく・遠ざかることで、エコーの周波数が送信からずれる量。fd = 2v/λ（v は近づく速度、λ は波長）。'],
-  [0, 'PRF（pulse repetition frequency、パルス繰り返し周波数）', '1 秒間に送るパルスの数。逆数がパルスの間隔。'],
-  [0, '距離セル／レンジゲート（range cell / range gate）', '受信信号を、距離（遅れ時間）ごとに細かく区切った 1 区画。'],
-  [0, 'クラッタ（clutter）', '地面・海面・雨など、見たい目標以外からの不要なエコー。'],
-  [0, 'サイドローブ（sidelobe）', '本来のピーク（主ローブ）の両脇に出る小さな山。強い信号のサイドローブが、弱い信号を隠すことがある。'],
-  [0, '重み付け（weighting）', 'データの端を小さくするような係数を掛けて、サイドローブを下げる処理。代わりに主ローブが少し広がり、S/N が少し下がる。'],
-  [0, 'FFT（高速フーリエ変換）', '信号を周波数の成分に分ける計算を、高速に行う方法。'],
-  [1, 'パルス圧縮（pulse compression）', '変調をかけた長いパルスを送り、受信側のフィルタで細いパルスに戻す方法。長いパルスのエネルギーと、短いパルスの距離分解能を両立させる。'],
-  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域 B の積 TB。パルス圧縮比にほぼ等しい。'],
-  [1, 'パルス圧縮比（pulse compression ratio）', '送信パルス幅と、圧縮後のパルス幅の比。およそ TB。'],
-  [1, '距離分解能（range resolution）', '近くにある 2 つの目標を別々に見分けられる最小の距離差。およそ c/(2B)。'],
-  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変える変調。代表的なパルス圧縮波形。'],
-  [1, '整合フィルタ（matched filter）', '送信波形に合わせて作った受信フィルタ。雑音の中の信号に対して、出力のピークの S/N を最大にする。'],
-  [1, '時間サイドローブ（time sidelobe）', '圧縮後のパルスで、主ローブの前後（距離方向）に出る小さな山。'],
-  [1, 'テイラー重み付け（Taylor weighting）', 'LFM の時間サイドローブを下げるための、代表的な周波数領域の重み付け。'],
-  [1, 'ミスマッチ損失（mismatch loss）', '重み付けなどで整合フィルタからわざと外したために生じる S/N の低下。'],
-  [1, '距離ドップラ結合（range-Doppler coupling）', 'LFM で、目標のドップラ周波数によって圧縮後のピークの位置（距離）がずれる現象。'],
-  [1, '位相符号波形（phase-coded waveform）', 'パルスを短いサブパルスに分け、サブパルスごとに位相を切り替える波形。'],
-  [1, 'バーカー符号（Barker code）', 'サイドローブが主ローブの 1/N になる特別な 2 値位相符号。長さは最大 13。'],
-  [1, 'エクリプシング（eclipsing）', '送信中は受信機がオフなので、その間に戻ってきたエコーが欠けること。'],
-  [1, 'ストレッチ処理（stretch processing）', '受信した LFM に参照の LFM を掛け、周波数の違いとして距離を読み取る圧縮方法。'],
-  [2, 'MTI（moving target indication、移動目標指示）', 'パルスごとのエコーの変化を使って、止まっているクラッタを消し、動いている目標を残す処理。'],
-  [2, 'パルスキャンセラ（delay-line canceler）', '1 つ前のパルスのエコーを引き算する MTI フィルタ。固定物のエコーは毎回同じなので消える。'],
-  [2, 'ブラインド速度（blind speed）', 'MTI で目標まで消えてしまう速度。ドップラ周波数が PRF の整数倍になる速度。'],
-  [2, '改善度（improvement factor）', 'MTI によって、信号対クラッタ比がどれだけ良くなったかを表す値（全速度で平均）。'],
-  [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比。'],
-  [2, 'スタガPRF（staggered PRF）', 'パルスの間隔を交互に変えることで、ブラインド速度を高い速度へ追いやる方法。'],
-  [2, 'クラッタのスペクトル拡がり（clutter spectral spread）', '風で揺れる木やアンテナの走査などで、クラッタのドップラが 0 のまわりに幅を持つこと。'],
-  [2, '走査変調（scanning modulation）', 'アンテナが回ることで、クラッタのエコーの強さがパルスごとに変わること。スペクトル拡がりの原因の 1 つ。'],
-  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強さを記憶したもの。しきい値の設定などに使う。'],
-  [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分けて目標を検出する方式。'],
-  [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通すフィルタ。FFT で多数並べて作る。'],
-  [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ分析する 1 かたまりのパルス列。長いほどドップラ分解能が細かい。'],
-  [3, '距離のあいまいさ（range ambiguity）', 'エコーがどの送信パルスのものか区別できず、距離が決まらないこと。PRF が高いほど起きやすい。'],
-  [3, 'ドップラのあいまいさ（Doppler ambiguity）', 'ドップラ周波数が PRF の整数倍だけ違うものと区別できないこと。PRF が低いほど起きやすい。'],
-  [3, 'メインビームクラッタ（mainbeam clutter）', 'アンテナの主ビームが地面に当たって返ってくる強いクラッタ。'],
-  [3, 'サイドローブクラッタ（sidelobe clutter）', 'アンテナのサイドローブを通って、あらゆる方向の地面から返ってくるクラッタ。'],
-  [3, '高度線（altitude line）', '航空機の真下の地面からのクラッタ。ドップラがほぼ 0 の位置に強く出る。'],
-  [3, 'ブラインドゾーン（blind zone）', 'エクリプシングやクラッタのために目標が見えなくなる、距離やドップラの範囲。'],
-  [4, 'しきい値（threshold）', '「これを超えたら目標あり」と判定する基準の値。'],
-  [4, '探知確率（probability of detection、Pd）', '目標があるときに、正しく検出できる確率。'],
-  [4, '誤警報確率（probability of false alarm、Pfa）', '目標がないのに、雑音などで「目標あり」と判定してしまう確率。'],
-  [4, '積分（integration）', '何パルス分かの受信信号を足し合わせて、目標を検出しやすくすること。'],
-  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器。'],
-  [4, '2値積分（binary integration）', 'パルスごとに 0／1 を判定し、N 回のうち M 回以上 1 なら検出とする方法（M-out-of-N）。'],
-  [4, 'CFAR（constant false alarm rate、一定誤警報率）', '背景の強さに合わせてしきい値を自動で変え、誤警報確率を一定に保つ処理。'],
-  [4, 'セル平均CFAR（cell-averaging CFAR）', '注目するセルの周りのセル（参照セル）の平均から背景の強さを推定する CFAR。'],
-  [4, '参照セル（reference cells）', 'CFAR で、背景の強さを推定するために使う周りのセル。'],
-  [4, 'CFAR損失（CFAR loss）', '背景を推定で求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N。'],
-  [4, 'Swerlingモデル（Swerling models）', '目標のエコーの強さのゆらぎ方を表す代表的なモデル（スキャンごとに変わるか、パルスごとに変わるか、など）。']
+  [0, 'dB（デシベル）', '比を対数で表す単位です。電力比が 10 倍で +10 dB、100 倍で +20 dB、半分で約 −3 dB になります。乗算が加算になるため、レーダの計算で広く使われます。', 'g-db'],
+  [0, 'S/N（信号対雑音比、signal-to-noise ratio）', '信号電力が雑音電力の何倍であるかを表す比です。S/N が大きいほど目標を検出しやすくなります。', 'g-snr'],
+  [0, 'I/Q（複素信号）', '受信信号を振幅と位相の両方が分かる形で表したものです。I（同相）と Q（直交）の 2 つの成分をもち、平面上の矢印（フェーザ）として表せます。', 'g-iq'],
+  [0, '位相（phase）', '波が 1 周期のうちのどの位置にあるかを、角度で表した量です。360° で 1 周します。', 'g-phase'],
+  [0, 'ドップラ周波数（Doppler frequency）', '目標が接近または離隔することによって、エコーの周波数が送信周波数から偏移する量です。fd = 2v/λ で表されます（v は接近速度、λ は波長）。', 'g-doppler-frequency'],
+  [0, 'PRF（pulse repetition frequency、パルス繰り返し周波数）', '1 秒間に送信するパルスの数です。その逆数がパルス繰り返し周期（パルス間隔）です。', 'g-prf'],
+  [0, '距離セル／レンジゲート（range cell / range gate）', '受信信号を距離（遅延時間）ごとに区切った 1 区画です。', 'g-range-cell'],
+  [0, 'クラッタ（clutter）', '地面、海面、雨など、目的の目標以外からの不要なエコーです。', 'g-clutter'],
+  [0, 'サイドローブ（sidelobe）', 'メインローブ（主ローブ）の両側に現れる小さなピークです。強い信号のサイドローブが、弱い信号を隠すことがあります。', 'g-sidelobe'],
+  [0, '重み付け（weighting）', 'データの両端が小さくなるような係数を掛けて、サイドローブを下げる処理です。その代わりにメインローブがわずかに広くなり、S/N がわずかに低下します。', 'g-weighting'],
+  [0, 'FFT（高速フーリエ変換）', '信号を周波数成分に分解する計算を、高速に行う方法です。', 'g-fft'],
+  [1, 'パルス圧縮（pulse compression）', '変調をかけた長いパルスを送信し、受信側のフィルタで短いパルスに圧縮する方法です。長いパルスのエネルギーと、短いパルスの距離分解能を両立させます。', 'g-pulse-compression'],
+  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域幅 B の積 TB です。パルス圧縮比にほぼ等しくなります。', 'g-time-bandwidth-product'],
+  [1, 'パルス圧縮比（pulse compression ratio）', '送信パルス幅と圧縮後のパルス幅の比です。時間帯域幅積 TB にほぼ等しくなります。', 'g-pulse-compression-ratio'],
+  [1, '距離分解能（range resolution）', '近接した 2 つの目標を分離できる最小の距離差です。帯域幅 B で決まり、およそ c/(2B) です。', 'g-range-resolution'],
+  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変化させる変調です。パルス圧縮に最も広く使われます。', 'g-lfm'],
+  [1, '整合フィルタ（matched filter）', '送信波形に合わせて設計し、出力の S/N を最大にする受信フィルタです。', 'g-matched-filter'],
+  [1, '時間サイドローブ（time sidelobe、レンジサイドローブ）', 'パルス圧縮後の波形で、メインローブの前後に現れる小さなピークです。強い目標のサイドローブが弱い目標を隠すことがあります。', 'g-time-sidelobe'],
+  [1, 'テイラー重み付け（Taylor weighting）', 'LFM の時間サイドローブを下げるために使う、代表的な周波数領域の重み付けです。', 'g-taylor-weighting'],
+  [1, 'ミスマッチ損失（mismatch loss）', '重み付けなどによって整合フィルタから意図的に外したために生じる、S/N の低下です。', 'g-mismatch-loss'],
+  [1, '距離ドップラ結合（range-Doppler coupling）', 'LFM で目標のドップラ周波数によって、圧縮後のピークの位置（距離）が変化する現象です。', 'g-range-doppler-coupling'],
+  [1, '位相符号波形（phase-coded waveform）', 'パルスを短いサブパルスに分け、サブパルスごとに位相を切り替える波形です。', 'g-phase-coded-waveform'],
+  [1, 'バーカー符号（Barker code）', 'サイドローブがメインローブの 1/N になる、特別な 2 値位相符号です。長さは最大 13 です。', 'g-barker-code'],
+  [1, 'エクリプシング（eclipsing）', '送信している間は受信できないために、エコーの一部または全部が失われる現象です。デューティ比が高い波形で問題になります。', 'g-eclipsing'],
+  [1, 'ストレッチ処理（stretch processing）', '受信した LFM に参照 LFM を乗算し、周波数の差として距離を求める圧縮方法です。', 'g-stretch-processing'],
+  [2, 'MTI（moving target indication、移動目標指示）', 'パルスごとのエコーの変化を利用して、静止しているクラッタを除去し、運動している目標を残す処理です。', 'g-mti'],
+  [2, 'パルスキャンセラ（delay-line canceler）', '1 つ前のパルスのエコーを減算する MTI フィルタです。静止した物体のエコーは毎回同じであるため、除去されます。', 'g-pulse-canceler'],
+  [2, 'ブラインド速度（blind speed）', 'MTI で目標のエコーが静止クラッタと同様に抑圧される速度です。ドップラ周波数が PRF の整数倍になる速度に当たり、最初の値は λ·PRF/2 です。', 'g-blind-speed'],
+  [2, '改善係数（improvement factor、改善度）', 'MTI によって、信号対クラッタ比がどれだけ向上したかを表す値です。目標の速度については、すべての速度で平均します。', 'g-improvement-factor'],
+  [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比です。', 'g-clutter-attenuation'],
+  [2, 'スタガ PRF（staggered PRF）', 'パルス繰り返し周期を順に変えることによって、ブラインド速度を高い速度へ移す方法です。', 'g-staggered-prf'],
+  [2, 'クラッタのスペクトル幅（clutter spectral spread）', '風で揺れる木やアンテナの走査などによって、クラッタのドップラ周波数が 0 の付近に幅をもつことです。標準偏差で表します。', 'g-clutter-spectral-spread'],
+  [2, '走査変調（scanning modulation）', 'アンテナの回転によって、クラッタのエコーの振幅がパルスごとに変化する現象です。クラッタのスペクトル幅が大きくなる原因の 1 つです。', 'g-scanning-modulation'],
+  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強度を記憶したものです。しきい値の設定などに使います。', 'g-clutter-map'],
+  [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分離して目標を検出する方式です。', 'g-pulse-doppler'],
+  [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通過させるフィルタです。FFT によって多数を並べて構成します。', 'g-doppler-filter'],
+  [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ処理を行う 1 組のパルス列、またはその時間です。CPI が長いほどドップラ分解能（速度分解能）が高くなります。', 'g-cpi'],
+  [3, '距離のアンビギュイティ（range ambiguity、距離のあいまいさ）', 'エコーがどの送信パルスによるものかを区別できず、距離が一意に決まらないことです。PRF が高いほど生じやすくなります。', 'g-range-ambiguity'],
+  [3, 'ドップラのアンビギュイティ（Doppler ambiguity、ドップラのあいまいさ）', 'ドップラ周波数が PRF の整数倍だけ異なる目標を区別できないことです。PRF が低いほど生じやすくなります。', 'g-doppler-ambiguity'],
+  [3, 'メインビームクラッタ（mainbeam clutter）', 'アンテナのメインビームが照射する地面から返ってくる、強いクラッタです。', 'g-mainbeam-clutter'],
+  [3, 'サイドローブクラッタ（sidelobe clutter）', 'アンテナのサイドローブを通って、あらゆる方向の地面から返ってくるクラッタです。', 'g-sidelobe-clutter'],
+  [3, '高度線（altitude line）', '航空機の真下の地面からのクラッタです。ドップラ周波数がほぼ 0 の位置に強く現れます。', 'g-altitude-line'],
+  [3, 'ブラインドゾーン（blind zone）', 'エクリプシングやクラッタのために目標を検出できなくなる、距離やドップラ周波数の範囲です。', 'g-blind-zone'],
+  [4, 'しきい値（threshold）', '受信信号がこの値を超えた場合に「目標あり」と判定する、基準の値です。', 'g-threshold'],
+  [4, '検出確率（探知確率、probability of detection、Pd）', '目標が存在するときに、それを正しく検出できる確率です。', 'g-probability-of-detection'],
+  [4, '誤警報確率（probability of false alarm、Pfa）', '目標が存在しないにもかかわらず、雑音などによって「目標あり」と判定する確率です。', 'g-probability-of-false-alarm'],
+  [4, '積分（integration）', '複数のパルスの受信信号を加算して、目標を検出しやすくする処理です。', 'g-integration'],
+  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器です。', 'g-moving-window-integrator'],
+  [4, '2 値積分（binary integration）', '各回の判定結果（検出したかどうか）だけを数え、N 回のうち M 回以上で検出した場合に「目標あり」と判定する方法です。', 'g-binary-integration'],
+  [4, 'CFAR（constant false alarm rate、一定誤警報率）', '周囲のセルから雑音やクラッタのレベルを推定し、誤警報確率が一定になるようにしきい値を自動的に調整する処理です。', 'g-cfar'],
+  [4, 'セル平均 CFAR（cell-averaging CFAR）', '注目セルの周囲のセル（参照セル）の平均から背景の強度を推定する CFAR です。', 'g-cell-averaging-cfar'],
+  [4, '参照セル（reference cells）', 'CFAR で背景の強度を推定するために使う、注目セルの周囲のセルです。', 'g-reference-cells'],
+  [4, 'CFAR 損失（CFAR loss）', '背景を推定によって求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N です。', 'g-cfar-loss'],
+  [4, 'Swerling モデル（Swerling models）', '目標の RCS 変動を表す代表的なモデルです。変動がスキャンごとに生じるか、パルスごとに生じるかなどによって区別します。', 'g-swerling-models']
 ];
 /* 前提知識の補足（30秒で読める長さ。すべてハンドブックにない一般知識＝補足） */
 const PREQ = {
-  db: ['dB（デシベル）とは', '大きさの比を、掛け算ではなく足し算で扱うための単位です。電力が 10 倍なら +10 dB、100 倍なら +20 dB、1/2 なら約 −3 dB、1/100 なら −20 dB。レーダでは信号の強さが何桁も変わるので、グラフの縦軸によく使います。このシリーズでは、dB の値の横に「何倍か」も書きます。'],
-  iq: ['I/Q（複素信号）とは', '受信した波の「強さ（振幅）」と「タイミング（位相）」を同時に表す方法です。平面の上に矢印を描き、矢印の長さが振幅、向きが位相です。横方向の成分を I、縦方向の成分を Q と呼びます。矢印がぐるぐる回る速さが、周波数にあたります。'],
-  dop: ['ドップラとは', '救急車が近づくとサイレンが高く聞こえるのと同じで、近づく目標からのエコーは周波数が少し高くなります。このずれがドップラ周波数で、fd = 2v/λ（v は近づく速度、λ は波長）。波長 3 cm で 15 m/s なら 1 kHz です。'],
-  prob: ['確率分布とは', '雑音の大きさは毎回ばらばらで、予測できません。ただし「どのくらいの大きさが、どのくらいの割合で出るか」は決まっています。これを表したグラフが確率分布で、横軸が大きさ、縦軸が出やすさです。ある値より右側の面積が、「その値を超える確率」になります。'],
-  wave: ['パルスとエコー、距離の測り方', 'レーダは短い電波（パルス）を出し、目標からはね返ってきた電波（エコー）を受けます。往復にかかった時間 t から、距離 R = c·t/2（c は光の速さ）が分かります。1 マイクロ秒の遅れが 150 m にあたります。'],
-  fft: ['周波数に分ける（スペクトル）とは', 'どんな信号も、いろいろな周波数の波の足し合わせとして表せます。「どの周波数の成分が、どのくらい入っているか」を表したものがスペクトルで、それを計算する方法が FFT です。'],
-  prf: ['パルスの繰り返しと PRF', 'レーダはパルスを一定の間隔で何度も送ります。1 秒あたりの回数が PRF です。同じ目標のエコーを、パルスごとに 1 つずつ受けることになり、その「パルスごとの変化」を見るのが MTI やパルスドップラです。']
+  db: ['dB（デシベル）とは', '大きさの比を乗算ではなく加算で扱うための単位です。電力が 10 倍の場合は +10 dB、100 倍の場合は +20 dB、1/2 の場合は約 −3 dB、1/100 の場合は −20 dB です。レーダでは信号の電力が何桁も変化するため、グラフの縦軸によく使います。このシリーズでは dB の値に倍率も添えています。'],
+  iq: ['I/Q（複素信号）とは', '受信信号の振幅と位相（波のタイミング）を同時に表す方法です。平面上に矢印（フェーザ）を描くと、矢印の長さが振幅を、方向が位相を表します。横方向の成分を I、縦方向の成分を Q と呼びます。矢印が 1 秒間に回転する回数が、周波数に当たります。'],
+  dop: ['ドップラとは', '救急車が近づくとサイレンが高く聞こえることと同様に、接近する目標からのエコーは周波数がわずかに高くなります。この周波数の偏移がドップラ周波数であり、fd = 2v/λ（v は接近速度、λ は波長）で表されます。波長 3 cm で 15 m/s の場合は 1 kHz です。'],
+  prob: ['確率分布とは', '雑音の大きさは毎回不規則に変化し、予測できません。ただし、「どの大きさが、どの程度の割合で現れるか」は決まっています。これを表したグラフが確率分布であり、横軸が大きさ、縦軸が確率密度です。ある値より右側の面積が、「その値を超える確率」になります。'],
+  wave: ['パルスとエコー、距離の測り方', 'レーダは短い電波（パルス）を送信し、目標で反射して戻ってきた電波（エコー）を受信します。往復に要した時間 t から、距離 R = c·t/2（c は光速）が分かります。1 マイクロ秒の遅延時間が 150 m に当たります。'],
+  fft: ['周波数に分ける（スペクトル）とは', 'どのような信号もさまざまな周波数の正弦波の和として表せます。「どの周波数の成分が、どれだけ含まれているか」を表したものがスペクトルであり、それを計算する方法が FFT です。'],
+  prf: ['パルスの繰り返しと PRF', 'レーダはパルスを一定の周期で繰り返し送信します。1 秒あたりの送信回数が PRF です。同じ目標のエコーをパルスごとに 1 つずつ受信することになり、その「パルスごとの変化」を利用する処理が MTI やパルスドップラです。']
 };
 
 /* ============================================================
@@ -802,7 +816,7 @@ const PREQ = {
 const STATE = {pred: [], shown: [], ms: [], touched: false};
 let cur = 0, PL = [], playT = null, hlT = null, lastR = {};
 /* dB の値に「何倍か」を添える（電力の比）。例：−20.0 dB（電力 1/100） */
-function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + ' 倍' : '1/' + s; }
+function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + (s.endsWith('万') ? '倍' : ' 倍') : '1/' + s; }
 function dbx(d, dg){ return isFinite(d) ? fx(d, dg === undefined ? 1 : dg) + ' dB（電力 ' + ratioTxt(d) + '）' : '—'; }
 /* 読み物の書き方：[[キー|表示]] はシミュレータ側を強調するリンク、{H} は「補足」の印 */
 function rt(s){ return String(s || '').replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '<a class="term" data-hl="$1" role="button" tabindex="0">$2</a>').replace(/\{H\}/g, H); }
@@ -857,23 +871,23 @@ function showMission(){
 function showAnswer(){
   const st = STEPS[cur], body = $('#ansBody'), p = STATE.pred[cur]; if (!body || !STATE.shown[cur]) return;
   body.hidden = false;
-  body.innerHTML = '<p><b>' + (p === st.ans ? '予想どおりです。' : '予想とは違いましたね。外れても大丈夫、ここで「なぜ」を確かめれば身につきます。') + '</b></p><p>答え：<b>' + st.ch[st.ans] + '</b></p><p>' + rt(st.why) + '</p>';
+  body.innerHTML = '<p><b>' + (p === st.ans ? '予想どおりです。' : '予想とは異なりました。ここで理由を確かめることが、理解につながります。') + '</b></p><p>答え：<b>' + st.ch[st.ans] + '</b></p><p>' + rt(st.why) + '</p>';
   const bs = $('#choices').children; for (let i = 0; i < bs.length; i++) bs[i].classList.toggle('right', i === st.ans);
 }
 function renderRead(st, i){
   const r = st.read || {}; let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>';
   if (i === 0 && typeof PRE !== 'undefined'){
-    h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと 30 秒で読める説明が出ます）';
-    for (const p of PRE){ if (typeof p === 'string') h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + '</p></details>'; else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回のステップ' + p.step + 'を先に見てね</a></p>'; }
+    h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと、30 秒ほどで読める説明が表示されます）';
+    for (const p of PRE){ if (typeof p === 'string') h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + '</p></details>'; else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回 ステップ ' + p.step + ' を先に確認してください</a></p>'; }
     h += '</div>';
   }
   if (r.ana) h += '<h3>① 身近なたとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
   if (r.what) h += '<h3>② 何が起きているか</h3>' + rt(r.what).split('||').map(p => '<p>' + p + '</p>').join('');
-  if (r.eq) h += '<h3>③ 大事な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
+  if (r.eq) h += '<h3>③ 重要な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
   if (r.mis) h += '<h3>④ よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
   if (st.extra) h += '<div id="extra"></div>';
   h += '<div class="src"><b>出典</b>　Radar Handbook 3rd ed.　' + st.src + '</div>';
-  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声かけの例）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
   $('#read').innerHTML = h;
   if (st.extra) $('#extra').innerHTML = st.extra();
 }
@@ -881,11 +895,11 @@ function renderSim(st, i){
   const sim = $('#sim'); sim.innerHTML = ''; PL = []; PLOTS.length = 0;
   const unlocked = (st.free && !st.q) || STATE.pred[i] !== undefined;
   if (st.q){
-    const q = el('div', 'card q', '<span class="lbl">問い</span><p>' + st.q + '</p><div class="ch" id="choices">' + st.ch.map((c, k) => '<button type="button" data-k="' + k + '" aria-pressed="' + (STATE.pred[i] === k) + '">' + c + '</button>').join('') + '</div><div class="hint">まず予想を 1 つ選ぼう（当たり外れは気にしなくて大丈夫）。選ぶと下の操作部が使えるようになります。</div>');
+    const q = el('div', 'card q', '<span class="lbl">問い</span><p>' + st.q + '</p><div class="ch" id="choices">' + st.ch.map((c, k) => '<button type="button" data-k="' + k + '" aria-pressed="' + (STATE.pred[i] === k) + '">' + c + '</button>').join('') + '</div><div class="hint">まず予想を 1 つ選びましょう（正否は問いません）。選ぶと、下の操作部が使えるようになります。</div>');
     sim.appendChild(q);
     $('#choices', q).addEventListener('click', ev => { const k = ev.target && ev.target.dataset ? ev.target.dataset.k : undefined; if (k === undefined) return; STATE.pred[i] = Number(k); for (const b of $('#choices').children) b.setAttribute('aria-pressed', b.dataset.k === k); $('#opCard').classList.remove('locked'); $('#ansBtn').disabled = false; redraw(); });
   }
-  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">予想してから触ろう</div><span class="lbl">操作</span><span class="hint" style="margin:0">' + (st.do || 'スライダーを動かして確かめよう') + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
+  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">先に予想を選びましょう</div><span class="lbl">操作</span><span class="hint" style="margin:0">' + (st.do || 'スライダーを動かして確かめましょう') + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
   op.id = 'opCard'; sim.appendChild(op);
   for (const c of (st.ctl || [])) buildCtl($('#ctls', op), c);
   const acts = $('#acts', op);
@@ -898,7 +912,7 @@ function renderSim(st, i){
   for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
   if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
   if (st.q){
-    const a = el('div', 'card ans', '<button type="button" class="btn primary" id="ansBtn"' + (unlocked ? '' : ' disabled') + '>答えを見る</button>　<span class="hint">操作して確かめてから押そう</span><div class="body" id="ansBody" hidden></div>');
+    const a = el('div', 'card ans', '<button type="button" class="btn primary" id="ansBtn"' + (unlocked ? '' : ' disabled') + '>答えを見る</button>　<span class="hint">操作して確かめてから押しましょう</span><div class="body" id="ansBody" hidden></div>');
     sim.appendChild(a); $('#ansBtn', a).addEventListener('click', () => { STATE.shown[i] = true; showAnswer(); });
   }
 }
@@ -923,11 +937,11 @@ function highlight(key){
   hlT = setTimeout(() => { HLKEY = null; for (const e of document.querySelectorAll('.flash')) e.classList.remove('flash'); redrawAll(); }, 4000);
 }
 function buildGloss(){
-  const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
-  let h = '<h2>用語集（4 回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';
+  const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt' + (t[3] ? ' id="' + t[3] + '"' : '') + '>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
+  let h = '<h2>用語集（4 回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><p class="glpage"><a href="glossary.html" target="_blank" rel="noopener">用語集のページを開く</a>（五十音順と回ごとの一覧。入門と中級のすべての用語）</p><input type="search" id="glFind" placeholder="用語を検索" aria-label="用語を検索"><dl id="glList">';
   h += '<h3>この回（第' + SIM_NO + '回 ' + SERIES[SIM_NO].name + '）の用語</h3>' + grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(0);
   for (let n = 1; n <= 4; n++) if (n !== SIM_NO) h += '<h3>第' + n + '回 ' + SERIES[n].name + '</h3>' + grp(n);
-  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は、Radar Handbook 3rd ed. の用語を新人向けに言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
+  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は Radar Handbook 3rd ed. の用語を言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
   const toggle = on => { g.hidden = !on; if (on) $('#glFind').focus(); };
   $('#glBtn').addEventListener('click', () => toggle(g.hidden)); $('#glTab').addEventListener('click', () => toggle(g.hidden)); $('#glClose').addEventListener('click', () => toggle(false));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
@@ -954,278 +968,329 @@ function boot(){
 }
 
 /* ============================================================
+   用語のリンク：本文の用語（a.gt）を押すと、ページを移らずに、その場に小さな説明を出す。
+   説明は、この HTML の中の GLOSS（[グループ, 見出し, 説明, ID]）から引く。印は、組み立てのときに gterm.py が a.gt に直す。
+   ============================================================ */
+let gPop = null, gFrom = null;
+function gClose(back){
+  if (!gPop) return;
+  gPop.remove(); gPop = null;
+  if (gFrom){ gFrom.setAttribute('aria-expanded', 'false'); if (back && document.contains(gFrom)) gFrom.focus(); }
+  gFrom = null;
+}
+function gPlace(){
+  if (!gPop || !gFrom || !document.contains(gFrom)){ gClose(false); return; }
+  const r = gFrom.getBoundingClientRect(), dw = document.documentElement.clientWidth, pw = gPop.offsetWidth, ph = gPop.offsetHeight;
+  const left = Math.max(8, Math.min(r.left, dw - pw - 8)) + window.scrollX;
+  const below = r.bottom + 6 + ph <= window.innerHeight || r.top - 6 - ph < 50;
+  gPop.style.left = left + 'px'; gPop.style.top = ((below ? r.bottom + 6 : r.top - 6 - ph) + window.scrollY) + 'px';
+}
+function gOpen(a){
+  const t = GLOSS.find(x => x[3] === a.dataset.g); if (!t) return;
+  gClose(false);
+  gPop = el('div', 'gpop', '<span class="gh">' + t[1] + '</span><p>' + t[2] + '</p><div class="gpa"><button type="button" class="btn sm" data-act="panel">この画面の用語集で開く</button><a class="btn sm" href="glossary.html#' + t[3] + '" target="_blank" rel="noopener">用語集で見る</a><button type="button" class="btn sm" data-act="close">閉じる</button></div>');
+  gPop.setAttribute('role', 'dialog'); gPop.setAttribute('aria-label', '用語の説明：' + t[1].replace(/<[^>]*>/g, '')); gPop.tabIndex = -1;
+  document.body.appendChild(gPop); gFrom = a; a.setAttribute('aria-expanded', 'true');
+  gPlace(); gPop.focus({preventScroll: true});
+}
+/* 右端の用語集のパネルを開いて、ID の用語を見せる */
+function glossAt(id){
+  const g = $('#gloss'), f = $('#glFind'); if (!g) return;
+  if (f && f.value){ f.value = ''; f.dispatchEvent(new Event('input')); }
+  g.hidden = false;
+  const dt = document.getElementById(id); if (!dt) return;
+  for (const e of g.querySelectorAll('dt.hit')) e.classList.remove('hit');
+  dt.classList.add('hit'); dt.scrollIntoView({block: 'center'}); dt.tabIndex = -1; dt.focus({preventScroll: true});
+}
+document.addEventListener('click', e => {
+  const t = e.target, a = t && t.closest ? t.closest('a.gt') : null;
+  if (a){ e.preventDefault(); if (gFrom === a) gClose(false); else gOpen(a); return; }
+  if (!gPop) return;
+  const b = t && t.closest ? t.closest('.gpop [data-act]') : null;
+  if (b){ const id = gFrom ? gFrom.dataset.g : null, act = b.dataset.act; gClose(act === 'close'); if (act === 'panel' && id) glossAt(id); return; }
+  if (!gPop.contains(t)) gClose(false);
+});
+document.addEventListener('keydown', e => {
+  const a = e.target && e.target.closest ? e.target.closest('a.gt') : null;
+  if (a && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); if (gFrom === a) gClose(true); else gOpen(a); }
+  else if (e.key === 'Escape' && gPop){ e.stopPropagation(); gClose(true); }
+}, true);
+window.addEventListener('resize', gPlace);
+window.addEventListener('hashchange', () => gClose(false));
+
+/* ============================================================
    第1回 パルス圧縮：ステップの定義
    ============================================================ */
 function resetS(init){ for (const k in S) delete S[k]; Object.assign(S, DEFAULTS, {t2: false, pos: 0, nc: 13, r1: 20, noise: false}, init); }
 const PRE = ['wave', 'db', 'iq'];
 const fkm = v => fx(v, 2) + ' km', fus = v => fx(v, v < 10 && v % 1 ? 1 : 0) + ' µs';
 const CT = {
-  T: {l: 'パルス幅 T（パルスの長さ）', min: 5, max: 100, step: 5, f: fus, h: v => 'エネルギーは T に比例'},
-  B: {l: '帯域 B（周波数を振る幅）', min: 0.2, max: 4, step: 0.1, f: v => fx(v, 1) + ' MHz'},
+  T: {l: 'パルス幅 T（パルスの時間長）', min: 5, max: 100, step: 5, f: fus, h: v => 'エネルギーは T に比例'},
+  B: {l: '帯域幅 B（周波数を変化させる幅）', min: 0.2, max: 4, step: 0.1, f: v => fx(v, 1) + ' MHz'},
   wave: {l: '波形', seg: [['cw', '無変調'], ['lfm', 'LFM'], ['barker', 'バーカー13']]},
   wt: {l: '重み付け', seg: [['none', 'なし'], ['taylor', 'テイラー']]},
   dr: {l: '2 つの目標の間隔', min: 30, max: 3000, step: 30, f: v => fx(v, 0) + ' m'},
-  snr: {l: '入力の S/N（圧縮する前）', min: -25, max: 10, step: 1, f: v => dbx(v, 0)},
-  fd: {l: 'ドップラ周波数', min: -500, max: 500, step: 10, f: v => fx(v, 0) + ' kHz', h: v => v > 0 ? '近づく目標' : v < 0 ? '遠ざかる目標' : '動かない目標'},
-  r1: {l: '目標までの距離', min: 0.5, max: 10, step: 0.25, f: fkm},
-  a2: {l: '弱い目標の強さ（強い目標との比）', min: -40, max: 0, step: 1, f: v => dbx(v, 0)},
-  pos: {l: '参照波形の位置（ずらす時間）', min: 0, max: 60, step: 0.1, f: v => fx(v, 1) + ' µs'},
-  nc: {l: '符号の長さ N', seg: [[2, '2'], [3, '3'], [4, '4'], [5, '5'], [7, '7'], [11, '11'], [13, '13']]},
+  snr: {l: '入力の S/N（圧縮前）', min: -25, max: 10, step: 1, f: v => dbx(v, 0)},
+  fd: {l: 'ドップラ周波数', min: -500, max: 500, step: 10, f: v => fx(v, 0) + ' kHz', h: v => v > 0 ? '接近する目標' : v < 0 ? '離隔する目標' : '静止目標'},
+  r1: {l: '目標距離', min: 0.5, max: 10, step: 0.25, f: fkm},
+  a2: {l: '弱い目標の強度（強い目標との比）', min: -40, max: 0, step: 1, f: v => dbx(v, 0)},
+  pos: {l: '参照波形の位置（遅延させる時間）', min: 0, max: 60, step: 0.1, f: v => fx(v, 1) + ' µs'},
+  nc: {l: '符号長 N', seg: [[2, '2'], [3, '3'], [4, '4'], [5, '5'], [7, '7'], [11, '11'], [13, '13']]},
   t2: {l: '目標を 2 つにする', chk: true},
-  noise: {l: '雑音を入れる', chk: true}
+  noise: {l: '雑音を加える', chk: true}
 };
 const wav = () => makeWave(S.wave, S.T, S.B, S.nc);
 function tgts(){ const t = [{R: S.r1 * 1000, A: 1, ph: 0}]; if (S.t2) t.push({R: S.r1 * 1000 + S.dr, A: db2a(S.a2), ph: Math.PI / 2}); return t; }
 function rseg(y, dt, r0, r1){ const k = dt * C / 2000, i0 = Math.max(0, Math.floor(r0 / k)), i1 = Math.min(y.length - 1, Math.ceil(r1 / k)); return {x0: i0 * k, dx: k, y: y.subarray(i0, i1 + 1)}; }
 const amp = (re, im) => { const o = new Float64Array(re.length); for (let i = 0; i < o.length; i++) o[i] = Math.hypot(re[i], im[i]); return o; };
 const dbA = (m, ref) => { const o = new Float64Array(m.length); for (let i = 0; i < o.length; i++) o[i] = 20 * Math.log10(Math.max(m[i] / ref, 1e-6)); return o; };
-const RKM = {xl: '距離 [km]（レーダからの遠さ）', tipx: v => '距離 ' + fx(v, 3) + ' km'};
+const RKM = {xl: '距離 [km]（レーダからの距離）', tipx: v => '距離 ' + fx(v, 3) + ' km'};
 const STEPS = [];
 
 /* 1 */
-STEPS.push({short: 'なぜ圧縮', title: 'なぜパルス圧縮か — 長いパルスの力と、短いパルスの細かさを両立する', src: '§8.1 Introduction（p.8.1–8.2）、§8.2 表8.1（p.8.5）',
-  q: '遠くまで見るには、パルスを長くして送るエネルギーを増やしたい。変調なしのままパルスの長さを 2 倍にすると、近くに並んだ 2 つの目標の「見分けやすさ」はどうなる？',
-  ch: ['良くなる', '変わらない', '悪くなる（2 倍粗くなる）'], ans: 2,
-  why: '変調のないパルスでは、エコーの長さがパルス幅そのものです。長くするほど 2 つのエコーが重なり、1 つの山に見えます。パルス圧縮（LFM）では、見分けやすさは帯域 B で決まるので、長くしても細かさは保たれます。',
+STEPS.push({short: '圧縮の目的', title: 'パルス圧縮の目的 — 長いパルスのエネルギーと、短いパルスの距離分解能を両立する', src: '§8.1 Introduction（p.8.1–8.2）、§8.2 表8.1（p.8.5）',
+  q: '遠距離まで探知するには、パルス幅を長くして、送信するエネルギーを増やす必要があります。無変調のままパルス幅を 2 倍にすると、近接した 2 つの目標の分解能はどうなりますか。',
+  ch: ['高くなる', '変わらない', '低くなる（分解できる間隔が 2 倍になる）'], ans: 2,
+  why: '無変調のパルスでは、エコーの長さがパルス幅そのものになります。長くするほど 2 つのエコーが重なり、1 つのピークに見えます。LFM による<a class=gt data-g=g-pulse-compression tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>パルス圧縮</a>では、分解能が帯域幅 B で決まるため、パルス幅を長くしても分解能は保たれます。',
   read: {
-    ana: '遠くの人に声を届けるには、短く「あ！」と叫ぶより、長く「あーーー」と伸ばした方がたくさんのエネルギーを送れます。でも 2 人が同時に「あーーー」と言うと、声が重なって何人いるのか分かりません。',
-    what: 'レーダも同じです。上の図は、変調なしの長いパルスを送ったときの[[merge|2 つの目標のエコー]]です。パルス幅 T が長いと、エコーが重なって 1 つの山になります。||下の図は、同じ長さのパルスに変調をかけ（LFM）、受信側で[[peaks|細いパルスに戻した]]ものです。これがパルス圧縮（pulse compression）で、長いパルスのエネルギーと、短いパルスの細かさを両立できます。',
+    ana: '遠くの人に声を届けるには、短く「あ」と叫ぶより、長く「あー」と伸ばしたほうが多くのエネルギーを送れます。しかし、2 人が同時に「あー」と言うと、声が重なって、何人いるのかが分かりません。',
+    what: 'レーダも同様です。上の図は無変調の長いパルスを送信した場合の[[merge|2 つの目標のエコー]]です。パルス幅 T が長いと、エコーが重なって 1 つのピークになります。||下の図は同じ長さのパルスに変調（LFM：パルスの中で周波数を直線的に変化させる変調）をかけ、受信側で[[peaks|幅の狭いパルスに圧縮した]]ものです。これがパルス圧縮（pulse compression）であり、長いパルスのエネルギーと、短いパルスの<a class=gt data-g=g-range-resolution tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>距離分解能</a>を両立できます。',
     eq: '圧縮比 ≈ <i>T</i>·<i>B</i>　　距離分解能 ≈ <i>c</i> / (2<i>B</i>)',
-    sym: '<i>T</i>：送信パルスの長さ [秒]。<i>B</i>：変調で広げた帯域 [Hz]。<i>c</i>：光の速さ（3×10⁸ m/s）。<i>T</i>·<i>B</i> は時間帯域幅積（time-bandwidth product）。B = 2 MHz なら分解能は約 75 m で、T にはよりません。',
-    mis: '「圧縮するとエネルギーが増える」わけではありません。送ったエネルギーはそのままで、長い時間に広がっていたものを 1 点に集め直すだけです。'},
-  hosoku: ['声のたとえ', '下の図で比べている「同じピーク電力の短いパルス」の考え方、無変調パルスの分解能の目安 cT/2'],
-  memo: 'つまずきやすい点：エネルギー（T で決まる）と分解能（B で決まる）が別々に選べる、という発想そのもの。||声かけの例：「T を 3 µs まで短くすると分かれて見えるけど、そのとき送ったエネルギーは最初の何分の 1？」「下の図は T を変えても山の細さが変わらないのはなぜ？」',
+    sym: '<i>T</i>：送信パルス幅 [秒]。<i>B</i>：変調によって広げた帯域幅 [Hz]。<i>c</i>：光速（3×10⁸ m/s）。<i>T</i>·<i>B</i> は<a class=gt data-g=g-time-bandwidth-product tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>時間帯域幅積</a>（time-bandwidth product）です。B = 2 MHz の場合、分解能は約 75 m であり、T にはよりません。',
+    mis: '「圧縮するとエネルギーが増える」という理解は誤りです。送信したエネルギーは変わらず、長い時間に分散していたものを 1 点に集中させ直すだけです。'},
+  hosoku: ['声のたとえ', '下の図で比較している「同じ尖頭電力の短いパルス」の考え方と無変調パルスの分解能の目安 cT/2'],
+  memo: 'つまずきやすい点は、エネルギー（T で決まる）と分解能（B で決まる）を別々に選べる、という考え方そのものです。||声かけの例：「T を 3 µs まで短くすると分離して見えますが、その場合に送信したエネルギーは最初の何分の 1 ですか」「下の図で T を変えてもピークの幅が変わらないのはなぜですか」',
   init: {T: 20, B: 2, t2: true, dr: 600, a2: 0}, ctl: [{k: 'T', min: 1, max: 20, step: 1}], fixed: ['dr', 'B'], plots: [{h: 190}, {h: 190}],
-  mission: {t: '上の図（変調なし）で、600 m 離れた 2 つの目標が 2 つの山に分かれて見えるまで、パルス幅を短くしよう。そのときエネルギーが何分の 1 になったかも見ておこう。', ok: r => r.sep},
+  mission: {t: '上の図（無変調）で、600 m 離れた 2 つの目標が 2 つのピークに分離して見えるまで、パルス幅を短くしましょう。その場合にエネルギーが何分の 1 になったかも確かめましょう。', ok: r => r.sep},
   sol: {T: 3},
   draw(P){
     const wc = makeWave('cw', S.T, S.B), sc = makeScene(wc, {targets: tgts(), fd: 0}), a = rseg(amp(sc.re, sc.im), 1 / FS, 19.5, 24.2);
     const wl = makeWave('lfm', S.T, S.B), y = compress(makeScene(wl, {targets: tgts(), fd: 0}), wl, 'none', 4), b = rseg(y.mag, y.dt, 19.5, 24.2), sep = S.T * 150 < S.dr;
-    P[0].set(Object.assign({title: '変調なしのパルス：受信したエコーの強さ', xr: [19.5, 24.2], yr: [0, 1.8], yl: 'エコーの強さ（振幅）', series: [{name: '2 つの目標のエコー', color: 's1', x0: a.x0, dx: a.dx, y: a.y, w: 2, fill: 0.15}],
-      vl: [{x: 20, label: '目標1'}, {x: 20.6, label: '目標2'}], notes: [sep ? {x: 20.52, y: 0.05, t: 'すき間ができた＝2 つと分かる', dx: 60, dy: -70} : {x: 20.8, y: 1.41, t: '重なって 1 つの山に見える', dx: 50, dy: -14}],
+    P[0].set(Object.assign({title: '無変調のパルス：受信したエコーの振幅', xr: [19.5, 24.2], yr: [0, 1.8], yl: 'エコーの振幅', series: [{name: '2 つの目標のエコー', color: 's1', x0: a.x0, dx: a.dx, y: a.y, w: 2, fill: 0.15}],
+      vl: [{x: 20, label: '目標1'}, {x: 20.6, label: '目標2'}], notes: [sep ? {x: 20.52, y: 0.05, t: '間に落ち込みがある＝2 つと分かる', dx: 60, dy: -70} : {x: 20.8, y: 1.41, t: '重なって 1 つのピークに見える', dx: 50, dy: -14}],
       marks: {merge: {x0: 20, x1: 20.6 + S.T * 0.15, t: '2 つの目標のエコー'}}}, RKM));
-    P[1].set(Object.assign({title: '同じ長さのパルスに LFM をかけて圧縮した後', xr: [19.5, 24.2], yr: [0, 1.3], yl: '圧縮後の強さ（振幅）', series: [{name: '圧縮後の出力', color: 's2', x0: b.x0, dx: b.dx, y: b.y, w: 2}],
-      notes: [{x: 20.6, y: 1, t: 'いつも 2 本に分かれる', dx: 50, dy: -4}], marks: {peaks: {x0: 19.9, x1: 20.7, t: '細いパルスに戻った'}}}, RKM));
-    return {sep, tiles: [{k: '送るエネルギー（T = 20 µs を 1 として）', v: S.T === 20 ? '1 倍' : '1/' + fx(20 / S.T, 1), s: dbx(10 * Math.log10(S.T / 20))},
-      {k: '変調なしの見分けの目安 cT/2', v: fx(S.T * 150, 0) + ' <small>m</small>', s: '目標の間隔は 600 m'}, {k: 'LFM の見分けの目安 c/(2B)', v: fx(150 / S.B, 0) + ' <small>m</small>', s: 'T を変えても同じ'}]};
+    P[1].set(Object.assign({title: '同じ長さのパルスに LFM をかけて圧縮した後', xr: [19.5, 24.2], yr: [0, 1.3], yl: '圧縮後の振幅', series: [{name: '圧縮後の出力', color: 's2', x0: b.x0, dx: b.dx, y: b.y, w: 2}],
+      notes: [{x: 20.6, y: 1, t: '常に 2 本に分離する', dx: 50, dy: -4}], marks: {peaks: {x0: 19.9, x1: 20.7, t: '幅の狭いパルスに圧縮された'}}}, RKM));
+    return {sep, tiles: [{k: '送信エネルギー（T = 20 µs を 1 として）', v: S.T === 20 ? '1 倍' : '1/' + fx(20 / S.T, 1), s: dbx(10 * Math.log10(S.T / 20))},
+      {k: '無変調の場合の分解能の目安 cT/2', v: fx(S.T * 150, 0) + ' <small>m</small>', s: '目標の間隔は 600 m'}, {k: 'LFM の分解能の目安 c/(2B)', v: fx(150 / S.B, 0) + ' <small>m</small>', s: 'T を変えても同じ'}]};
   }});
 
 /* 2 */
-STEPS.push({short: 'LFM 波形', title: 'LFM（チャープ）波形 — パルスの中で周波数を直線的に変える', src: '§8.2 Linear Frequency Modulation（p.8.3–8.5、式8.3〜8.6）',
-  q: 'LFM のパルスを、基準の周波数を 0 にした形（ベースバンド）で見る。波の振動がいちばん「ゆっくり」になるのは、パルスのどこ？',
-  ch: ['パルスの始まり', 'パルスの真ん中', 'パルスの終わり'], ans: 1,
-  why: 'LFM は周波数を −B/2 から +B/2 まで直線的に変えます。真ん中で周波数がちょうど 0 を通るので、そこで振動がいちばんゆっくりになります。両端は「負の周波数」と「正の周波数」で、振動の速さは同じです。',
+STEPS.push({short: 'LFM 波形', title: 'LFM（チャープ）波形 — パルスの中で周波数を直線的に変化させる', src: '§8.2 Linear Frequency Modulation（p.8.3–8.5、式8.3〜8.6）',
+  q: '基準の周波数が 0 になるように変換した LFM のパルス（ベースバンド信号）を観測します。波形の振動が最も遅くなるのは、パルスのどの部分ですか。',
+  ch: ['パルスの先頭', 'パルスの中央', 'パルスの末尾'], ans: 1,
+  why: 'LFM は周波数を −B/2 から +B/2 まで直線的に変化させます。中央で周波数がちょうど 0 を通過するため、そこで振動が最も遅くなります。両端は「負の周波数」と「正の周波数」であり、振動の周期は同じです。',
   read: {
-    ana: '鳥のさえずりのように、音の高さが「ピューイ」と連続して変わる音をチャープと呼びます。ずっと同じ高さの「ピー」と違い、音のどの部分にも「その瞬間だけの高さ」という目印が付いています。',
-    what: '線形周波数変調（linear frequency modulation、LFM）は、パルスの中で[[freq|周波数を直線的に変える]]波形です。変える幅が帯域 B、パルスの長さが T です。||上の図は[[wave|波形の I 成分と Q 成分]]です。真ん中で振動がゆっくりになり、両端で速くなります。B を広げると、両端の振動が速くなります。',
+    ana: '鳥のさえずりのように、音の高さが連続して変化する音をチャープと呼びます。同じ高さが続く音とは異なり、音のどの部分にも「その瞬間だけの高さ」という目印が付いています。',
+    what: '線形周波数変調（linear frequency modulation、<a class=gt data-g=g-lfm tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>LFM</a>）は、パルスの中で[[freq|周波数を直線的に変化させる]]波形です。変化させる幅が帯域幅 B、パルスの時間長がパルス幅 T です。||上の図は[[wave|波形の I 成分と Q 成分]]です。中央で振動が遅くなり、両端で速くなります。B を広げると、両端の振動が速くなります。',
     eq: '<i>f</i>(<i>t</i>) = (<i>B</i> / <i>T</i>)·<i>t</i>　　（−<i>T</i>/2 ≤ <i>t</i> ≤ <i>T</i>/2）',
-    sym: '<i>f</i>(<i>t</i>)：時刻 <i>t</i> での周波数（瞬時周波数）[Hz]。<i>t</i>：パルスの真ん中を 0 とした時刻 [秒]。<i>B</i>：帯域 [Hz]。<i>T</i>：パルス幅 [秒]。<i>B</i>/<i>T</i> が周波数の変わる速さ（傾き）。',
-    mis: '「真ん中は周波数が低く、両端が高い」わけではありません。前半は負の周波数、後半は正の周波数で、I と Q のどちらが先に進むかが逆になっています。{H}実際の送信では、これに高い搬送波の周波数が足されます。'},
-  hosoku: ['鳥のさえずりのたとえ', 'ベースバンドでは真ん中で周波数が 0 を通るため、実部が「速い→遅い→速い」に見えるという説明', '実際の送信では搬送波の周波数が足されること'],
-  memo: 'つまずきやすい点：「負の周波数」。I/Q の矢印が逆回りになることだと伝えるとよい。||声かけの例：「B を 2 倍にすると、下の図の直線の傾きはどうなる？」「T·B が大きいほど、後で何が良くなるんだっけ？（ステップ1）」',
+    sym: '<i>f</i>(<i>t</i>)：時刻 <i>t</i> での周波数（瞬時周波数）[Hz]。<i>t</i>：パルスの中央を 0 とした時刻 [秒]。<i>B</i>：帯域幅 [Hz]。<i>T</i>：パルス幅 [秒]。<i>B</i>/<i>T</i> が周波数の変化率（傾き）です。',
+    mis: '「中央は周波数が低く、両端が高い」という理解は誤りです。前半は負の周波数、後半は正の周波数であり、I と Q のどちらが先行するかが逆になっています。{H}実際の送信ではこれに搬送波の高い周波数が加わります。'},
+  hosoku: ['鳥のさえずりのたとえ', 'ベースバンドでは中央で周波数が 0 を通過するため、実部が「速い→遅い→速い」に見えるという説明', '実際の送信では搬送波の周波数が加わること'],
+  memo: 'つまずきやすい点は、「負の周波数」です。I/Q の矢印（フェーザ）が逆方向に回転することである、と説明すると理解しやすくなります。||声かけの例：「B を 2 倍にすると、下の図の直線の傾きはどうなりますか」「T·B が大きいほど、何が改善されるのでしたか（ステップ1）」',
   init: {T: 40, B: 1, wave: 'lfm'}, ctl: ['B'], fixed: ['T'], plots: [{h: 200}, {h: 180}],
-  mission: {t: '時間帯域幅積 T·B を、ちょうど 100 にしよう。', ok: r => Math.abs(r.TB - 100) < 0.5}, sol: {B: 2.5},
+  mission: {t: '時間帯域幅積 T·B を、ちょうど 100 にしましょう。', ok: r => Math.abs(r.TB - 100) < 0.5}, sol: {B: 2.5},
   draw(P){
     const w = wav(), N = w.N, t = new Float64Array(N), f = new Float64Array(N); for (let i = 0; i < N; i++){ t[i] = (i / FS - w.T / 2) * 1e6; f[i] = S.B * t[i] / S.T; }
-    P[0].set({title: 'LFM の波形（I 成分と Q 成分）', xr: [-S.T / 2, S.T / 2], yr: [-1.3, 1.3], xl: '時刻 [µs]（パルスの真ん中が 0）', yl: '波の高さ', series: [{name: 'I 成分（実部）', color: 's1', x: t, y: w.re, w: 1.8}, {name: 'Q 成分（虚部）', color: 's2', x: t, y: w.im, w: 1.2, alpha: 0.7}],
-      notes: [{x: 0, y: 1, t: '真ん中：ゆっくり', dx: 24, dy: -6}], marks: {wave: {t: 'I 成分と Q 成分'}}, tipx: v => fx(v, 1) + ' µs', tipy: v => fx(v, 2)});
-    P[1].set({title: 'その瞬間の周波数', xr: [-S.T / 2, S.T / 2], yr: [-2.2, 2.2], xl: '時刻 [µs]', yl: '周波数 [MHz]', series: [{name: '瞬時周波数', color: 's3', x: t, y: f, w: 2.4}], hl: [{y: 0, label: '周波数 0', left: true}],
+    P[0].set({title: 'LFM の波形（I 成分と Q 成分）', xr: [-S.T / 2, S.T / 2], yr: [-1.3, 1.3], xl: '時刻 [µs]（パルスの中央が 0）', yl: '振幅', series: [{name: 'I 成分（実部）', color: 's1', x: t, y: w.re, w: 1.8}, {name: 'Q 成分（虚部）', color: 's2', x: t, y: w.im, w: 1.2, alpha: 0.7}],
+      notes: [{x: 0, y: 1, t: '中央：振動が遅い', dx: 24, dy: -6}], marks: {wave: {t: 'I 成分と Q 成分'}}, tipx: v => fx(v, 1) + ' µs', tipy: v => fx(v, 2)});
+    P[1].set({title: '瞬時周波数', xr: [-S.T / 2, S.T / 2], yr: [-2.2, 2.2], xl: '時刻 [µs]', yl: '周波数 [MHz]', series: [{name: '瞬時周波数', color: 's3', x: t, y: f, w: 2.4}], hl: [{y: 0, label: '周波数 0', left: true}],
       notes: [{x: S.T / 2, y: S.B / 2, t: '+B/2 = ' + fx(S.B / 2, 2) + ' MHz', dx: -40, dy: -18}], marks: {freq: {y0: -S.B / 2, y1: S.B / 2, t: '−B/2 から +B/2 まで直線的に変化'}}, tipx: v => fx(v, 1) + ' µs', tipy: v => fx(v, 2) + ' MHz'});
-    return {TB: S.T * S.B, tiles: [{k: '時間帯域幅積 T·B', v: fx(S.T * S.B, 0), s: 'パルス圧縮比の目安'}, {k: '周波数の変わる速さ B/T', v: fx(S.B / S.T * 1000, 0) + ' <small>kHz/µs</small>'}, {k: '圧縮後のパルス幅の目安 1/B', v: fx(1 / S.B, 2) + ' <small>µs</small>', s: '送信パルスは ' + S.T + ' µs'}]};
+    return {TB: S.T * S.B, tiles: [{k: '時間帯域幅積 T·B', v: fx(S.T * S.B, 0), s: 'パルス圧縮比の目安'}, {k: '周波数の変化率 B/T', v: fx(S.B / S.T * 1000, 0) + ' <small>kHz/µs</small>'}, {k: '圧縮後のパルス幅の目安 1/B', v: fx(1 / S.B, 2) + ' <small>µs</small>', s: '送信パルスは ' + S.T + ' µs'}]};
   }});
 
 /* 3 */
-STEPS.push({short: '整合フィルタ', title: '整合フィルタと相関 — 参照波形を滑らせて、掛けて、足す', src: '§8.1（p.8.1–8.2）、付録 Matched Filters・Matched Filter Time Response（p.8.39–8.41）',
-  q: '送った波形のコピー（参照波形）を、受信信号の上で少しずつずらしながら「掛けて足す」。出力がいちばん大きくなるのは、いつ？',
-  ch: ['参照がエコーに重なり始めたとき', '参照がエコーにぴったり重なったとき', '参照がエコーを通り過ぎたとき'], ans: 1,
-  why: 'ぴったり重なった瞬間だけ、掛け算の結果がすべて同じ向きにそろい、足し合わせが最大になります。少しでもずれると、プラスとマイナスが混ざって打ち消し合います。LFM では、そのずれの許容がおよそ 1/B と短いので、出力が細いパルスになります。',
+STEPS.push({short: '整合フィルタ', title: '整合フィルタと相関 — 参照波形を遅延させながら、乗算して加算する', src: '§8.1（p.8.1–8.2）、付録 Matched Filters・Matched Filter Time Response（p.8.39–8.41）',
+  q: '送信波形の複製（参照波形）を、受信信号に対して少しずつ遅延させながら「乗算して加算」します。出力が最大になるのは、どの時点ですか。',
+  ch: ['参照波形がエコーに重なり始めた時点', '参照波形がエコーに完全に重なった時点', '参照波形がエコーを通過した時点'], ans: 1,
+  why: '完全に重なった瞬間だけ、乗算の結果がすべて同位相になり、加算の結果が最大になります。わずかでも外れると、正と負の成分が混在して打ち消し合います。LFM では許容される時間差が約 1/B と短いため、出力が幅の狭いパルスになります。',
   read: {
-    ana: '型抜きクッキーの型を、生地の上で少しずつずらしていくところを想像してください。型と模様がぴったり合った瞬間だけ「カチッ」とはまります。整合フィルタは、送った波形という「型」を、受信信号の上で滑らせる仕組みです。',
-    what: '整合フィルタ（matched filter）は、[[ref|参照波形]]（送信波形のコピー）を受信信号の上でずらしながら、重なった部分を掛けて足します。この計算を相関と呼びます。||下の図が[[out|出力]]です。「動かす」を押すと、参照がエコーに重なる瞬間にだけ、出力に鋭い山ができます。山の位置がエコーの遅れ、つまり目標の距離です。',
+    ana: '型抜きクッキーの型を、生地の上で少しずつ動かしていく場面を想像してください。型と模様が完全に合った瞬間だけ、型がはまります。整合フィルタは送信波形という「型」を、受信信号の上で移動させる処理です。',
+    what: '<a class=gt data-g=g-matched-filter tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>整合フィルタ</a>（matched filter）は、[[ref|参照波形]]（送信波形の複製）を受信信号に対して遅延させながら、重なった部分を乗算して加算します。この計算を相関と呼びます。||下の図が[[out|出力]]です。「動かす」を押すと、参照波形がエコーに重なる瞬間にだけ、出力に鋭いピークが生じます。ピークの位置がエコーの遅延時間、すなわち目標距離を表します。',
     eq: '<i>y</i>(τ) = ∫ <i>r</i>(<i>t</i>)·<i>u</i>*(<i>t</i> − τ) d<i>t</i>',
-    sym: '<i>y</i>(τ)：ずらす量が τ のときの出力。<i>r</i>(<i>t</i>)：受信信号。<i>u</i>(<i>t</i>)：送信波形（参照）。* は複素共役（位相の向きを逆にする操作）。∫ は「重なった部分を全部足す」という意味。',
-    mis: '整合フィルタは「エコーの形をそのまま取り出す」フィルタではありません。出力の形は送信波形とは別物（自己相関）で、ピークの S/N を最大にすることが目的です。'},
-  hosoku: ['型抜きのたとえ', '少しずれると掛け算の結果が正負混ざって打ち消し合い、許容がおよそ 1/B であるという説明', '式は相関の形に書き直したもの'],
-  memo: 'つまずきやすい点：「掛けて足す」がなぜピークを作るのか。位相がそろう＝矢印が同じ向きに並ぶ、と言い換える。||声かけの例：「参照を 1 µs だけずらしたとき、出力はどのくらい下がった？」「山の位置から目標の距離を計算してみよう（1 µs = 150 m）」',
+    sym: '<i>y</i>(τ)：遅延量が τ の場合の出力。<i>r</i>(<i>t</i>)：受信信号。<i>u</i>(<i>t</i>)：送信波形（参照波形）。* は複素共役（位相の符号を反転する操作）。∫ は「重なった部分をすべて加算する」ことを表します。',
+    mis: '整合フィルタは「エコーの形をそのまま取り出す」フィルタではありません。出力の形は送信波形とは異なり（自己相関）、ピークの S/N を最大にすることが目的です。'},
+  hosoku: ['型抜きのたとえ', 'わずかに外れると乗算の結果に正負が混在して打ち消し合い、許容される時間差が約 1/B であるという説明', '式は相関の形に書き直したもの'],
+  memo: 'つまずきやすい点は、「乗算して加算する」ことがなぜピークを生じさせるのか、という点です。位相がそろうこと、すなわち矢印（フェーザ）が同じ方向に並ぶことである、と言い換えます。||声かけの例：「参照波形を 1 µs だけ遅延させると、出力はどの程度下がりましたか」「ピークの位置から目標距離を計算してみましょう（1 µs = 150 m）」',
   init: {T: 20, B: 1, wave: 'lfm', pos: 5}, ctl: ['pos'], fixed: ['T', 'B'], plots: [{h: 200}, {h: 170}],
   acts: [{t: '▶ 動かす', play: {k: 'pos', min: 0, max: 60, step: 0.4, ms: 60, once: true}}],
-  mission: {t: '出力がいちばん大きくなる位置に、参照波形をぴったり合わせよう（スライダーは矢印キーで細かく動かせます）。', ok: r => Math.abs(S.pos - 30) < 0.15}, sol: {pos: 30},
+  mission: {t: '出力が最大になる位置に、参照波形を正確に合わせましょう（スライダーは矢印キーで細かく動かせます）。', ok: r => Math.abs(S.pos - 30) < 0.15}, sol: {pos: 30},
   draw(P){
     const w = wav(), sc = makeScene(w, {targets: [{R: 4500, A: 1, ph: 0}], fd: 0}), y = compress(sc, w, 'none', 1), n = Math.round(S.pos * 10), ref = new Float64Array(w.N); for (let i = 0; i < w.N; i++) ref[i] = w.re[i] - 2.6;
-    P[0].set({title: '受信信号（上）と、ずらしていく参照波形（下）', xr: [0, 82], yr: [-3.9, 1.4], xl: '時刻 [µs]（送信してからの時間）', yl: '', yticks: [[0, 'エコー'], [-2.6, '参照']], series: [{name: '受信したエコー（I 成分）', color: 's1', x0: 0, dx: 0.1, y: sc.re.subarray(0, 820), w: 1.5}, {name: '参照波形（I 成分）', color: 's2', x0: S.pos, dx: 0.1, y: ref, w: 1.5}],
+    P[0].set({title: '受信信号（上）と、遅延させていく参照波形（下）', xr: [0, 82], yr: [-3.9, 1.4], xl: '時刻 [µs]（送信からの時間）', yl: '', yticks: [[0, 'エコー'], [-2.6, '参照波形']], series: [{name: '受信したエコー（I 成分）', color: 's1', x0: 0, dx: 0.1, y: sc.re.subarray(0, 820), w: 1.5}, {name: '参照波形（I 成分）', color: 's2', x0: S.pos, dx: 0.1, y: ref, w: 1.5}],
       bands: [{x0: 30, x1: 50, color: 'band', label: 'エコーのある区間'}], marks: {ref: {x0: S.pos, x1: S.pos + S.T, y0: -3.8, y1: -1.4, t: '参照波形'}}, noHover: true});
-    P[1].set({title: '整合フィルタの出力（ここまでずらした分）', xr: [0, 82], yr: [0, 1.15], xl: '参照をずらした時間 [µs]', yl: '出力の強さ（振幅）', series: [{name: '出力', color: 's3', x0: 0, dx: 0.1, y: y.mag.subarray(0, n + 1), w: 2}],
-      pts: [{x: S.pos, y: y.mag[n], color: 's3', label: fx(y.mag[n], 2)}], notes: S.pos >= 30 ? [{x: 30, y: 1, t: 'ぴったり重なった瞬間', dx: 40, dy: 0}] : [], marks: {out: {x0: 26, x1: 34, t: '出力の山'}}, tipx: v => fx(v, 1) + ' µs', tipy: v => fx(v, 2)});
-    return {tiles: [{k: 'いまの出力', v: fx(y.mag[n], 2), s: '最大は 1.00'}, {k: 'ずらした時間', v: fx(S.pos, 1) + ' <small>µs</small>', s: '距離にすると ' + fx(S.pos * 0.15, 2) + ' km'}]};
+    P[1].set({title: '整合フィルタの出力（ここまで遅延させた分）', xr: [0, 82], yr: [0, 1.15], xl: '参照波形の遅延時間 [µs]', yl: '出力の振幅', series: [{name: '出力', color: 's3', x0: 0, dx: 0.1, y: y.mag.subarray(0, n + 1), w: 2}],
+      pts: [{x: S.pos, y: y.mag[n], color: 's3', label: fx(y.mag[n], 2)}], notes: S.pos >= 30 ? [{x: 30, y: 1, t: '完全に重なった瞬間', dx: 40, dy: 0}] : [], marks: {out: {x0: 26, x1: 34, t: '出力のピーク'}}, tipx: v => fx(v, 1) + ' µs', tipy: v => fx(v, 2)});
+    return {tiles: [{k: '現在の出力', v: fx(y.mag[n], 2), s: '最大は 1.00'}, {k: '遅延時間', v: fx(S.pos, 1) + ' <small>µs</small>', s: '距離に換算すると ' + fx(S.pos * 0.15, 2) + ' km'}]};
   }});
 
 /* 4 */
-STEPS.push({short: '距離分解能', title: '距離分解能 — 近くに並んだ 2 つの目標を見分ける', src: '§8.2 Time Delay and Range Resolution Widths・表8.1（p.8.4–8.5）',
-  q: '300 m 離れた 2 つの目標が、圧縮後に 1 つの山に見えている。2 つに分けるには、何を変えるのが効く？',
-  ch: ['パルス幅 T を長くする', '帯域 B を広げる', 'どちらを変えても同じ'], ans: 1,
-  why: '圧縮後のパルスの幅は、およそ 1/B です。B を広げるほど山が細くなり、近くの目標を分けられます。パルス幅 T は圧縮後の幅には効きません（T が効くのはエネルギー、つまり S/N です）。',
+STEPS.push({short: '距離分解能', title: '距離分解能 — 近接した 2 つの目標を分離する', src: '§8.2 Time Delay and Range Resolution Widths・表8.1（p.8.4–8.5）',
+  q: '300 m 離れた 2 つの目標が、圧縮後に 1 つのピークに見えています。2 つに分離するには、何を変えることが有効ですか。',
+  ch: ['パルス幅 T を長くする', '帯域幅 B を広げる', 'どちらを変えても同じ'], ans: 1,
+  why: '圧縮後のパルス幅は、約 1/B です。B を広げるほどピークの幅が狭くなり、近接した目標を分離できます。パルス幅 T は圧縮後の幅には影響しません（T が影響するのはエネルギー、すなわち S/N です）。',
   read: {
-    ana: '太いマジックで書いた 2 本の線は、近づけるとくっついて 1 本に見えます。細いペンなら、同じ間隔でも 2 本だと分かります。距離分解能は、この「ペンの太さ」にあたります。',
-    what: '圧縮後の[[lobe|山（主ローブ）の幅]]は、帯域 B で決まります。高さが約 7 割（3 dB 下）になる幅は 0.886/B です。||これに c/2 を掛けると距離になります。目安としてよく使う c/(2B) は、少し低い位置（3.9 dB 下）で測った幅にあたります。上の図で B を動かし、[[dip|2 つの山の間の谷]]がどうなるか見てください。',
+    ana: '太いマジックで書いた 2 本の線は、近づけるとつながって 1 本に見えます。細いペンであれば、同じ間隔でも 2 本であると分かります。距離分解能はこの「ペンの太さ」に当たります。',
+    what: '圧縮後の[[lobe|ピーク（メインローブ）の幅]]は帯域幅 B で決まります。振幅が約 7 割（3 dB 下）になる幅は 0.886/B です。||これに c/2 を掛けると距離になります。目安としてよく使う c/(2B) は、やや低いレベル（3.9 dB 下）で測った幅に当たります。上の図で B を変えて、[[dip|2 つのピークの間の落ち込み]]がどのように変わるかを確かめてください。',
     eq: 'Δ<i>R</i> ≈ <i>c</i> / (2<i>B</i>)',
-    sym: 'Δ<i>R</i>：距離分解能 [m]。<i>c</i>：光の速さ（3×10⁸ m/s）。<i>B</i>：帯域 [Hz]。B = 1 MHz なら約 150 m。2 で割るのは、電波が往復するからです。',
-    mis: '「パルスを長くすると分解能が悪くなる」のは変調なしの場合だけです。パルス圧縮では、T を長くしても分解能は変わりません。下の図（変調なし）と比べてください。'},
-  hosoku: ['ペンの太さのたとえ', '2 つのエコーの位相差を 90° に固定していること（谷の深さは位相差で変わる）'],
-  memo: 'つまずきやすい点：分解能（見分ける能力）と精度（位置を測る細かさ）の混同。ここで扱うのは分解能。||声かけの例：「B を 2 倍にしたら山の幅は？」「谷がちょうど見え始める B のとき、c/(2B) は何 m？間隔 300 m と比べると？」',
+    sym: 'Δ<i>R</i>：距離分解能 [m]。<i>c</i>：光速（3×10⁸ m/s）。<i>B</i>：帯域幅 [Hz]。B = 1 MHz の場合は約 150 m です。2 で割るのは、電波が往復するためです。',
+    mis: '「パルス幅を長くすると分解能が低くなる」のは、無変調の場合だけです。パルス圧縮では T を長くしても分解能は変わりません。下の図（無変調）と比較してください。'},
+  hosoku: ['ペンの太さのたとえ', '2 つのエコーの位相差を 90° に固定していること（落ち込みの深さは位相差によって変わる）'],
+  memo: 'つまずきやすい点は、分解能（分離する能力）と精度（位置を測定する正確さ）の混同です。ここで扱うのは分解能です。||声かけの例：「B を 2 倍にすると、ピークの幅はどうなりますか」「落ち込みがちょうど現れ始める B の場合、c/(2B) は何 m ですか。間隔 300 m と比較するとどうですか」',
   init: {T: 40, B: 0.3, wave: 'lfm', t2: true, dr: 300, a2: 0}, ctl: ['B'], fixed: ['T', 'dr'], plots: [{h: 210}, {h: 150}],
-  mission: {t: '2 つの山の間に、深さ 3 dB 以上（山の高さの約 7 割以下）の谷ができるようにしよう。ただし帯域は 1 MHz 以下で。', ok: r => r.dip >= 3 && S.B <= 1.0001}, sol: {B: 0.8},
+  mission: {t: '2 つのピークの間に、深さ 3 dB 以上（ピークの振幅の約 7 割以下）の落ち込みが生じるようにしましょう。ただし、帯域幅は 1 MHz 以下とします。', ok: r => r.dip >= 3 && S.B <= 1.0001}, sol: {B: 0.8},
   draw(P){
     const w = wav(), y = compress(makeScene(w, {targets: tgts(), fd: 0}), w, 'none', 4), a = rseg(y.mag, y.dt, 19, 21.3), k = y.dt * 1.5e8;
     const i1 = Math.round(20000 / k), i2 = Math.round(20300 / k), pk = Math.min(maxIn(y.mag, i1 - 2, i1 + 2), maxIn(y.mag, i2 - 2, i2 + 2)); let mn = Infinity; for (let i = i1; i <= i2; i++) if (y.mag[i] < mn) mn = y.mag[i];
     const dip = Math.max(0, 20 * Math.log10(pk / Math.max(mn, 1e-9))), wc = makeWave('cw', S.T, S.B), yc = compress(makeScene(wc, {targets: tgts(), fd: 0}), wc, 'none', 1), c = rseg(yc.mag, yc.dt, 13, 27);
-    P[0].set(Object.assign({title: 'LFM：圧縮後の出力（目標は 20.0 km と 20.3 km）', xr: [19, 21.3], yr: [0, 1.5], yl: '圧縮後の強さ（振幅）', series: [{name: '圧縮後の出力', color: 's1', x0: a.x0, dx: a.dx, y: a.y, w: 2}], vl: [{x: 20, label: '目標1'}, {x: 20.3, label: '目標2'}],
-      notes: [dip >= 3 ? {x: 20.15, y: mn, t: '谷の深さ ' + fx(dip, 1) + ' dB', dx: 60, dy: 40} : {x: 20.15, y: mn, t: 'まだ 1 つの山', dx: 60, dy: -30}], marks: {lobe: {x0: 20 - 0.0665 / S.B, x1: 20 + 0.0665 / S.B, t: '山の幅（3 dB 幅）= 0.886/B'}, dip: {x0: 20.05, x1: 20.25, t: '谷'}}}, RKM));
-    P[1].set(Object.assign({title: '比較：同じ長さ（40 µs）の変調なしパルス', xr: [13, 27], yr: [0, 1.5], yl: '強さ（振幅）', series: [{name: '変調なしの出力', color: 'ref', x0: c.x0, dx: c.dx, y: c.y, w: 2}], notes: [{x: 20.15, y: 1.38, t: '300 m の差はまったく見えない', dx: 40, dy: 30}]}, RKM));
-    return {dip, tiles: [{k: '見分けの目安 c/(2B)', v: fx(150 / S.B, 0) + ' <small>m</small>', s: '目標の間隔は 300 m'}, {k: '山の 3 dB 幅（0.886/B を距離に）', v: fx(0.886 * 150 / S.B, 0) + ' <small>m</small>'}, {k: '2 つの山の間の谷', v: dip >= 0.05 ? fx(dip, 1) + ' <small>dB</small>' : 'なし', s: dip >= 0.05 ? '谷の高さは山の ' + fx(Math.pow(10, -dip / 20) * 100, 0) + '%' : '1 つの山に見える'}]};
+    P[0].set(Object.assign({title: 'LFM：圧縮後の出力（目標は 20.0 km と 20.3 km）', xr: [19, 21.3], yr: [0, 1.5], yl: '圧縮後の振幅', series: [{name: '圧縮後の出力', color: 's1', x0: a.x0, dx: a.dx, y: a.y, w: 2}], vl: [{x: 20, label: '目標1'}, {x: 20.3, label: '目標2'}],
+      notes: [dip >= 3 ? {x: 20.15, y: mn, t: '落ち込みの深さ ' + fx(dip, 1) + ' dB', dx: 60, dy: 40} : {x: 20.15, y: mn, t: 'まだ 1 つのピーク', dx: 60, dy: -30}], marks: {lobe: {x0: 20 - 0.0665 / S.B, x1: 20 + 0.0665 / S.B, t: 'ピークの幅（3 dB 幅）= 0.886/B'}, dip: {x0: 20.05, x1: 20.25, t: '落ち込み'}}}, RKM));
+    P[1].set(Object.assign({title: '比較：同じ長さ（40 µs）の無変調パルス', xr: [13, 27], yr: [0, 1.5], yl: '振幅', series: [{name: '無変調の出力', color: 'ref', x0: c.x0, dx: c.dx, y: c.y, w: 2}], notes: [{x: 20.15, y: 1.38, t: '300 m の差はまったく分離できない', dx: 40, dy: 30}]}, RKM));
+    return {dip, tiles: [{k: '分解能の目安 c/(2B)', v: fx(150 / S.B, 0) + ' <small>m</small>', s: '目標の間隔は 300 m'}, {k: 'ピークの 3 dB 幅（0.886/B を距離に換算）', v: fx(0.886 * 150 / S.B, 0) + ' <small>m</small>'}, {k: '2 つのピークの間の落ち込み', v: dip >= 0.05 ? fx(dip, 1) + ' <small>dB</small>' : 'なし', s: dip >= 0.05 ? '落ち込みの振幅はピークの ' + fx(Math.pow(10, -dip / 20) * 100, 0) + '%' : '1 つのピークに見える'}]};
   }});
 
 /* 5 */
-STEPS.push({short: '雑音の中の検出', title: '雑音の中での検出 — 埋もれたエコーが、圧縮すると浮かび上がる', src: '付録 Matched Filters（p.8.39、式8.42〜8.45）、§8.1（p.8.1–8.2）',
-  q: 'エコーは雑音より弱く、圧縮する前は見えない。パルス幅 T を 2 倍にすると、圧縮後のピークの S/N はどうなる？',
-  ch: ['変わらない', '約 3 dB（2 倍）良くなる', '約 6 dB（4 倍）良くなる'], ans: 1,
-  why: '整合フィルタの出力の S/N は、受信した信号のエネルギーで決まります。同じ強さでパルスを 2 倍の長さにすると、エネルギーが 2 倍になるので、S/N は 2 倍（約 3 dB）良くなります。',
+STEPS.push({short: '雑音の中の検出', title: '雑音の中での検出 — 埋もれたエコーが圧縮によって現れる', src: '付録 Matched Filters（p.8.39、式8.42〜8.45）、§8.1（p.8.1–8.2）',
+  q: 'エコーは雑音より弱く、圧縮前には検出できません。パルス幅 T を 2 倍にすると、圧縮後のピークの S/N はどうなりますか。',
+  ch: ['変わらない', '約 3 dB（2 倍）向上する', '約 6 dB（4 倍）向上する'], ans: 1,
+  why: '整合フィルタの出力の S/N は、受信信号のエネルギーで決まります。同じ電力でパルス幅を 2 倍にすると、エネルギーが 2 倍になるため、S/N は 2 倍（約 3 dB）向上します。',
   read: {
-    ana: 'にぎやかな教室で、1 人が小さな声で話しても聞こえません。でも 100 人が同じ言葉を、同じタイミングで言えば、はっきり聞こえます。ばらばらのざわめき（雑音）は、足してもそれほど大きくならないからです。',
-    what: '上の図は圧縮する前です。[[before|エコー]]は雑音より弱く、どこにあるか分かりません。下の図は整合フィルタに通した後で、パルス全体のエネルギーが 1 点に集まり、[[after|ピーク]]が雑音の上に出ます。||整合フィルタは、雑音の中の信号に対して、出力のピークの S/N を最大にするフィルタです。その S/N は信号のエネルギーだけで決まり、波形の種類にはよりません。',
+    ana: '騒がしい教室で、1 人が小さな声で話しても聞こえません。しかし、100 人が同じ言葉を同じタイミングで言えば、はっきり聞こえます。不規則なざわめき（雑音）は、加算してもそれほど大きくならないためです。',
+    what: '上の図は圧縮前です。[[before|エコー]]は雑音より弱く、どこにあるかが分かりません。下の図は整合フィルタを通した後であり、パルス全体のエネルギーが 1 点に集中し、[[after|ピーク]]が雑音を上回ります。||整合フィルタは雑音の中の信号に対して、出力のピークの <a class=gt data-g=g-snr tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>S/N</a> を最大にするフィルタです。その S/N は信号のエネルギーだけで決まり、波形の種類にはよりません。',
     eq: '(S/N)<sub>出力</sub> = 2<i>E</i> / <i>N</i><sub>0</sub>',
-    sym: '<i>E</i>：受信した信号のエネルギー [J]（強さ × パルス幅）。<i>N</i><sub>0</sub>：雑音の電力密度 [W/Hz]（1 Hz あたりの雑音の強さ）。パルス幅を伸ばすと <i>E</i> が増えます。',
-    mis: '「LFM にすると S/N が良くなる」わけではありません。同じ長さ・同じ強さなら、変調なしでも LFM でも圧縮後の S/N は同じです。変調の目的は S/N ではなく、分解能です。'},
-  hosoku: ['教室のたとえ', '入力 S/N を 1 サンプルあたりで定義し、改善量を 10·log(サンプル数) としていること'],
-  memo: 'つまずきやすい点：「改善量」は入力 S/N の定義（雑音の帯域）で数字が変わる。ここではサンプル数 N = T × 10 MHz 倍。||声かけの例：「T を 10 µs から 40 µs にしたら、ピークは何 dB 上がった？」「雑音の高さ（0 dB の線）は変わった？」',
+    sym: '<i>E</i>：受信信号のエネルギー [J]（電力 × パルス幅）。<i>N</i><sub>0</sub>：雑音電力密度 [W/Hz]（1 Hz あたりの雑音電力）。パルス幅を長くすると <i>E</i> が増えます。',
+    mis: '「LFM にすると S/N が向上する」という理解は誤りです。同じ長さ・同じ電力であれば、無変調でも LFM でも圧縮後の S/N は同じです。変調の目的は S/N ではなく、分解能です。'},
+  hosoku: ['教室のたとえ', '入力の S/N を 1 サンプルあたりで定義し、改善量を 10·log(サンプル数) としていること'],
+  memo: 'つまずきやすい点は、「改善量」の数値が入力の S/N の定義（雑音の帯域幅）によって変わることです。ここではサンプル数を N = T × 10 MHz としています。||声かけの例：「T を 10 µs から 40 µs にすると、ピークは何 dB 上がりましたか」「雑音のレベル（0 dB の線）は変わりましたか」',
   init: {T: 10, B: 2, wave: 'lfm', snr: -10}, ctl: ['T'], fixed: ['snr', 'B'], plots: [{h: 170}, {h: 200}], acts: [{t: '別の雑音にする', f: () => { S.seed++; }}],
-  mission: {t: '圧縮後のピークの S/N が 15 dB 以上（電力で約 32 倍）になる、いちばん短いパルス幅を見つけよう。', ok: r => r.out >= 15 && r.out - 10 * Math.log10(S.T / (S.T - 5)) < 15}, sol: {T: 35},
+  mission: {t: '圧縮後のピークの S/N が 15 dB 以上（電力で約 32 倍）になる、最も短いパルス幅を見つけましょう。', ok: r => r.out >= 15 && r.out - 10 * Math.log10(S.T / (S.T - 5)) < 15}, sol: {T: 35},
   draw(P){
     const w = wav(), sc = makeScene(w, {targets: [{R: 20000, A: 1, ph: 0}], fd: 0, noise: true}), sg = Math.pow(10, -S.snr / 20), y = compress(sc, w, 'none', 1);
     const a = rseg(dbA(amp(sc.re, sc.im), sg), 1 / FS, 17, 37), b = rseg(dbA(y.mag, sg / Math.sqrt(w.N)), y.dt, 17, 37), gain = 10 * Math.log10(w.N), out = S.snr + gain;
-    P[0].set(Object.assign({title: '圧縮する前：受信した信号の強さ', xr: [17, 37], yr: [-25, 25], yl: '強さ [dB]（雑音の平均 = 0）', series: [{name: '受信信号', color: 'ref', x0: a.x0, dx: a.dx, y: a.y, w: 1}], bands: [{x0: 20, x1: 20 + S.T * 0.15, color: 'band', label: 'エコーはここにある'}],
+    P[0].set(Object.assign({title: '圧縮前：受信信号の強度', xr: [17, 37], yr: [-25, 25], yl: '強度 [dB]（雑音の平均 = 0）', series: [{name: '受信信号', color: 'ref', x0: a.x0, dx: a.dx, y: a.y, w: 1}], bands: [{x0: 20, x1: 20 + S.T * 0.15, color: 'band', label: 'エコーの位置'}],
       marks: {before: {x0: 20, x1: 20 + S.T * 0.15, t: 'エコー（雑音より ' + (-S.snr) + ' dB 弱い）'}}, tipy: v => fx(v, 1) + ' dB'}, RKM));
-    P[1].set(Object.assign({title: '圧縮した後：整合フィルタの出力', xr: [17, 37], yr: [-25, 25], yl: '強さ [dB]（雑音の平均 = 0）', series: [{name: '圧縮後の出力', color: 's1', x0: b.x0, dx: b.dx, y: b.y, w: 1.2}], hl: [{y: 15, label: '目標の 15 dB', left: false}],
-      notes: [{x: 20, y: out, t: 'ピーク（理論値 ' + fx(out, 1) + ' dB）', dx: 46, dy: 6}], marks: {after: {x0: 19.6, x1: 20.4, t: '1 点に集まったピーク'}}, tipy: v => fx(v, 1) + ' dB'}, RKM));
-    return {out, tiles: [{k: '圧縮する前の S/N', v: fx(S.snr, 0) + ' <small>dB</small>', s: '電力 ' + ratioTxt(S.snr)}, {k: '圧縮による改善', v: '+' + fx(gain, 1) + ' <small>dB</small>', s: '足し合わせるサンプル数 ' + w.N + ' 倍'}, {k: '圧縮後のピークの S/N（理論）', v: fx(out, 1) + ' <small>dB</small>', s: '電力 ' + ratioTxt(out)}]};
+    P[1].set(Object.assign({title: '圧縮後：整合フィルタの出力', xr: [17, 37], yr: [-25, 25], yl: '強度 [dB]（雑音の平均 = 0）', series: [{name: '圧縮後の出力', color: 's1', x0: b.x0, dx: b.dx, y: b.y, w: 1.2}], hl: [{y: 15, label: '目標値の 15 dB', left: false}],
+      notes: [{x: 20, y: out, t: 'ピーク（理論値 ' + fx(out, 1) + ' dB）', dx: 46, dy: 6}], marks: {after: {x0: 19.6, x1: 20.4, t: '1 点に集中したピーク'}}, tipy: v => fx(v, 1) + ' dB'}, RKM));
+    return {out, tiles: [{k: '圧縮前の S/N', v: fx(S.snr, 0) + ' <small>dB</small>', s: '電力 ' + ratioTxt(S.snr)}, {k: '圧縮による改善', v: '+' + fx(gain, 1) + ' <small>dB</small>', s: '加算するサンプル数 ' + w.N + ' 倍'}, {k: '圧縮後のピークの S/N（理論）', v: fx(out, 1) + ' <small>dB</small>', s: '電力 ' + ratioTxt(out)}]};
   }});
 
 /* 6 */
-STEPS.push({short: 'サイドローブ', title: 'サイドローブと重み付け — 強い目標の「すそ」に、弱い目標が隠れる', src: '§8.2 Frequency Domain Weighting・表8.2（p.8.7–8.8、式8.10〜8.12）、第4章 Pulse Compression Mismatch Loss（p.4.39–4.40）',
-  q: '強い目標のすぐ隣に、電力が 1/1000（−30 dB）の弱い目標がある。テイラー重み付けを入れると、圧縮後の出力はどう変わる？',
-  ch: ['サイドローブが下がり、山は少し太くなる', 'サイドローブも下がり、山も細くなる', '何も変わらない'], ans: 0,
-  why: '重み付けは、サイドローブを −13 dB から −40 dB まで下げます。その代わり、山の幅が 0.886/B から 1.25/B に広がり、S/N が 1.15 dB 下がります（ミスマッチ損失）。良いことだけの方法はありません。',
+STEPS.push({short: 'サイドローブ', title: 'サイドローブと重み付け — 強い目標のサイドローブに、弱い目標が隠れる', src: '§8.2 Frequency Domain Weighting・表8.2（p.8.7–8.8、式8.10〜8.12）、第4章 Pulse Compression Mismatch Loss（p.4.39–4.40）',
+  q: '強い目標のすぐ隣に、電力が 1/1000（−30 dB）の弱い目標があります。テイラーの重み付けを行うと、圧縮後の出力はどのように変わりますか。',
+  ch: ['サイドローブが下がり、メインローブの幅はやや広くなる', 'サイドローブも下がり、メインローブの幅も狭くなる', '何も変わらない'], ans: 0,
+  why: '重み付けは、サイドローブを −13 dB から −40 dB まで下げます。その代わり、メインローブの幅が 0.886/B から 1.25/B に広がり、S/N が 1.15 dB 低下します（ミスマッチ損失）。利点だけをもつ方法はありません。',
   read: {
-    ana: '夜、明るい街灯のすぐ隣にある小さな豆電球は、街灯のまぶしさ（にじみ）に隠れて見えません。にじみを抑えるフィルタをかけると豆電球が見えますが、街灯の像は少しぼやけます。',
-    what: '圧縮後の山の両脇には、[[sl|時間サイドローブ（time sidelobe）]]という小さな山が並びます。重みなしの LFM では、いちばん大きいものが主ローブの −13.2 dB です。強い目標のサイドローブは、近くの[[weak|弱い目標]]を隠します。||テイラー重み付け（Taylor weighting）は、周波数の端を弱めることでサイドローブを下げます。代わりに整合フィルタから少し外れるので、S/N が下がります。これがミスマッチ損失（mismatch loss）です。',
+    ana: '夜、明るい街灯のすぐ隣にある小さな豆電球は、街灯の光のにじみに隠れて見えません。にじみを抑えるフィルタをかけると豆電球が見えますが、街灯の像はやや不鮮明になります。',
+    what: '圧縮後のピークの両側には、[[sl|小さなピーク]]が並びます。これを<a class=gt data-g=g-time-sidelobe tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>時間サイドローブ</a>（time sidelobe）と呼びます。重み付けなしの LFM では、最大の時間サイドローブはメインローブに対して −13.2 dB です。強い目標のサイドローブは、近くの[[weak|弱い目標]]を隠します。||<a class=gt data-g=g-taylor-weighting tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>テイラー重み付け</a>（Taylor weighting）は、周波数の両端の振幅を小さくすることによって、サイドローブを下げます。その代わりに整合フィルタからわずかに外れるため、S/N が低下します。これが<a class=gt data-g=g-mismatch-loss tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>ミスマッチ損失</a>（mismatch loss）です。',
     eq: 'ミスマッチ損失 <i>L</i><sub>m</sub> = (S/N)<sub>整合フィルタ</sub> / (S/N)<sub>重み付け後</sub>',
-    sym: '<i>L</i><sub>m</sub>：ミスマッチ損失（1 以上の比。dB で表すことが多い）。−40 dB のテイラー重み付けでは 1.15 dB（電力で約 1.3 倍の損）。',
-    mis: '「サイドローブ」は雑音ではありません。強い目標そのものの応答の一部です。だから S/N をいくら上げても消えず、重み付けでしか下がりません。'},
-  hosoku: ['街灯のたとえ', '弱い目標を 260 m 隣に置いた場面設定'],
-  memo: 'つまずきやすい点：サイドローブと雑音の区別。目標の強さを変えるとサイドローブも一緒に上下することを確認させる。||声かけの例：「重みなしで見えるのは、弱い目標が何 dB のときまで？」「テイラーにしたとき、山の幅は何倍になった？」',
+    sym: '<i>L</i><sub>m</sub>：ミスマッチ損失（1 以上の比。dB で表すことが多い）。−40 dB のテイラー重み付けでは 1.15 dB（電力で約 1.3 倍の損失）です。',
+    mis: '「サイドローブ」は雑音ではありません。強い目標そのものの応答の一部です。このため、S/N をどれだけ上げてもなくならず、重み付けによってしか下がりません。'},
+  hosoku: ['街灯のたとえ', '弱い目標を 260 m 隣に置いた場面の設定'],
+  memo: 'つまずきやすい点は、サイドローブと雑音の区別です。目標の強度を変えるとサイドローブもともに上下することを確認させます。||声かけの例：「重み付けなしで検出できるのは、弱い目標が何 dB の場合までですか」「テイラーの重み付けにすると、メインローブの幅は何倍になりましたか」',
   init: {T: 40, B: 2, wave: 'lfm', t2: true, dr: 260, a2: -15, wt: 'none'}, ctl: ['wt', 'a2'], fixed: ['T', 'B', 'dr'], plots: [{h: 260}],
-  mission: {t: '弱い目標を −30 dB（電力 1/1000）まで下げ、それでも山として見えるようにしよう。', ok: r => S.a2 <= -30 && S.wt === 'taylor'}, sol: {a2: -30, wt: 'taylor'},
+  mission: {t: '弱い目標を −30 dB（電力 1/1000）まで下げ、その状態でもピークとして見えるようにしましょう。', ok: r => S.a2 <= -30 && S.wt === 'taylor'}, sol: {a2: -30, wt: 'taylor'},
   draw(P){
     const w = wav(), y = compress(makeScene(w, {targets: tgts(), fd: 0}), w, S.wt, 4), a = rseg(dbA(y.mag, 1), y.dt, 19.2, 20.8), y1 = compress(makeScene(w, {targets: [tgts()[0]], fd: 0}), w, S.wt, 4), b = rseg(dbA(y1.mag, 1), y1.dt, 19.2, 20.8), r = response(w, 0, S.wt), m = metrics(r);
-    P[0].set(Object.assign({title: '圧縮後の出力（縦軸は dB。強い目標の頂上が 0 dB）', xr: [19.2, 20.8], yr: [-65, 6], yl: '強さ [dB]（強い目標 = 0）', series: [{name: '強い目標だけのとき', color: 'ref', x0: b.x0, dx: b.dx, y: b.y, w: 1.2, dash: [4, 3]}, {name: '弱い目標もあるとき', color: 's1', x0: a.x0, dx: a.dx, y: a.y, w: 2}],
-      hl: [{y: S.a2, label: '弱い目標の強さ ' + S.a2 + ' dB', left: true}], notes: [{x: 20.26, y: S.a2, t: '弱い目標はここ', dx: 40, dy: -30}], marks: {sl: {x0: 20.06, x1: 20.75, y0: -64, y1: m.psl + 3, t: 'サイドローブ（最大 ' + fx(m.psl, 1) + ' dB）'}, weak: {x0: 20.2, x1: 20.32, t: '弱い目標'}}, tipy: v => fx(v, 1) + ' dB'}, RKM));
-    return {tiles: [{k: 'いちばん大きいサイドローブ', v: fx(m.psl, 1) + ' <small>dB</small>', s: '主ローブの電力の ' + ratioTxt(m.psl)}, {k: '山の 3 dB 幅', v: fx(m.w3 * S.B * 1e6, 2) + ' <small>/B</small>', s: '距離では ' + fx(m.w3 * 1.5e8, 0) + ' m'}, {k: 'ミスマッチ損失', v: fx(r.lossDb, 2) + ' <small>dB</small>', s: S.wt === 'taylor' ? 'S/N が電力で ' + ratioTxt(-r.lossDb) + ' に' : '重みなしなので 0'}]};
+    P[0].set(Object.assign({title: '圧縮後の出力（縦軸は dB。強い目標のピークが 0 dB）', xr: [19.2, 20.8], yr: [-65, 6], yl: '強度 [dB]（強い目標 = 0）', series: [{name: '強い目標だけの場合', color: 'ref', x0: b.x0, dx: b.dx, y: b.y, w: 1.2, dash: [4, 3]}, {name: '弱い目標もある場合', color: 's1', x0: a.x0, dx: a.dx, y: a.y, w: 2}],
+      hl: [{y: S.a2, label: '弱い目標の強度 ' + fx(S.a2, 0) + ' dB', left: true}], notes: [{x: 20.26, y: S.a2, t: '弱い目標の位置', dx: 40, dy: -30}], marks: {sl: {x0: 20.06, x1: 20.75, y0: -64, y1: m.psl + 3, t: 'サイドローブ（最大 ' + fx(m.psl, 1) + ' dB）'}, weak: {x0: 20.2, x1: 20.32, t: '弱い目標'}}, tipy: v => fx(v, 1) + ' dB'}, RKM));
+    return {tiles: [{k: '最も大きいサイドローブ', v: fx(m.psl, 1) + ' <small>dB</small>', s: 'メインローブの電力の ' + ratioTxt(m.psl)}, {k: 'メインローブの 3 dB 幅', v: fx(m.w3 * S.B * 1e6, 2) + ' <small>/B</small>', s: '距離では ' + fx(m.w3 * 1.5e8, 0) + ' m'}, {k: 'ミスマッチ損失', v: fx(r.lossDb, 2) + ' <small>dB</small>', s: S.wt === 'taylor' ? 'S/N が電力で ' + ratioTxt(-r.lossDb) + ' に' : '重み付けなしのため 0'}]};
   }});
 
 /* 7 */
-STEPS.push({short: 'ドップラの影響', title: 'ドップラの影響 — LFM は形を保つが、位置がずれる', src: '§8.2 LFM・Range-Doppler Coupling（p.8.3–8.6、式8.7〜8.9）、Binary Phase Codes（p.8.17）、§8.3 表8.8（p.8.27）',
-  q: '目標が近づいていて、エコーにドップラ周波数が付いている。LFM で圧縮すると、出力のピークはどうなる？',
-  ch: ['ほとんど消えてしまう', '形はほぼそのままで、位置がずれる', '位置はそのままで、幅が大きく広がる'], ans: 1,
-  why: 'LFM は「時刻」と「周波数」が直線の関係で結ばれています。エコー全体の周波数が fd だけずれると、参照波形とぴったり合う時刻が fd·T/B だけずれます。山の形と高さはほとんど変わりません。これが距離ドップラ結合です。',
+STEPS.push({short: 'ドップラの影響', title: 'ドップラの影響 — LFM は形を保つが、位置が変化する', src: '§8.2 LFM・Range-Doppler Coupling（p.8.3–8.6、式8.7〜8.9）、Binary Phase Codes（p.8.17）、§8.3 表8.8（p.8.27）',
+  q: '目標が接近しており、エコーにドップラ偏移が生じています。LFM で圧縮すると、出力のピークはどうなりますか。',
+  ch: ['ほとんど消失する', '形はほぼ変わらず、位置が変化する', '位置は変わらず、幅が大きく広がる'], ans: 1,
+  why: 'LFM では「時刻」と「周波数」が直線の関係にあります。エコー全体の周波数が fd だけ偏移すると、参照波形と一致する時刻が fd·T/B だけ変化します。ピークの形と高さは、ほとんど変わりません。これが距離ドップラ結合です。',
   read: {
-    ana: '音階を順に上がっていく音（ドレミファ…）を、全体に少し高い音で演奏されたとします。「ミ」を待っている人には、本来より少し早いタイミングで「ミ」の高さの音が聞こえます。高さのずれが、時間のずれに見えるのです。',
-    what: '動く目標のエコーには、ドップラ周波数 fd が加わります。LFM では、[[shift|ピークの位置]]が fd·T/B だけ時間方向にずれます。これを距離ドップラ結合（range-Doppler coupling）と呼びます。近づく目標（fd が正）は、アップチャープなら近い側にずれます。||形と S/N はほとんど変わらないので、±B/10 程度までのドップラなら 1 本のフィルタで対応できます。一方、バーカー符号のような位相符号はドップラに敏感で、ピークが下がりサイドローブが上がります（波形を切り替えて比べてください）。',
+    ana: '音階を順に上がっていく音（ドレミファ…）が、全体にやや高い音で演奏されたとします。「ミ」を待っている人には、本来よりやや早いタイミングで「ミ」の高さの音が聞こえます。音の高さの差が時間の差として現れます。',
+    what: '運動する目標のエコーには、<a class=gt data-g=g-doppler-frequency tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>ドップラ周波数</a> fd が加わります。LFM では[[shift|ピークの位置]]が fd·T/B だけ時間方向に変化します。これを<a class=gt data-g=g-range-doppler-coupling tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>距離ドップラ結合</a>（range-Doppler coupling）と呼びます。接近する目標（fd が正）は、アップチャープの場合、近距離側に現れます。||形と S/N はほとんど変わらないため、±B/10 程度までのドップラ周波数であれば、1 本のフィルタで対応できます。一方、バーカー符号のような位相符号はドップラ周波数に敏感であり、ピークが下がってサイドローブが上がります（波形を切り替えて比較してください）。',
     eq: 'Δ<i>t</i> = −<i>f</i><sub>d</sub>·<i>T</i> / <i>B</i>',
-    sym: 'Δ<i>t</i>：ピークの位置のずれ [秒]（負は早い側＝近い側）。<i>f</i><sub>d</sub>：ドップラ周波数 [Hz]。<i>T</i>：パルス幅 [秒]。<i>B</i>：帯域 [Hz]。距離のずれは Δ<i>t</i>·<i>c</i>/2。',
-    mis: '「LFM はドップラの影響を受けない」は言い過ぎです。形は保たれますが、距離が少しずれて測られます。{H}このスライダーの ±500 kHz は見やすくするための大きな値で、実際は fd = 2v/λ（波長 0.1 m・300 m/s なら 6 kHz）程度です。'},
+    sym: 'Δ<i>t</i>：ピークの位置の変化 [秒]（負は早い側＝近距離側）。<i>f</i><sub>d</sub>：ドップラ周波数 [Hz]。<i>T</i>：パルス幅 [秒]。<i>B</i>：帯域幅 [Hz]。距離の変化は Δ<i>t</i>·<i>c</i>/2 です。',
+    mis: '「LFM はドップラの影響を受けない」という表現は正確ではありません。形は保たれますが、距離にわずかな誤差が生じます。{H}このスライダーの ±500 kHz は見やすくするための大きな値であり、実際は fd = 2v/λ（波長 0.1 m・300 m/s の場合は 6 kHz）程度です。'},
   hosoku: ['音階のたとえ', 'スライダーの範囲が実際より大きいこと、fd = 2v/λ による実際の値の目安'],
-  memo: 'つまずきやすい点：ずれの向き（アップチャープで近づく目標は近い側）。式の符号と図を対応させる。||声かけの例：「fd を 2 倍にすると、ずれは？」「バーカーに切り替えて、fd = 20 kHz でピークは何割になった？」',
+  memo: 'つまずきやすい点は、位置が変化する方向です（アップチャープで接近する目標は近距離側）。式の符号と図を対応させます。||声かけの例：「fd を 2 倍にすると、位置の変化はどうなりますか」「バーカー符号に切り替えて、fd = 20 kHz でピークは何割になりましたか」',
   init: {T: 40, B: 2, wave: 'lfm', fd: 0}, ctl: ['fd', {k: 'wave', seg: [['lfm', 'LFM'], ['barker', 'バーカー13']]}], fixed: ['T', 'B'], plots: [{h: 250}],
-  mission: {t: 'LFM で、ピークの位置がちょうど 300 m 近い側へずれるドップラ周波数を見つけよう。', ok: r => S.wave === 'lfm' && Math.abs(r.dm + 300) < 20}, sol: {fd: 100},
+  mission: {t: 'LFM でピークの位置がちょうど 300 m 近距離側へ変化するドップラ周波数を見つけましょう。', ok: r => S.wave === 'lfm' && Math.abs(r.dm + 300) < 20}, sol: {fd: 100},
   draw(P){
     const w = wav(), r0 = response(w, 0, 'none'), r = response(w, S.fd * 1e3, 'none'), m = metrics(r), dm = m.tpk * 1.5e8, lim = S.wave === 'lfm' ? 12 : 8;
     const xs = q => { const o = new Float64Array(q.n); for (let i = 0; i < q.n; i++) o[i] = (q.x0 + i * q.dx) * 1e6; return o; };
-    P[0].set({title: '圧縮後の出力：ドップラがないとき（破線）と、あるとき（実線）', xr: [-lim, lim], yr: [0, 1.15], xl: '本当の位置からのずれ [µs]（1 µs = 150 m。左が近い側）', yl: '圧縮後の強さ（振幅）', series: [{name: 'ドップラなし', color: 'ref', x: xs(r0), y: r0.mag, w: 1.4, dash: [5, 3]}, {name: 'ドップラ ' + S.fd + ' kHz', color: 's1', x: xs(r), y: r.mag, w: 2.2}],
-      vl: [{x: 0, label: '本当の位置'}], notes: Math.abs(S.fd) >= 10 ? [{x: m.tpk * 1e6, y: m.pk, t: 'ずれ ' + fx(dm, 0) + ' m、高さ ' + fx(m.pk * 100, 0) + '%', dx: m.tpk < 0 ? -30 : 30, dy: -6}] : [], marks: {shift: {x0: m.tpk * 1e6 - 0.6, x1: m.tpk * 1e6 + 0.6, t: 'ピークの位置'}}, tipx: v => fx(v, 2) + ' µs', tipy: v => fx(v, 2)});
-    return {dm, tiles: [{k: 'ピークの位置のずれ', v: fx(m.tpk * 1e6, 2) + ' <small>µs</small>', s: '距離では ' + fx(dm, 0) + ' m' + (dm < -1 ? '（近い側）' : dm > 1 ? '（遠い側）' : '')}, S.wave === 'lfm' ? {k: '式の値 −fd·T/B', v: fx(-S.fd * S.T / S.B / 1000, 2) + ' <small>µs</small>'} : null, {k: 'ピークの高さ', v: fx(m.pk * 100, 0) + ' <small>%</small>', s: dbx(20 * Math.log10(Math.max(m.pk, 1e-6)))}]};
+    P[0].set({title: '圧縮後の出力：ドップラ周波数がない場合（破線）と、ある場合（実線）', xr: [-lim, lim], yr: [0, 1.15], xl: '真の位置からの差 [µs]（1 µs = 150 m。左が近距離側）', yl: '圧縮後の振幅', series: [{name: 'ドップラなし', color: 'ref', x: xs(r0), y: r0.mag, w: 1.4, dash: [5, 3]}, {name: 'ドップラ ' + S.fd + ' kHz', color: 's1', x: xs(r), y: r.mag, w: 2.2}],
+      vl: [{x: 0, label: '真の位置'}], notes: Math.abs(S.fd) >= 10 ? [{x: m.tpk * 1e6, y: m.pk, t: '差 ' + fx(dm, 0) + ' m、高さ ' + fx(m.pk * 100, 0) + '%', dx: m.tpk < 0 ? -30 : 30, dy: -6}] : [], marks: {shift: {x0: m.tpk * 1e6 - 0.6, x1: m.tpk * 1e6 + 0.6, t: 'ピークの位置'}}, tipx: v => fx(v, 2) + ' µs', tipy: v => fx(v, 2)});
+    return {dm, tiles: [{k: 'ピークの位置の変化', v: fx(m.tpk * 1e6, 2) + ' <small>µs</small>', s: '距離では ' + fx(dm, 0) + ' m' + (dm < -1 ? '（近距離側）' : dm > 1 ? '（遠距離側）' : '')}, S.wave === 'lfm' ? {k: '式の値 −fd·T/B', v: fx(-S.fd * S.T / S.B / 1000, 2) + ' <small>µs</small>'} : null, {k: 'ピークの高さ', v: fx(m.pk * 100, 0) + ' <small>%</small>', s: dbx(20 * Math.log10(Math.max(m.pk, 1e-6)))}]};
   }});
 
 /* 8 */
 STEPS.push({short: '位相符号', title: '位相符号波形 — バーカー符号', src: '§8.2 Phase-Coded Waveforms・Binary Phase Codes・Barker Codes・表8.4（p.8.16–8.18）',
-  q: '長さ 13 のバーカー符号を圧縮すると、サイドローブの高さ（振幅）は主ローブの何分の 1 になる？',
+  q: '長さ 13 のバーカー符号を圧縮すると、サイドローブのレベル（振幅）はメインローブの何分の 1 になりますか。',
   ch: ['1/2', '1/13', '1/169'], ans: 1,
-  why: 'バーカー符号は、サイドローブの振幅がどこでも主ローブの 1/N 以下になる特別な符号です。N = 13 なら 1/13、dB では −22.3 dB です（電力では 1/169 にあたります）。',
+  why: 'バーカー符号はサイドローブの振幅がどの位置でもメインローブの 1/N 以下になる特別な符号です。N = 13 の場合は 1/13、dB では −22.3 dB です（電力では 1/169 に当たります）。',
   read: {
-    ana: '暗証番号の錠前を考えてください。正しい並びのときだけ全部の歯がかみ合い、1 つずれると、かみ合う歯とぶつかる歯がほぼ同じ数になって、ほとんど力が伝わりません。バーカー符号は、そういう性質を持つように選ばれた＋と−の並びです。',
-    what: '位相符号波形（phase-coded waveform）は、パルスを N 個の[[code|サブパルス]]に分け、サブパルスごとに位相を 0° か 180° に切り替えます。圧縮後の山の幅は、ほぼサブパルス 1 個分です。||バーカー符号（Barker code）は、[[bsl|サイドローブ]]が主ローブの 1/N になる符号で、長さは 2、3、4、5、7、11、13 のものしか知られていません。そのため圧縮比は最大 13 です。',
+    ana: '鍵と錠前を考えてください。正しい鍵の場合だけすべての歯がかみ合い、1 つ外れると、かみ合う歯とぶつかる歯がほぼ同数になって、ほとんど力が伝わりません。バーカー符号はこのような性質をもつように選ばれた＋と−の系列です。',
+    what: '<a class=gt data-g=g-phase-coded-waveform tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>位相符号波形</a>（phase-coded waveform）は、パルスを N 個の[[code|サブパルス]]に分け、サブパルスごとに位相を 0° か 180° に切り替えます。圧縮後のピークの幅は、ほぼサブパルス 1 個分です。||<a class=gt data-g=g-barker-code tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>バーカー符号</a>（Barker code）は、[[bsl|サイドローブ]]がメインローブの 1/N になる符号であり、長さが 2・3・4・5・7・11・13 のものしか知られていません。このため、圧縮比は最大 13 です。',
     eq: 'ピークサイドローブ = −20·log<sub>10</sub>(<i>N</i>)　[dB]',
-    sym: '<i>N</i>：符号の長さ（サブパルスの数）。時間帯域幅積と圧縮比も <i>N</i> に等しくなります。N = 13 のとき −22.3 dB。',
-    mis: '「符号を長くすれば、いくらでもサイドローブを下げられる」わけではありません。バーカー符号は 13 までしかなく、もっと長い符号では別の種類（サイドローブはやや高い）を使います。'},
+    sym: '<i>N</i>：符号長（サブパルスの数）。時間帯域幅積と圧縮比も <i>N</i> に等しくなります。N = 13 の場合は −22.3 dB です。',
+    mis: '「符号を長くすれば、サイドローブを限りなく下げられる」という理解は誤りです。バーカー符号は長さ 13 までしかなく、それより長い符号では別の種類（サイドローブはやや高い）を使います。'},
   hosoku: ['錠前のたとえ'],
-  memo: 'つまずきやすい点：−20·log N の「20」（振幅の比だから）。電力の比なら 1/N² になる。||声かけの例：「N = 5 のとき、サイドローブは何 dB？ 式で計算してから図で確かめよう」「LFM の重みなし（−13.2 dB）と比べて、どちらが低い？」',
+  memo: 'つまずきやすい点は、−20·log N の「20」です（振幅の比であるため）。電力の比では 1/N² になります。||声かけの例：「N = 5 の場合、サイドローブは何 dB ですか。式で計算してから図で確かめましょう」「LFM の重み付けなし（−13.2 dB）と比較して、どちらが低いですか」',
   init: {T: 39, wave: 'barker', nc: 5}, ctl: ['nc'], fixed: ['T'], fixT: ['符号の種類 バーカー符号'], plots: [{h: 130}, {h: 220}],
-  mission: {t: 'サイドローブが −20 dB 以下（振幅で 1/10 以下）になる符号の長さを選ぼう。', ok: r => r.psl <= -20}, sol: {nc: 13},
+  mission: {t: 'サイドローブが −20 dB 以下（振幅で 1/10 以下）になる符号長を選びましょう。', ok: r => r.psl <= -20}, sol: {nc: 13},
   draw(P){
     const w = wav(), r = response(w, 0, 'none'), m = metrics(r), cx = [], cy = []; for (let i = 0; i <= w.nc; i++){ cx.push(i); cy.push(w.code.charAt(Math.min(i, w.nc - 1)) === '1' ? 1 : -1); }
     const x = new Float64Array(r.n); for (let i = 0; i < r.n; i++) x[i] = (r.x0 + i * r.dx) * FS / w.chip;
-    P[0].set({title: '符号の並び（＋が位相 0°、−が位相 180°）', xr: [0, 13], yr: [-1.6, 1.6], xl: 'サブパルスの番号', yl: '', yticks: [[1, '＋'], [-1, '−']], series: [{name: '符号', color: 's1', x: cx, y: cy, step: true, w: 2.2}], marks: {code: {x0: 0, x1: w.nc, t: 'サブパルス ' + w.nc + ' 個'}}, noHover: true});
-    P[1].set({title: '圧縮後の出力', xr: [-13.5, 13.5], yr: [0, 1.12], xl: '本当の位置からのずれ（サブパルス何個分か）', yl: '圧縮後の強さ（振幅）', series: [{name: '圧縮後の出力', color: 's2', x, y: r.mag, w: 2}], hl: [{y: 1 / w.nc, label: '1/N = ' + fx(1 / w.nc, 3), left: true}],
-      notes: [{x: 0, y: 1, t: '主ローブ', dx: 30, dy: 4}], marks: {bsl: {x0: 1, x1: w.nc, y0: 0, y1: 1.6 / w.nc, t: 'サイドローブ'}}, tipx: v => fx(v, 1) + ' 個分', tipy: v => fx(v, 3)});
-    return {psl: m.psl, tiles: [{k: 'いちばん大きいサイドローブ', v: fx(m.psl, 1) + ' <small>dB</small>', s: '振幅で主ローブの 1/' + fx(Math.pow(10, -m.psl / 20), 1)}, {k: '式の値 −20·log N', v: fx(-20 * Math.log10(w.nc), 1) + ' <small>dB</small>', s: 'N = ' + w.nc}]};
+    P[0].set({title: '符号の系列（＋が位相 0°、−が位相 180°）', xr: [0, 13], yr: [-1.6, 1.6], xl: 'サブパルスの番号', yl: '', yticks: [[1, '＋'], [-1, '−']], series: [{name: '符号', color: 's1', x: cx, y: cy, step: true, w: 2.2}], marks: {code: {x0: 0, x1: w.nc, t: 'サブパルス ' + w.nc + ' 個'}}, noHover: true});
+    P[1].set({title: '圧縮後の出力', xr: [-13.5, 13.5], yr: [0, 1.12], xl: '真の位置からの差（サブパルスの個数）', yl: '圧縮後の振幅', series: [{name: '圧縮後の出力', color: 's2', x, y: r.mag, w: 2}], hl: [{y: 1 / w.nc, label: '1/N = ' + fx(1 / w.nc, 3), left: true}],
+      notes: [{x: 0, y: 1, t: 'メインローブ', dx: 30, dy: 4}], marks: {bsl: {x0: 1, x1: w.nc, y0: 0, y1: 1.6 / w.nc, t: 'サイドローブ'}}, tipx: v => fx(v, 1) + ' 個分', tipy: v => fx(v, 3)});
+    return {psl: m.psl, tiles: [{k: '最も大きいサイドローブ', v: fx(m.psl, 1) + ' <small>dB</small>', s: '振幅でメインローブの 1/' + fx(Math.pow(10, -m.psl / 20), 1)}, {k: '式の値 −20·log N', v: fx(-20 * Math.log10(w.nc), 1) + ' <small>dB</small>', s: 'N = ' + w.nc}]};
   }});
 
 /* 9 */
-STEPS.push({short: 'エクリプシング', title: 'エクリプシング — 送信している間は、受信できない', src: '第5章 p.5.18（Eclipsing loss）、第4章 Losses（p.4.39–4.40）、§8.4（p.8.30–8.31）',
-  q: 'パルス幅 40 µs のレーダで、3 km 先の目標を見る。エコーの先頭は 20 µs 後に戻ってくるが、そのときまだ送信中だ。圧縮後のピークはどうなる？',
-  ch: ['ふつうに出る', '下がる（エコーの前半が欠けるから）', 'まったく出ない'], ans: 1,
-  why: '送信中は受信機を切っているので、エコーのうち送信が終わる前に戻ってきた部分は受信できません。3 km ならエコーの半分が欠け、圧縮後のピークの振幅は半分（−6 dB）になります。まったく見えなくなるわけではありません。',
+STEPS.push({short: 'エクリプシング', title: 'エクリプシング — 送信中は受信できない', src: '第5章 p.5.18（Eclipsing loss）、第4章 Losses（p.4.39–4.40）、§8.4（p.8.30–8.31）',
+  q: 'パルス幅 40 µs のレーダで、3 km 先の目標を観測します。エコーの先頭は 20 µs 後に戻りますが、その時点ではまだ送信中です。圧縮後のピークはどうなりますか。',
+  ch: ['通常どおりに現れる', '下がる（エコーの前半が欠落するため）', 'まったく現れない'], ans: 1,
+  why: '送信中は受信機を切り離しているため、エコーのうち送信が終わる前に戻った部分は受信できません。3 km の場合はエコーの半分が欠落し、圧縮後のピークの振幅は半分（−6 dB）になります。まったく検出できなくなるのではありません。',
   read: {
-    ana: '自分が大声で話している間は、相手の小さな返事が聞き取れません。話し終わってからやっと聞こえ始めますが、相手の返事の最初の部分はもう聞き逃しています。',
-    what: '送信パルスを出している間、受信機は止まっています。近い目標のエコーは[[tx|送信が終わる前]]に戻り始めるので、[[lost|先頭の部分が欠けます]]。これがエクリプシング（eclipsing）です。||受信できた分だけで圧縮するので、ピークが下がります。パルス圧縮のためにパルスを長くするほど、この影響を受ける距離が広がります。そのため、近距離だけを短い無変調パルスで補う実装例もあります。デューティ比（送信している時間の割合）が高い波形では、これが最も大きな損失になることがよくあります。',
-    eq: '欠けずに受信できる最短距離 ≈ <i>c</i>·<i>T</i> / 2',
-    sym: '<i>c</i>：光の速さ（3×10⁸ m/s）。<i>T</i>：送信パルス幅 [秒]。T = 40 µs なら 6 km。{H}この式はハンドブックの記述（送信中は受信できない）から導いた関係です。',
-    mis: '「最短距離より近い目標はまったく見えない」わけではありません。受信できた割合に応じてピークが下がるだけで、強い目標なら見えます。'},
-  hosoku: ['会話のたとえ', '「欠けずに受信できる最短距離 ≈ cT/2」という関係', '受信できた割合を p とするとピークの振幅がおよそ p 倍になること'],
-  memo: 'つまずきやすい点：「距離」と「時間」の行き来（1 µs = 150 m）。図の横軸は時間で、目標の距離が動くとエコーが左右に動くことを確認。||声かけの例：「エコーが半分欠けるとき、ピークは何 dB 下がる？」「T を 100 µs にしたら、cT/2 は何 km？」',
+    ana: '自分が大声で話している間は、相手の小さな返事を聞き取れません。話し終わってからようやく聞こえ始めますが、相手の返事の最初の部分は、すでに聞き逃しています。',
+    what: '送信パルスを送信している間、受信機は停止しています。近距離の目標のエコーは[[tx|送信が終わる前]]に戻り始めるため、[[lost|先頭の部分が欠落します]]。これが<a class=gt data-g=g-eclipsing tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>エクリプシング</a>（eclipsing）です。||受信できた部分だけで圧縮するため、ピークが下がります。パルス圧縮のためにパルス幅を長くするほど、この影響を受ける距離の範囲が広くなります。このため、近距離だけを短い無変調パルスで補う実装例もあります。デューティ比（送信時間の割合）が高い波形ではこれが最大の損失になることがよくあります。',
+    eq: '欠落なく受信できる最短距離 ≈ <i>c</i>·<i>T</i> / 2',
+    sym: '<i>c</i>：光速（3×10⁸ m/s）。<i>T</i>：送信パルス幅 [秒]。T = 40 µs の場合は 6 km です。{H}この式はハンドブックの記述（送信中は受信できない）から導いた関係です。',
+    mis: '「最短距離より近い目標はまったく検出できない」という理解は誤りです。受信できた割合に応じてピークが下がるだけであり、強い目標であれば検出できます。'},
+  hosoku: ['会話のたとえ', '「欠落なく受信できる最短距離 ≈ cT/2」という関係', '受信できた割合を p とすると、ピークの振幅が約 p 倍になること'],
+  memo: 'つまずきやすい点は、「距離」と「時間」の換算です（1 µs = 150 m）。図の横軸は時間であり、目標距離を変えるとエコーが左右に移動することを確認します。||声かけの例：「エコーが半分欠落する場合、ピークは何 dB 下がりますか」「T を 100 µs にすると、cT/2 は何 km ですか」',
   init: {T: 40, B: 2, wave: 'lfm', r1: 8}, ctl: ['r1'], fixed: ['T', 'B'], plots: [{h: 170}, {h: 200}],
-  mission: {t: '圧縮後のピークがちょうど半分（−6 dB）になる距離を見つけよう。', ok: r => Math.abs(r.p - 0.5) < 0.03}, sol: {r1: 3},
+  mission: {t: '圧縮後のピークがちょうど半分（−6 dB）になる距離を見つけましょう。', ok: r => Math.abs(r.p - 0.5) < 0.03}, sol: {r1: 3},
   draw(P){
     const w = wav(), td = S.r1 / 0.15, lostT = Math.max(0, Math.min(S.T, S.T - td)), lost = Math.round(lostT * 10), p = 1 - lostT / S.T, full = response(w, 0, 'none'), r = response(w, 0, 'none', lost);
     const xs = q => { const o = new Float64Array(q.n); for (let i = 0; i < q.n; i++) o[i] = (q.x0 + i * q.dx) * 1e6; return o; };
-    P[0].set({title: '時間の流れ：送信パルスと、戻ってくるエコー', xr: [0, 120], yr: [0, 1.5], xl: '時刻 [µs]（送信を始めてからの時間）', yl: '', yticks: [], series: [{name: '受信できた部分', color: 's1', x: [Math.max(td, S.T), Math.max(td, S.T), td + S.T, td + S.T], y: [0, 0.8, 0.8, 0], w: 2.2, fill: 0.2}].concat(lostT > 0 ? [{name: '欠けた部分', color: 'ref', x: [td, td, S.T, S.T], y: [0, 0.8, 0.8, 0], w: 1.5, dash: [4, 3]}] : []),
-      bands: [{x0: 0, x1: S.T, color: 'band2', label: '送信中（受信できない）'}], notes: lostT > 0 ? [{x: (td + S.T) / 2, y: 0.8, t: 'ここが欠ける', dx: 20, dy: -30}] : [{x: td, y: 0.8, t: 'エコーは全部受信できる', dx: 20, dy: -30}],
-      marks: {tx: {x0: 0, x1: S.T, t: '送信中'}, lost: {x0: td, x1: Math.max(td, S.T), t: '欠けた部分'}}, noHover: true});
-    P[1].set({title: '圧縮後の出力：全部受信できた場合（破線）と、いまの場合（実線）', xr: [-3, 3], yr: [0, 1.12], xl: '本当の位置からのずれ [µs]', yl: '圧縮後の強さ（振幅）', series: [{name: '全部受信できた場合', color: 'ref', x: xs(full), y: full.mag, w: 1.4, dash: [5, 3]}, {name: 'いまの出力', color: 's1', x: xs(r), y: r.mag, w: 2.2}],
+    P[0].set({title: '時間軸：送信パルスと戻ってくるエコー', xr: [0, 120], yr: [0, 1.5], xl: '時刻 [µs]（送信の開始からの時間）', yl: '', yticks: [], series: [{name: '受信できた部分', color: 's1', x: [Math.max(td, S.T), Math.max(td, S.T), td + S.T, td + S.T], y: [0, 0.8, 0.8, 0], w: 2.2, fill: 0.2}].concat(lostT > 0 ? [{name: '欠落した部分', color: 'ref', x: [td, td, S.T, S.T], y: [0, 0.8, 0.8, 0], w: 1.5, dash: [4, 3]}] : []),
+      bands: [{x0: 0, x1: S.T, color: 'band2', label: '送信中（受信できない）'}], notes: lostT > 0 ? [{x: (td + S.T) / 2, y: 0.8, t: 'この部分が欠落', dx: 20, dy: -30}] : [{x: td, y: 0.8, t: 'エコーはすべて受信できる', dx: 20, dy: -30}],
+      marks: {tx: {x0: 0, x1: S.T, t: '送信中'}, lost: {x0: td, x1: Math.max(td, S.T), t: '欠落した部分'}}, noHover: true});
+    P[1].set({title: '圧縮後の出力：すべて受信できた場合（破線）と、現在の場合（実線）', xr: [-3, 3], yr: [0, 1.12], xl: '真の位置からの差 [µs]', yl: '圧縮後の振幅', series: [{name: 'すべて受信できた場合', color: 'ref', x: xs(full), y: full.mag, w: 1.4, dash: [5, 3]}, {name: '現在の出力', color: 's1', x: xs(r), y: r.mag, w: 2.2}],
       notes: p < 0.98 ? [{x: 0, y: p, t: 'ピークは ' + fx(p * 100, 0) + '%', dx: 40, dy: -4}] : [], tipx: v => fx(v, 2) + ' µs', tipy: v => fx(v, 2)});
-    return {p, tiles: [{k: '受信できた割合', v: fx(p * 100, 0) + ' <small>%</small>', s: 'エコーの先頭は ' + fx(td, 0) + ' µs 後に戻る'}, {k: 'ピークの低下', v: p > 0.001 ? fx(20 * Math.log10(p), 1) + ' <small>dB</small>' : '受信できない', s: p > 0.001 ? '振幅が ' + fx(p * 100, 0) + '% に' : ''}, {k: '欠けずに受信できる最短距離 cT/2', v: fx(S.T * 0.15, 1) + ' <small>km</small>'}]};
+    return {p, tiles: [{k: '受信できた割合', v: fx(p * 100, 0) + ' <small>%</small>', s: 'エコーの先頭は ' + fx(td, 0) + ' µs 後に戻る'}, {k: 'ピークの低下', v: p > 0.001 ? fx(20 * Math.log10(p), 1) + ' <small>dB</small>' : '受信できない', s: p > 0.001 ? '振幅は ' + fx(p * 100, 0) + '%' : ''}, {k: '欠落なく受信できる最短距離 cT/2', v: fx(S.T * 0.15, 1) + ' <small>km</small>'}]};
   }});
 
 /* 10 */
-STEPS.push({short: '実装のしかた', title: '実装のしかた（概要）— ストレッチ処理は、距離を周波数に変える', src: '§8.4 Digital Pulse Compression（p.8.29–8.30）、Stretch Pulse Compression（p.8.31–8.35、式8.24〜8.37）',
-  q: 'ストレッチ処理では、受信した LFM に、同じ傾きの参照 LFM を掛ける。掛けた後、目標の「距離の違い」は何の違いとして現れる？',
-  ch: ['信号の強さの違い', '一定の周波数の違い', '信号の長さの違い'], ans: 1,
-  why: '傾きが同じ 2 つの LFM を掛けると、周波数の差が一定になります。その差は、参照とエコーの時間差に比例します。つまり距離の差が、周波数の差に変わります。あとは FFT で周波数を調べれば、距離が分かります。',
+STEPS.push({short: '実装の方法', title: '実装の方法（概要）— ストレッチ処理は距離を周波数に変換する', src: '§8.4 Digital Pulse Compression（p.8.29–8.30）、Stretch Pulse Compression（p.8.31–8.35、式8.24〜8.37）',
+  q: 'ストレッチ処理では、受信した LFM に同じ傾きの参照 LFM を乗算します。乗算の後、目標の「距離の差」は何の差として現れますか。',
+  ch: ['信号の強度の差', '一定の周波数の差', '信号の長さの差'], ans: 1,
+  why: '傾きが同じ 2 つの LFM を乗算すると、周波数の差が一定になります。その差は参照波形とエコーの時間差に比例します。すなわち、距離の差が周波数の差に変換されます。その後、FFT で周波数を求めれば、距離が分かります。',
   read: {
-    ana: '同じ速さで坂を上る 2 台の車を考えます。後から出た車と前の車の高さの差は、ずっと一定です。その差は「どれだけ遅れて出たか」で決まります。高さを周波数に置き換えたものが、ストレッチ処理です。',
-    what: 'パルス圧縮の計算方法は 3 つあります。(1) 時間をずらしながら掛けて足す（ステップ3）。(2) FFT を使って周波数の上で掛け算する（結果は (1) と同じで、速い）。(3) ストレッチ処理（stretch processing）。||(3) は LFM 専用です。参照の LFM を掛けると、エコーは[[tone|一定の周波数の波]]になり、その[[spec|周波数]]が参照との時間差に比例します。広い帯域の LFM を、狭い帯域の処理で圧縮できるのが利点です。ただし見られるのは、決めた距離の近くだけです。',
+    ana: '同じ速度で坂を上る 2 台の車を考えます。後から出発した車と前の車の高さの差は、常に一定です。その差は「どれだけ遅れて出発したか」で決まります。高さを周波数に置き換えたものが、ストレッチ処理です。',
+    what: 'パルス圧縮の計算方法は 3 つあります。<br>(1) 遅延させながら乗算して加算する（ステップ3）<br>(2) FFT を使って周波数領域で乗算する（結果は (1) と同じであり、高速である）<br>(3) <a class=gt data-g=g-stretch-processing tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>ストレッチ処理</a>（stretch processing）||(3) は LFM 専用です。参照 LFM を乗算すると、エコーは[[tone|一定の周波数の信号]]になり、その[[spec|周波数]]が参照波形との時間差に比例します。広い帯域幅の LFM を、狭い帯域幅の処理で圧縮できることが利点です。ただし、観測できるのは、設定した距離の付近だけです。',
     eq: 'δ<i>f</i> = −(<i>B</i> / <i>T</i>)·Δτ',
-    sym: 'δ<i>f</i>：掛けた後の信号の周波数 [Hz]。<i>B</i>/<i>T</i>：LFM の傾き [Hz/秒]。Δτ：参照に対するエコーの時間差 [秒]（距離差 × 2/<i>c</i>）。',
-    mis: '「ストレッチ処理は分解能が悪い」わけではありません。分解能は整合フィルタと同じ（6 dB 幅で 1.21/B）です。違いは、一度に見られる距離の範囲が狭いことです。'},
-  hosoku: ['坂を上る車のたとえ', '参照 LFM を基準距離 20 km に合わせ、長さを 2T とした場面設定'],
-  memo: 'つまずきやすい点：(1)(2) は同じ結果で計算の仕方が違うだけ、(3) は考え方が違う、という整理。||声かけの例：「目標を 2 倍遠くにずらすと、上の図の波の細かさは？」「−100 kHz に出すには何 m ずらす？ 式で先に計算してみよう」',
-  init: {T: 40, B: 2, wave: 'lfm', r1: 20, dr: 60}, ctl: [{k: 'dr', l: '基準の距離（20 km）からの目標のずれ', min: 0, max: 1500, step: 30}], fixed: ['T', 'B'], plots: [{h: 170}, {h: 200}],
-  mission: {t: '下の図のピークが −100 kHz（±5 kHz）に出るように、目標の位置を合わせよう。', ok: r => Math.abs(r.fk + 100) <= 5}, sol: {dr: 300},
+    sym: 'δ<i>f</i>：乗算後の信号の周波数 [Hz]。<i>B</i>/<i>T</i>：LFM の傾き [Hz/秒]。Δτ：参照波形に対するエコーの時間差 [秒]（距離差 × 2/<i>c</i>）。',
+    mis: '「ストレッチ処理は分解能が低い」という理解は誤りです。分解能は整合フィルタと同じ（6 dB 幅で 1.21/B）です。異なるのは、一度に観測できる距離の範囲が狭いことです。'},
+  hosoku: ['坂を上る車のたとえ', '参照 LFM を基準距離 20 km に合わせ、長さを 2T とした場面の設定'],
+  memo: 'つまずきやすい点は、(1)(2) は結果が同じで計算方法が異なるだけであり、(3) は考え方が異なる、という整理です。||声かけの例：「目標を 2 倍の距離だけ離すと、上の図の波形の周波数はどうなりますか」「−100 kHz に現れるようにするには、何 m 離しますか。式で先に計算してみましょう」',
+  init: {T: 40, B: 2, wave: 'lfm', r1: 20, dr: 60}, ctl: [{k: 'dr', l: '基準距離（20 km）からの目標の距離差', min: 0, max: 1500, step: 30}], fixed: ['T', 'B'], plots: [{h: 170}, {h: 200}],
+  mission: {t: '下の図のピークが −100 kHz（±5 kHz）に現れるように、目標の位置を合わせましょう。', ok: r => Math.abs(r.fk + 100) <= 5}, sol: {dr: 300},
   draw(P){
     const w = wav(), R0 = 20000, tauR = 2 * R0 / C, st = stretch(makeScene(w, {fd: 0, targets: [{R: R0 + S.dr, A: 1, ph: 0}]}), w, tauR), m = metrics({x0: st.f0, dx: st.df, mag: st.mag, n: st.n}), fk = m.tpk / 1e3, th = -(S.B * 1e6 / (S.T * 1e-6)) * (2 * S.dr / C) / 1e3;
     const i0 = Math.round((-650e3 - st.f0) / st.df), i1 = Math.round((150e3 - st.f0) / st.df);
-    P[0].set({title: '参照の LFM を掛けた後の信号（I 成分）', xr: [st.t0 * 1e6, st.t0 * 1e6 + st.len / 10], yr: [-1.4, 1.4], xl: '時刻 [µs]', yl: '波の高さ', series: [{name: '掛けた後の信号', color: 's1', x0: st.t0 * 1e6, dx: 0.1, y: st.dechirpRe, w: 1.5}], marks: {tone: {t: '一定の周波数の波'}}, tipx: v => fx(v, 1) + ' µs', tipy: v => fx(v, 2)});
-    P[1].set({title: 'その信号を周波数に分けた結果（FFT）', xr: [-650, 150], yr: [0, 1.12], xl: '周波数 [kHz]（0 が基準の距離。左ほど遠い）', yl: '成分の強さ', series: [{name: 'スペクトル', color: 's2', x0: (st.f0 + i0 * st.df) / 1e3, dx: st.df / 1e3, y: st.mag.subarray(i0, i1 + 1), w: 2}],
-      vl: [{x: -100, label: '目標の −100 kHz'}], notes: [{x: fk, y: m.pk, t: fx(fk, 0) + ' kHz', dx: 30, dy: 4}], marks: {spec: {x0: fk - 25, x1: fk + 25, t: '周波数が距離を表す'}}, tipx: v => fx(v, 0) + ' kHz', tipy: v => fx(v, 2)});
-    return {fk, tiles: [{k: 'ピークの周波数（FFT の結果）', v: fx(fk, 1) + ' <small>kHz</small>'}, {k: '式の値 −(B/T)·Δτ', v: fx(th, 1) + ' <small>kHz</small>', s: 'Δτ = ' + fx(2 * S.dr / C * 1e6, 2) + ' µs'}, {k: '周波数から求めた距離のずれ', v: fx(-fk * 1e3 / (S.B * 1e6 / (S.T * 1e-6)) * C / 2, 0) + ' <small>m</small>', s: '設定は ' + S.dr + ' m'}]};
+    P[0].set({title: '参照 LFM を乗算した後の信号（I 成分）', xr: [st.t0 * 1e6, st.t0 * 1e6 + st.len / 10], yr: [-1.4, 1.4], xl: '時刻 [µs]', yl: '振幅', series: [{name: '乗算後の信号', color: 's1', x0: st.t0 * 1e6, dx: 0.1, y: st.dechirpRe, w: 1.5}], marks: {tone: {t: '一定の周波数の信号'}}, tipx: v => fx(v, 1) + ' µs', tipy: v => fx(v, 2)});
+    P[1].set({title: 'その信号を周波数成分に分解した結果（FFT）', xr: [-650, 150], yr: [0, 1.12], xl: '周波数 [kHz]（0 が基準距離。左ほど遠距離）', yl: '成分の強度', series: [{name: 'スペクトル', color: 's2', x0: (st.f0 + i0 * st.df) / 1e3, dx: st.df / 1e3, y: st.mag.subarray(i0, i1 + 1), w: 2}],
+      vl: [{x: -100, label: '目標値の −100 kHz'}], notes: [{x: fk, y: m.pk, t: fx(fk, 0) + ' kHz', dx: 30, dy: 34}], marks: {spec: {x0: fk - 25, x1: fk + 25, t: '周波数が距離を表す'}}, tipx: v => fx(v, 0) + ' kHz', tipy: v => fx(v, 2)});
+    return {fk, tiles: [{k: 'ピークの周波数（FFT の結果）', v: fx(fk, 1) + ' <small>kHz</small>'}, {k: '式の値 −(B/T)·Δτ', v: fx(th, 1) + ' <small>kHz</small>', s: 'Δτ = ' + fx(2 * S.dr / C * 1e6, 2) + ' µs'}, {k: '周波数から求めた距離差', v: fx(-fk * 1e3 / (S.B * 1e6 / (S.T * 1e-6)) * C / 2, 0) + ' <small>m</small>', s: '設定は ' + S.dr + ' m'}]};
   }});
 
 /* 11 */
@@ -1234,27 +1299,27 @@ function checkTable1(){
   for (const r of R) h += '<tr><td>' + r.item + '</td><td>' + r.cond + '</td><td>' + fx(r.meas, 2) + ' ' + r.unit + '</td><td>' + fx(r.ref, 2) + ' ' + r.unit + '</td><td>' + (r.ok === null ? '<span class="info">参考</span>' : r.ok ? '<span class="ok">一致</span>' : '<span class="ng">不一致</span>') + '</td><td>' + r.src + (r.note ? '<br><small>' + r.note + '</small>' : '') + '</td></tr>';
   return h + '</table></div>';
 }
-STEPS.push({short: '自由実験', title: '自由実験とまとめ — 全部のつまみを自由に動かす', src: '第8章 Pulse Compression Radar（p.8.1–8.44）、p.4.39–4.40、p.5.18', free: true,
-  q: 'パルス幅 T を 2 倍にして、帯域 B はそのままにする。圧縮後の山の幅（3 dB 幅）はどうなる？',
-  ch: ['2 倍に太くなる', 'ほとんど変わらない', '半分に細くなる'], ans: 1,
-  why: '圧縮後の山の幅は帯域 B で決まり（およそ 1/B）、パルス幅 T にはよりません（ステップ 4）。T を伸ばして増えるのは、エネルギー（S/N）と時間帯域幅積 T·B です（ステップ 5）。',
-  do: 'ここでは全部のパラメータを自由に動かせます',
+STEPS.push({short: '自由実験', title: '自由実験とまとめ — すべての設定を自由に変える', src: '第8章 Pulse Compression Radar（p.8.1–8.44）、p.4.39–4.40、p.5.18', free: true,
+  q: 'パルス幅 T を 2 倍にして、帯域幅 B は変えません。圧縮後のメインローブの幅（3 dB 幅）はどうなりますか。',
+  ch: ['2 倍に広くなる', 'ほとんど変わらない', '半分に狭くなる'], ans: 1,
+  why: '圧縮後のメインローブの幅は帯域幅 B で決まり（約 1/B）、パルス幅 T にはよりません（ステップ 4）。T を長くして増えるのは、エネルギー（S/N）と時間帯域幅積 T·B です（ステップ 5）。',
+  do: 'ここではすべてのパラメータを自由に変えられます',
   read: {
-    ana: 'ここまでは、楽器を 1 つずつ鳴らして音を確かめてきました。このステップでは全部を一緒に鳴らして、合奏にします。1 つのつまみを動かすと、ほかの量にどう響くかを確かめてください。',
+    ana: 'ここまでは楽器を 1 つずつ鳴らして音を確かめてきました。このステップではすべてを同時に鳴らして合奏にします。1 つの設定を変えると、ほかの量にどのように影響するかを確かめてください。',
     eq: '圧縮比 ≈ <i>T</i>·<i>B</i>',
-    sym: '<i>T</i>：送信パルスの幅 [秒]。<i>B</i>：帯域（周波数を振る幅）[Hz]。圧縮比：圧縮する前と後のパルス幅の比。ステップ 1 と同じ式です。',
-    what: 'ここまでの内容を 1 つの流れにまとめます。符号化した長いパルスを送る → エコー（遅れ・ドップラ）と雑音を受信 → 整合フィルタで圧縮 → 必要なら重み付け → 幅がおよそ 1/B の細いパルス。||覚えておきたい関係は 4 つです。(1) エネルギーは T、分解能は B で決まる。(2) 圧縮比 ≈ T·B。(3) サイドローブを下げると、山が太り S/N が少し下がる。(4) LFM はドップラで位置がずれ、位相符号はドップラでピークが崩れる。',
-    mis: '右の図は縦軸が dB です。−20 dB は「電力で 1/100」、−40 dB は「電力で 1/10000」。目盛り 1 つの差が大きいことに注意してください。 さらに深く：PRF・パルスの長さ・帯域幅を、要求から自分で決めるには、<a href="m03_waveform_ambiguity.html">中級 第3回 波形とあいまいさ</a>へ。'},
+    sym: '<i>T</i>：送信パルス幅 [秒]。<i>B</i>：帯域幅（周波数を変化させる幅）[Hz]。圧縮比：圧縮前と圧縮後のパルス幅の比。ステップ 1 と同じ式です。',
+    what: 'ここまでの内容を 1 つの流れにまとめます。符号化した長いパルスを送信する → エコー（遅延・ドップラ偏移）と雑音を受信する → 整合フィルタで圧縮する → 必要に応じて重み付けを行う → 幅が約 1/B の狭いパルスが得られる、という順です。||重要な関係は次の 4 つです。<br>(1) エネルギーは T、分解能は B で決まる<br>(2) 圧縮比 ≈ T·B<br>(3) サイドローブを下げると、メインローブの幅が広くなり、S/N がわずかに低下する<br>(4) LFM ではドップラ偏移によって位置が変化し、位相符号ではドップラ偏移によってピークが低下する',
+    mis: '図の縦軸は dB です。−20 dB は「電力で 1/100」、−40 dB は「電力で 1/10000」です。目盛り 1 つの差が大きいことに注意してください。 さらに深く：PRF・パルス幅・帯域幅を要求から決定する方法は、<a href="m03_waveform_ambiguity.html">中級 第3回 波形とあいまいさ</a>で扱います。'},
   hosoku: ['楽器の合奏のたとえ', 'まとめの 4 つの関係の整理のしかた'],
-  memo: '自由実験では「予想 → 操作」の型を、新人自身に作らせるとよい。||声かけの例：「T を半分、B を 2 倍にしたら何が変わって何が変わらない？ 先に予想を紙に書いてから動かそう」',
+  memo: '自由実験では「予想 → 操作」の手順を学習者自身に組み立てさせると効果的です。||声かけの例：「T を半分、B を 2 倍にすると、何が変わり、何が変わりませんか。先に予想を紙に書いてから操作しましょう」',
   init: {T: 20, B: 1, wave: 'lfm', wt: 'none', t2: true, dr: 600, a2: -20, snr: 0, fd: 0, noise: false}, ctl: ['wave', 'wt', 'T', 'B', 'dr', 'a2', 'fd', 'noise', 'snr'], fixed: [], plots: [{h: 280}],
   acts: [{t: '別の雑音にする', f: () => { S.seed++; }}],
-  mission: {t: 'LFM で、山の 3 dB 幅が 100 m 以下、かつサイドローブが −35 dB 以下になる設定を作ろう。', ok: r => S.wave === 'lfm' && r.w3m <= 100 && r.psl <= -35}, sol: {T: 60, B: 2.5, wt: 'taylor'},
+  mission: {t: 'LFM でメインローブの 3 dB 幅が 100 m 以下、かつサイドローブが −35 dB 以下になる設定を見つけましょう。', ok: r => S.wave === 'lfm' && r.w3m <= 100 && r.psl <= -35}, sol: {T: 60, B: 2.5, wt: 'taylor'},
   extra: checkTable1,
   draw(P){
     const w = wav(), sc = makeScene(w, {targets: tgts(), noise: S.noise}), y = compress(sc, w, S.wave === 'lfm' ? S.wt : 'none', 4), a = rseg(dbA(y.mag, 1), y.dt, 18, 23), r = response(w, 0, S.wave === 'lfm' ? S.wt : 'none'), m = metrics(r);
-    P[0].set(Object.assign({title: '圧縮後の出力（目標1 は 20 km、頂上が 0 dB）', xr: [18, 23], yr: [-70, 8], yl: '強さ [dB]（目標1 = 0）', series: [{name: '圧縮後の出力', color: 's1', x0: a.x0, dx: a.dx, y: a.y, w: 1.6}], vl: [{x: 20, label: '目標1'}, {x: 20 + S.dr / 1000, label: '目標2（' + S.a2 + ' dB）'}], tipy: v => fx(v, 1) + ' dB'}, RKM));
-    return {w3m: m.w3 * 1.5e8, psl: m.psl, tiles: [{k: '時間帯域幅積 T·B', v: fx(w.TB, 0)}, {k: '山の 3 dB 幅', v: fx(m.w3 * 1.5e8, 0) + ' <small>m</small>'}, {k: 'いちばん大きいサイドローブ', v: fx(m.psl, 1) + ' <small>dB</small>', s: '電力 ' + ratioTxt(m.psl)}, {k: 'ミスマッチ損失', v: fx(r.lossDb, 2) + ' <small>dB</small>'}]};
+    P[0].set(Object.assign({title: '圧縮後の出力（目標1 は 20 km、ピークが 0 dB）', xr: [18, 23], yr: [-70, 8], yl: '強度 [dB]（目標1 = 0）', series: [{name: '圧縮後の出力', color: 's1', x0: a.x0, dx: a.dx, y: a.y, w: 1.6}], vl: [{x: 20, label: '目標1'}, {x: 20 + S.dr / 1000, label: '目標2（' + fx(S.a2, 0) + ' dB）'}], tipy: v => fx(v, 1) + ' dB'}, RKM));
+    return {w3m: m.w3 * 1.5e8, psl: m.psl, tiles: [{k: '時間帯域幅積 T·B', v: fx(w.TB, 0)}, {k: 'メインローブの 3 dB 幅', v: fx(m.w3 * 1.5e8, 0) + ' <small>m</small>'}, {k: '最も大きいサイドローブ', v: fx(m.psl, 1) + ' <small>dB</small>', s: '電力 ' + ratioTxt(m.psl)}, {k: 'ミスマッチ損失', v: fx(r.lossDb, 2) + ' <small>dB</small>'}]};
   }});
 boot();
 </script>

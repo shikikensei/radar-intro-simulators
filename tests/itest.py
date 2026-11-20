@@ -14,11 +14,9 @@ async def main():
             ov=await pg.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
             await pg.evaluate("document.querySelectorAll('details').forEach(d=>d.open=true)")
             await pg.screenshot(path=str(SHOTS/f'00_{tag}.png'),full_page=True)
-            await pg.click('#glTab'); vis=await pg.is_visible('#gloss'); n=await pg.evaluate("document.querySelectorAll('#gloss dt').length")
-            await pg.fill('#glFind','CFAR'); nh=await pg.evaluate("[...document.querySelectorAll('#gloss dt')].filter(d=>!d.hidden).length")
-            await pg.keyboard.press('Escape'); vis2=await pg.is_visible('#gloss')
+            gl=await pg.evaluate("document.querySelector('#glBtn').getAttribute('href')")
             await pg.click('#themeBtn'); th=await pg.evaluate("document.documentElement.dataset.theme")
-            print(tag,'links',len(hrefs),'bad',bad,'overflowX',ov,'gloss',vis,n,nh,vis2,'theme->',th,'errs',errs,'ext',ext)
+            print(tag,'links',len(hrefs),'bad',bad,'overflowX',ov,'用語集へのリンク',gl,'theme->',th,'errs',errs,'ext',ext)
             if tag=='a':
                 # follow a deep link and the back link
                 await pg.evaluate("document.querySelectorAll('details').forEach(d=>d.open=true)")

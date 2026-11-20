@@ -136,6 +136,18 @@ table.t th{color:var(--text2);font-weight:700;background:var(--surface2);white-s
 .tw{overflow-x:auto}
 .ok{color:var(--ok);font-weight:700;white-space:nowrap}.ng{color:var(--ng);font-weight:700;white-space:nowrap}.info{color:var(--muted);white-space:nowrap}
 @media print{nav#steps,.stepnav,header.top .btn,#glTab{display:none}}
+a.gt{color:inherit;text-decoration:underline dashed var(--accent);text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:help;border-radius:3px}
+a.gt::after{content:"?";font-size:.68em;font-weight:700;vertical-align:super;line-height:0;margin-left:1px;color:var(--accent)}
+a.gt:hover,a.gt[aria-expanded=true]{background:var(--accent-bg)}
+.gpop{position:absolute;z-index:38;width:min(340px,calc(100vw - 16px));background:var(--surface);border:1.5px solid var(--accent);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.28);padding:8px 12px 10px;font-size:13px;font-weight:400;line-height:1.65;color:var(--text)}
+.gpop:focus{outline:2px solid var(--accent);outline-offset:1px}
+.gpop .gh{display:block;font-size:14px;font-weight:700;margin:0 0 2px}
+.gpop p{margin:0 0 8px;color:var(--text2)}
+.gpop .gpa{display:flex;flex-wrap:wrap;gap:6px}
+#gloss dt.hit,#gloss dt.hit+dd{background:var(--accent-bg);box-shadow:-6px 0 0 var(--accent-bg),6px 0 0 var(--accent-bg)}
+#gloss .glpage{margin:0 0 8px;font-size:12.5px}
+.tile .k,.tile .v,.tile .s,.plot-t,.ctl-h label,.ctl small,.ctl .chk,.ch button,.card.q p,.card.ms p,nav#steps,#read h2,.fixed{word-break:auto-phrase}
+.seg button{padding:2px 5px;font-size:12px}
 </style>
 </head>
 <body>
@@ -461,16 +473,16 @@ function runChecks(){
     const o = base({t: one(9, 45)}), sim = simulate(o, {noClutter: true, noNoise: true}), t = sim.tg[0];
     add('ドップラ周波数（シミュレーションのスペクトルのピーク）', '10 GHz（λ = 3 cm）、接近速度 45 m/s', fineF(sim, t.g), 2 * 45 / 0.03, 'Hz', 10, 'fd = 2V/λ, p.4.1');
     const o2 = base({f: 3, t: one(9, -30)}), sim2 = simulate(o2, {noClutter: true, noNoise: true});
-    add('同：遠ざかる目標（負のドップラ）', '3 GHz（λ = 10 cm）、接近速度 −30 m/s', fineF(sim2, sim2.tg[0].g), -600, 'Hz', 10, 'p.4.1（遠ざかる目標は負）');
+    add('同：離隔する目標（負のドップラ周波数）', '3 GHz（λ = 10 cm）、接近速度 −30 m/s', fineF(sim2, sim2.tg[0].g), -600, 'Hz', 10, 'p.4.1（離隔する目標は負）');
   }
   /* 2) あいまいなし距離・速度 */
   {
     const D = derive(base({prf: 10}));
-    add('あいまいなし距離 Ru = c/(2·fR)', 'PRF 10 kHz', D.Ru / 1000, 15, 'km', 1e-9, 'p.4.2');
+    add('あいまいさのない最大距離 Ru = c/(2·fR)', 'PRF 10 kHz', D.Ru / 1000, 15, 'km', 1e-9, 'p.4.2');
     add('レンジゲートの大きさ', 'ゲート幅 1 µs', D.gate, 150, 'm', 1e-9, '150 m/µs, p.4.9');
     const sim = simulate(base({t: one(21, 45)}), {noClutter: true, noNoise: true}), m = rdMap(sim, 'none'); let gb = 1, vb = -1e9;
     for (let g = 1; g < m.ng; g++) for (let k = 0; k < m.N; k++) if (m.db[g * m.N + k] > vb){ vb = m.db[g * m.N + k]; gb = g; }
-    add('距離の折り返し（シミュレーションでピークが出るゲートの距離）', 'PRF 10 kHz、目標の真の距離 21 km', gb * D.gate / 1000, 6, 'km', 0.001, 'Ru = 15 km で折り返し, p.4.2');
+    add('距離の折り返し（シミュレーションでピークが現れるレンジゲートの距離）', 'PRF 10 kHz、目標の真の距離 21 km', gb * D.gate / 1000, 6, 'km', 0.001, 'Ru = 15 km で折り返し, p.4.2');
     add('PRF 速度（最初のブラインド速度）fR·λ/2', 'PRF 10 kHz、λ = 3 cm', D.vprf, 150, 'm/s', 1e-9, 'p.4.34, 図4.19');
     const sim2 = simulate(base({t: one(9, 200)}), {noClutter: true, noNoise: true});
     add('速度の折り返し（シミュレーションのピークの見かけの速度）', 'PRF 10 kHz、目標の真の速度 200 m/s', fineF(sim2, sim2.tg[0].g) * D.lam / 2, 50, 'm/s', 0.2, '式4.10（200 − 150 = 50 m/s）');
@@ -482,66 +494,66 @@ function runChecks(){
     const oa = base({t: [{on: true, r: 9, v: 20 * D.dv, s: 0}, {on: true, r: 9, v: 21 * D.dv, s: 0}, {on: false, r: 5, v: 0, s: 0}]});
     oa.t[1].r = 6; const sa = simulate(oa, {noClutter: true, noNoise: true}), ma = rdMap(sa, 'none');
     const k1 = peakOf(ma.db, sa.tg[0].g * 64, sa.tg[0].g * 64 + 64) % 64, k2 = peakOf(ma.db, sa.tg[1].g * 64, sa.tg[1].g * 64 + 64) % 64;
-    add('ドップラが 1/CPI だけ違う2目標のピークのフィルタ番号の差', 'シミュレーション（N = 64）', k2 - k1, 1, '', 0, '1/CPI = フィルタ1本分');
-    add('フィルタ中心から 1/CPI ずれた目標への応答（重みなし）', '応答の最初の零点', Math.max(-200, db10(winResp(getWin(64, 'none'), 1))), -200, 'dB', 1, '理論上 −∞', '数値誤差の範囲で 0');
-    add('重みなしフィルタの 3 dB 幅 × CPI', 'N = 64', winStats(64, 'none').w3, 0.886, '', 0.005, '（補足）sin x/x の 3 dB 幅');
-    add('コヒーレント積分の利得（シミュレーション：ピーク ÷ 入力S/N）', 'N = 64、目標はフィルタ中心、雑音なし', ma.db[sa.tg[0].g * 64 + k1], 10 * Math.log10(64), 'dB', 0.01, '10 log N');
+    add('ドップラ周波数が 1/CPI だけ異なる 2 目標のピークのフィルタ番号の差', 'シミュレーション（N = 64）', k2 - k1, 1, '', 0, '1/CPI = フィルタ 1 本分');
+    add('フィルタ中心から 1/CPI 離れた目標への応答（重み付けなし）', '応答の最初の零点', Math.max(-200, db10(winResp(getWin(64, 'none'), 1))), -200, 'dB', 1, '理論上 −∞', '数値誤差の範囲で 0');
+    add('重み付けなしのフィルタの 3 dB 幅 × CPI', 'N = 64', winStats(64, 'none').w3, 0.886, '', 0.005, '（補足）sin x/x の 3 dB 幅');
+    add('コヒーレント積分の利得（シミュレーション：ピーク ÷ 入力 S/N）', 'N = 64、目標はフィルタ中心、雑音なし', ma.db[sa.tg[0].g * 64 + k1], 10 * Math.log10(64), 'dB', 0.01, '10 log N');
     add('2048 パルスのコヒーレント積分の利得', '10 log 2048', 10 * Math.log10(2048), 33.1, 'dB', 0.05, '表4.7, p.4.30');
     const sn = simulate(base({np: 256}), {noClutter: true, noTargets: true}), mn = rdMap(sn, 'c70'); let s = 0, c = 0;
     for (let i = 256; i < mn.db.length; i++){ s += Math.pow(10, mn.db[i] / 10); c++; }
-    add('雑音だけのマップの平均レベル', 'N = 256、チェビシェフ 70 dB（雑音で規格化）', 10 * Math.log10(s / c), 0, 'dB', 0.15, '（C+N)/N 表示, 図4.5');
+    add('雑音だけのマップの平均レベル', 'N = 256、チェビシェフ 70 dB（雑音で正規化）', 10 * Math.log10(s / c), 0, 'dB', 0.15, '(C+N)/N 表示, 図4.5');
   }
   /* 4) 重み付け */
   {
     const w = winStats(2048, 'c90');
     add('チェビシェフ 90 dB：ピークサイドローブ', 'N = 2048', w.pslDb, -90, 'dB', 0.5, 'p.4.30–4.31');
     add('チェビシェフ 90 dB：重み付け損失', 'N = 2048（N·Σw²/(Σw)²）', w.lossDb, 2.66, 'dB', 0.02, '表4.7, p.4.31');
-    add('表4.7：CFAR での熱雑音レベル', '−60 − 33.1 + 2.66 − 3.82', -60 - 10 * Math.log10(2048) + w.lossDb - 8 * Math.log10(3), -94.3, 'dBc', 0.06, '表4.7, p.4.30', 'PDI 3回の利得 10 log(3^0.8) = ' + (8 * Math.log10(3)).toFixed(2) + ' dB');
-    add('重みなし：ピークサイドローブ', 'N = 2048', winStats(2048, 'none').pslDb, -13.26, 'dB', 0.05, '（補足）sin x/x の値');
+    add('表4.7：CFAR での熱雑音レベル', '−60 − 33.1 + 2.66 − 3.82', -60 - 10 * Math.log10(2048) + w.lossDb - 8 * Math.log10(3), -94.3, 'dBc', 0.06, '表4.7, p.4.30', 'PDI 3 回の利得 10 log(3^0.8) = ' + (8 * Math.log10(3)).toFixed(2) + ' dB');
+    add('重み付けなし：ピークサイドローブ', 'N = 2048', winStats(2048, 'none').pslDb, -13.26, 'dB', 0.05, '（補足）sin x/x の値');
     const w64 = winStats(64, 'c90');
-    add('（参考）チェビシェフ 90 dB：重み付け損失', 'N = 64（初期設定のパルス数）', w64.lossDb, 2.66, 'dB', null, '表4.7 は N = 2048', 'パルス数が少ないと少し変わる');
+    add('（参考）チェビシェフ 90 dB：重み付け損失', 'N = 64（初期設定のパルス数）', w64.lossDb, 2.66, 'dB', null, '表4.7 は N = 2048', 'パルス数が少ないとわずかに変わる');
   }
   /* 5) 航空機搭載のクラッタ */
   {
     const o = base({vr: 250, h: 3, az: 30, dep: 6, prf: 40, np: 256, cn: 60, t: one(9, 400)}), D = derive(o), cl = clutterModel(o, D);
     const Rmb = D.h / Math.sin(D.dep), g = Math.round((Rmb % D.Ru) / D.gate), M = cl.M, row = cl.P.subarray(g * M, (g + 1) * M), ip = peakOf(row, 0, M);
     const fOf = i => foldF(i * cl.fb, D.prf);
-    add('メインビームクラッタのドップラ（モデルのスペクトルのピーク）', 'VR 250 m/s、λ 3 cm、方位 30°、俯角 6°', fOf(ip), 2 * 250 / 0.03 * Math.cos(6 * Math.PI / 180) * Math.cos(30 * Math.PI / 180), 'Hz', 60, '(2VR/λ)cosψ0, p.4.4');
+    add('メインビームクラッタのドップラ周波数（モデルのスペクトルのピーク）', 'VR 250 m/s、λ 3 cm、方位 30°、俯角 6°', fOf(ip), 2 * 250 / 0.03 * Math.cos(6 * Math.PI / 180) * Math.cos(30 * Math.PI / 180), 'Hz', 60, '(2VR/λ)cosψ0, p.4.4');
     const sim = simulate(o, {noTargets: true}), sp = gateSpectrum(sim, g, 'c70', 1), ks = peakOf(sp.db, 0, sp.M);
-    add('同（シミュレーション：FFT のピークのフィルタの中心）', '同上、PRF 40 kHz、N = 256（フィルタ間隔 156 Hz）', sp.f0 + ks * sp.df, D.fmb, 'Hz', 160, '(2VR/λ)cosψ0, p.4.4', '許容差はフィルタ1本分');
+    add('同（シミュレーション：FFT のピークのフィルタの中心）', '同上、PRF 40 kHz、N = 256（フィルタ間隔 156 Hz）', sp.f0 + ks * sp.df, D.fmb, 'Hz', 160, '(2VR/λ)cosψ0, p.4.4', '許容差はフィルタ 1 本分');
     let a = ip, b = ip; while (row[(a - 1 + M) % M] > row[ip] / 4 && ip - a < M / 4) a--; while (row[(b + 1) % M] > row[ip] / 4 && b - ip < M / 4) b++;
     const fr = (i, d) => { const y0 = row[((i) % M + M) % M], y1 = row[((i + d) % M + M) % M]; return (y0 - row[ip] / 4) / (y0 - y1); };
     const wid = (b - a + fr(a, -1) + fr(b, 1)) * cl.fb, th = THB, e44 = D.F * (th * Math.cos(D.dep) * Math.sin(D.az) + th * th * Math.cos(D.dep) * Math.cos(D.az) / 8 + C * D.tau * Math.pow(Math.sin(D.dep), 3) * Math.cos(D.az) / (2 * D.h * Math.cos(D.dep)));
     add('メインビームクラッタのスペクトル幅（ピークから 6 dB 下）', '同上、ビーム幅 3°、パルス幅 1 µs、高度 3 km', wid, e44, 'Hz', 40, '式4.4, p.4.16');
     const un = clutterUnfolded(o, D); let im = 0; for (let i = 0; i < un.U; i++) if (un.p[i] > 1e-12) im = i;
-    add('サイドローブクラッタの上端のドップラ', '同上（折り返しなしのスペクトル）', un.f0 + im * un.df, D.F, 'Hz', D.F * 0.02, '2VR/λ, 図4.2');
+    add('サイドローブクラッタの上端のドップラ周波数', '同上（折り返しなしのスペクトル）', un.f0 + im * un.df, D.F, 'Hz', D.F * 0.02, '2VR/λ, 図4.2');
     let gbest = 1, pbest = -1, cen = 0; const band = g => { let t = 0; for (let i = 0; i < M; i++) if (Math.abs(fOf(i)) < 0.5 * D.F) t += cl.P[g * M + i]; return t; };
     for (let g2 = 1; g2 < D.ng; g2++){ const t = band(g2); if (t > pbest){ pbest = t; gbest = g2; } }
-    add('高度線が現れる距離（メインビーム以外のクラッタが最も強いゲート）', '同上、高度 3 km', gbest * D.gate / 1000, 3, 'km', 0.151, '真下からの反射, p.4.5・p.4.18', '許容差はゲート1個分');
+    add('高度線が現れる距離（メインビーム以外のクラッタが最も強いレンジゲート）', '同上、高度 3 km', gbest * D.gate / 1000, 3, 'km', 0.151, '真下からの反射, p.4.5・p.4.18', '許容差はゲート 1 個分');
     for (let i = 0; i < M; i++) if (Math.abs(fOf(i)) < 0.5 * D.F) cen += fOf(i) * cl.P[gbest * M + i];
-    add('高度線のドップラ（そのゲートのスペクトルの重心）', '同上（メインビーム付近を除く）', cen / pbest, 0, 'Hz', cl.fb, 'ドップラ 0, p.4.5');
+    add('高度線のドップラ周波数（そのレンジゲートのスペクトルの重心）', '同上（メインビーム付近を除く）', cen / pbest, 0, 'Hz', cl.fb, 'ドップラ 0, p.4.5');
   }
   /* 6) あいまいさの解消 */
   {
     const r = correlate([{ru: 9, amb: [3.1]}, {ru: 10, amb: [8.9]}, {ru: 11, amb: [6.2]}], 0, 60, 0.3, 3);
     add('ハンドブックの例：相関が成立する数', 'ゲート数 9・10・11、測定値 3.1・8.9・6.2、窓 ±0.3、0〜60 ゲート', r.hits.length, 1, '', 0, '図4.18, p.4.32');
     const h = r.hits[0] || {r: NaN, mem: []};
-    add('同：相関した距離', '同上（3本の平均）', h.r, (39.1 + 38.9 + 39.2) / 3, 'ゲート', 0.01, '図4.18（39.1・38.9・39.2）');
-    add('同：粗いビンの番号', '9 ゲートごとのビン', Math.floor(h.r / 9) + 1, 5, '', 0, '図4.18（5番目のビン）');
+    add('同：相関した距離', '同上（3 本の平均）', h.r, (39.1 + 38.9 + 39.2) / 3, 'ゲート', 0.01, '図4.18（39.1・38.9・39.2）');
+    add('同：粗いビンの番号', '9 ゲートごとのビン', Math.floor(h.r / 9) + 1, 5, '', 0, '図4.18（5 番目のビン）');
     const ks = [0, 1, 2].map(p => (h.mem.find(m => m.p === p) || {k: NaN}).k);
-    add('同：PRF 1 のあいまいさの番号', '同上', ks[0], 4, '', 0, 'p.4.31（5周期目のエコー）'); add('同：PRF 2・3 のあいまいさの番号（和）', '同上', ks[1] + ks[2], 6, '', 0, 'p.4.32（どちらも 3）');
+    add('同：PRF 1 のアンビギュイティ番号', '同上', ks[0], 4, '', 0, 'p.4.31（5 周期目のエコー）'); add('同：PRF 2・3 のアンビギュイティ番号（和）', '同上', ks[1] + ks[2], 6, '', 0, 'p.4.32（どちらも 3）');
     const o = base({t: one(43.7, 45)}), dets = [0, 1, 2].map(lk => { const sim = simulate(o, {noClutter: true, noNoise: true, look: lk}), m = rdMap(sim, 'none'); let gb = 1, vb = -1e9;
       for (let g = 1; g < m.ng; g++) for (let k = 0; k < m.N; k++) if (m.db[g * m.N + k] > vb){ vb = m.db[g * m.N + k]; gb = g; } return {ru: sim.D.Ru, amb: [gb * sim.D.gate]}; });
     const r2 = correlate(dets, 0, 60000, 150, 3);
-    add('シミュレーション：3つのPRFの測定から求めた距離', 'PRF 10・9・8.18 kHz、真の距離 43.7 km、窓 ±150 m', r2.hits.length === 1 ? r2.hits[0].r / 1000 : NaN, 43.7, 'km', 0.15, '式4.9, p.4.31', 'ゲート幅 150 m の量子化を含む');
-    add('線形FM測距：目標 A', '傾き 24.28 MHz/s、周波数差 3 kHz', fmRange(3000, 24.28e6) / NMI, 10, '海里', 0.05, '式4.11, 表4.8'); add('線形FM測距：目標 B', '周波数差 6 kHz', fmRange(6000, 24.28e6) / NMI, 20, '海里', 0.1, '式4.11, 表4.8');
+    add('シミュレーション：3 つの PRF の測定から求めた距離', 'PRF 10・9・8.18 kHz、真の距離 43.7 km、窓 ±150 m', r2.hits.length === 1 ? r2.hits[0].r / 1000 : NaN, 43.7, 'km', 0.15, '式4.9, p.4.31', 'ゲート幅 150 m の量子化を含む');
+    add('線形 FM 測距：目標 A', '傾き 24.28 MHz/s、周波数差 3 kHz', fmRange(3000, 24.28e6) / NMI, 10, '海里', 0.05, '式4.11, 表4.8'); add('線形 FM 測距：目標 B', '周波数差 6 kHz', fmRange(6000, 24.28e6) / NMI, 20, '海里', 0.1, '式4.11, 表4.8');
     let n = 0; for (const f1 of [18, 23]) for (const f0 of [21, 29]) for (const f2 of [24, 35]) if (f1 < f0 && f0 < f2 && f1 + f2 === 2 * f0) n++;
-    add('3区間FM測距：式4.12・4.13 を満たす組の数', 'f0 = 21, 29／f1 = 18, 23／f2 = 24, 35 kHz', n, 2, '', 0, '表4.8, p.4.35');
+    add('3 区間 FM 測距：式4.12・4.13 を満たす組の数', 'f0 = 21, 29／f1 = 18, 23／f2 = 24, 35 kHz', n, 2, '', 0, '表4.8, p.4.35');
   }
   /* 7) エクリプシング */
   {
     for (const N of [5, 20]){ const D = derive(base({prf: 1000 / N, tau: 1}));
-      add('エクリプシングとゲートストラドルの平均損失', 'パルス間隔 = ' + N + ' ゲート（デューティ ' + (100 / N) + '%）、モデルの平均', -db10(eclipseAvg(D)), 10 * Math.log10(12 * N / (7 * N - 6)), 'dB', 0.01, '式4.17, p.4.41'); }
+      add('エクリプシングとゲートストラドルの平均損失', 'パルス繰り返し周期 = ' + N + ' ゲート（デューティ ' + (100 / N) + '%）、モデルの平均', -db10(eclipseAvg(D)), 10 * Math.log10(12 * N / (7 * N - 6)), 'dB', 0.01, '式4.17, p.4.41'); }
   }
   /* 8) ダイナミックレンジと安定度 */
   {
@@ -558,9 +570,9 @@ function runChecks(){
       let d = 0, c = 0; for (let k = 0; k < 64; k++){ if (Math.abs(k - 32) < 6) continue; d += Math.pow(10, m1.db[g * 64 + k] / 10) - Math.pow(10, m0.db[g * 64 + k] / 10); c++; }
       acc += d / c / pr; cnt++;
     }
-    add('シミュレーション：位相雑音が作る雑音の床（クラッタ比）', '位相雑音 −64 dBc、C/N が 30 dB 以上のゲートの平均', 10 * Math.log10(acc / cnt), -64, 'dBc', 0.3, '式4.8 の前提（クラッタに比例する雑音）');
+    add('シミュレーション：位相雑音による雑音フロア（クラッタ比）', '位相雑音 −64 dBc、C/N が 30 dB 以上のレンジゲートの平均', 10 * Math.log10(acc / cnt), -64, 'dBc', 0.3, '式4.8 の前提（クラッタに比例する雑音）');
   }
-  add('M-of-N 検出の確率（3-of-8）', '1ルックの検出確率 0.5', mOfN(0.5, 3, 8), 219 / 256, '', 1e-9, '式4.26, p.4.47');
+  add('M-of-N 検出の確率（3-of-8）', '1 ルックの検出確率 0.5', mOfN(0.5, 3, 8), 219 / 256, '', 1e-9, '式4.26, p.4.47');
   return out;
 }
 
@@ -741,7 +753,9 @@ class Plot {
       if (p.shape === 'x'){ const r = p.r || 4; for (const pass of [0, 1]){ g.lineWidth = pass ? 2 : 4.5; g.strokeStyle = pass ? this.col(p.color) : cSurf; g.lineCap = 'round'; g.beginPath(); g.moveTo(px - r, py - r); g.lineTo(px + r, py + r); g.moveTo(px + r, py - r); g.lineTo(px - r, py + r); g.stroke(); } g.lineCap = 'butt'; }
       else if (p.hollow){ g.lineWidth = 4; g.strokeStyle = cSurf; g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.lineWidth = 2; g.strokeStyle = this.col(p.color); if (p.dash) g.setLineDash(p.dash); g.beginPath(); g.arc(px, py, p.r || 7, 0, 2 * Math.PI); g.stroke(); g.setLineDash([]); }
       else { g.fillStyle = this.col(p.color); g.strokeStyle = cSurf; g.lineWidth = 2; g.beginPath(); g.arc(px, py, p.r || 4.5, 0, 2 * Math.PI); g.fill(); g.stroke(); }
-      if (p.label){ const dxl = (p.hollow ? (p.r || 7) + 3 : 7); g.fillStyle = cText; g.textAlign = p.left ? 'right' : 'left'; g.textBaseline = p.below ? 'top' : 'bottom'; ft(p.label, px + (p.left ? -dxl : dxl), py + (p.below ? 3 : -3)); }
+      if (p.label){ const dxl = (p.hollow ? (p.r || 7) + 3 : 7), tw = g.measureText(p.label).width;   /* 札が図の端からはみ出す場合は、反対側に書く */
+        const lf = p.left ? !(px - dxl - tw < m.l && px + dxl + tw <= m.l + pw) : (px + dxl + tw > m.l + pw && px - dxl - tw >= m.l);
+        g.fillStyle = cText; g.textAlign = lf ? 'right' : 'left'; g.textBaseline = p.below ? 'top' : 'bottom'; ft(p.label, px + (lf ? -dxl : dxl), py + (p.below ? 3 : -3)); }
     }
     /* 吹き出し（矢印つきの短い注記）：{x, y, t, dx, dy}。dx・dy は点から吹き出しまでのずれ [px] */
     g.font = 'bold 11.5px "Yu Gothic UI","Meiryo UI",Meiryo,system-ui,sans-serif';
@@ -821,73 +835,73 @@ const SERIES = [null,
   {no: 1, file: '01_pulse_compression.html', name: 'パルス圧縮'},
   {no: 2, file: '02_mti.html', name: 'MTI（移動目標指示）'},
   {no: 3, file: '03_pulse_doppler.html', name: 'パルスドップラ'},
-  {no: 4, file: '04_detection_cfar.html', name: '自動検出とCFAR'}];
+  {no: 4, file: '04_detection_cfar.html', name: '自動検出と CFAR'}];
 /* [グループ, 日本語（English）, 説明]。グループ 0＝基礎（補足）、1〜4＝各回 */
 const GLOSS = [
-  [0, 'dB（デシベル）', '比を対数で表す単位。電力が 10 倍で +10 dB、100 倍で +20 dB、半分で約 −3 dB。掛け算が足し算になるので、レーダの計算でよく使う。'],
-  [0, 'S/N（信号対雑音比、signal-to-noise ratio）', '信号の電力が雑音の電力の何倍かを表す値。大きいほど目標を見つけやすい。'],
-  [0, 'I/Q（複素信号）', '受信信号を「振幅」と「位相」の両方が分かる形で表したもの。I（同相）と Q（直交）の 2 つの成分を持ち、平面上の矢印（フェーザ）として描ける。'],
-  [0, '位相（phase）', '波の「1 周期のうちのどこにいるか」を角度で表したもの。360° で 1 周する。'],
-  [0, 'ドップラ周波数（Doppler frequency）', '目標が近づく・遠ざかることで、エコーの周波数が送信からずれる量。fd = 2v/λ（v は近づく速度、λ は波長）。'],
-  [0, 'PRF（pulse repetition frequency、パルス繰り返し周波数）', '1 秒間に送るパルスの数。逆数がパルスの間隔。'],
-  [0, '距離セル／レンジゲート（range cell / range gate）', '受信信号を、距離（遅れ時間）ごとに細かく区切った 1 区画。'],
-  [0, 'クラッタ（clutter）', '地面・海面・雨など、見たい目標以外からの不要なエコー。'],
-  [0, 'サイドローブ（sidelobe）', '本来のピーク（主ローブ）の両脇に出る小さな山。強い信号のサイドローブが、弱い信号を隠すことがある。'],
-  [0, '重み付け（weighting）', 'データの端を小さくするような係数を掛けて、サイドローブを下げる処理。代わりに主ローブが少し広がり、S/N が少し下がる。'],
-  [0, 'FFT（高速フーリエ変換）', '信号を周波数の成分に分ける計算を、高速に行う方法。'],
-  [1, 'パルス圧縮（pulse compression）', '変調をかけた長いパルスを送り、受信側のフィルタで細いパルスに戻す方法。長いパルスのエネルギーと、短いパルスの距離分解能を両立させる。'],
-  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域 B の積 TB。パルス圧縮比にほぼ等しい。'],
-  [1, 'パルス圧縮比（pulse compression ratio）', '送信パルス幅と、圧縮後のパルス幅の比。およそ TB。'],
-  [1, '距離分解能（range resolution）', '近くにある 2 つの目標を別々に見分けられる最小の距離差。およそ c/(2B)。'],
-  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変える変調。代表的なパルス圧縮波形。'],
-  [1, '整合フィルタ（matched filter）', '送信波形に合わせて作った受信フィルタ。雑音の中の信号に対して、出力のピークの S/N を最大にする。'],
-  [1, '時間サイドローブ（time sidelobe）', '圧縮後のパルスで、主ローブの前後（距離方向）に出る小さな山。'],
-  [1, 'テイラー重み付け（Taylor weighting）', 'LFM の時間サイドローブを下げるための、代表的な周波数領域の重み付け。'],
-  [1, 'ミスマッチ損失（mismatch loss）', '重み付けなどで整合フィルタからわざと外したために生じる S/N の低下。'],
-  [1, '距離ドップラ結合（range-Doppler coupling）', 'LFM で、目標のドップラ周波数によって圧縮後のピークの位置（距離）がずれる現象。'],
-  [1, '位相符号波形（phase-coded waveform）', 'パルスを短いサブパルスに分け、サブパルスごとに位相を切り替える波形。'],
-  [1, 'バーカー符号（Barker code）', 'サイドローブが主ローブの 1/N になる特別な 2 値位相符号。長さは最大 13。'],
-  [1, 'エクリプシング（eclipsing）', '送信中は受信機がオフなので、その間に戻ってきたエコーが欠けること。'],
-  [1, 'ストレッチ処理（stretch processing）', '受信した LFM に参照の LFM を掛け、周波数の違いとして距離を読み取る圧縮方法。'],
-  [2, 'MTI（moving target indication、移動目標指示）', 'パルスごとのエコーの変化を使って、止まっているクラッタを消し、動いている目標を残す処理。'],
-  [2, 'パルスキャンセラ（delay-line canceler）', '1 つ前のパルスのエコーを引き算する MTI フィルタ。固定物のエコーは毎回同じなので消える。'],
-  [2, 'ブラインド速度（blind speed）', 'MTI で目標まで消えてしまう速度。ドップラ周波数が PRF の整数倍になる速度。'],
-  [2, '改善度（improvement factor）', 'MTI によって、信号対クラッタ比がどれだけ良くなったかを表す値（全速度で平均）。'],
-  [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比。'],
-  [2, 'スタガPRF（staggered PRF）', 'パルスの間隔を交互に変えることで、ブラインド速度を高い速度へ追いやる方法。'],
-  [2, 'クラッタのスペクトル拡がり（clutter spectral spread）', '風で揺れる木やアンテナの走査などで、クラッタのドップラが 0 のまわりに幅を持つこと。'],
-  [2, '走査変調（scanning modulation）', 'アンテナが回ることで、クラッタのエコーの強さがパルスごとに変わること。スペクトル拡がりの原因の 1 つ。'],
-  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強さを記憶したもの。しきい値の設定などに使う。'],
-  [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分けて目標を検出する方式。'],
-  [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通すフィルタ。FFT で多数並べて作る。'],
-  [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ分析する 1 かたまりのパルス列。長いほどドップラ分解能が細かい。'],
-  [3, '距離のあいまいさ（range ambiguity）', 'エコーがどの送信パルスのものか区別できず、距離が決まらないこと。PRF が高いほど起きやすい。'],
-  [3, 'ドップラのあいまいさ（Doppler ambiguity）', 'ドップラ周波数が PRF の整数倍だけ違うものと区別できないこと。PRF が低いほど起きやすい。'],
-  [3, 'メインビームクラッタ（mainbeam clutter）', 'アンテナの主ビームが地面に当たって返ってくる強いクラッタ。'],
-  [3, 'サイドローブクラッタ（sidelobe clutter）', 'アンテナのサイドローブを通って、あらゆる方向の地面から返ってくるクラッタ。'],
-  [3, '高度線（altitude line）', '航空機の真下の地面からのクラッタ。ドップラがほぼ 0 の位置に強く出る。'],
-  [3, 'ブラインドゾーン（blind zone）', 'エクリプシングやクラッタのために目標が見えなくなる、距離やドップラの範囲。'],
-  [4, 'しきい値（threshold）', '「これを超えたら目標あり」と判定する基準の値。'],
-  [4, '探知確率（probability of detection、Pd）', '目標があるときに、正しく検出できる確率。'],
-  [4, '誤警報確率（probability of false alarm、Pfa）', '目標がないのに、雑音などで「目標あり」と判定してしまう確率。'],
-  [4, '積分（integration）', '何パルス分かの受信信号を足し合わせて、目標を検出しやすくすること。'],
-  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器。'],
-  [4, '2値積分（binary integration）', 'パルスごとに 0／1 を判定し、N 回のうち M 回以上 1 なら検出とする方法（M-out-of-N）。'],
-  [4, 'CFAR（constant false alarm rate、一定誤警報率）', '背景の強さに合わせてしきい値を自動で変え、誤警報確率を一定に保つ処理。'],
-  [4, 'セル平均CFAR（cell-averaging CFAR）', '注目するセルの周りのセル（参照セル）の平均から背景の強さを推定する CFAR。'],
-  [4, '参照セル（reference cells）', 'CFAR で、背景の強さを推定するために使う周りのセル。'],
-  [4, 'CFAR損失（CFAR loss）', '背景を推定で求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N。'],
-  [4, 'Swerlingモデル（Swerling models）', '目標のエコーの強さのゆらぎ方を表す代表的なモデル（スキャンごとに変わるか、パルスごとに変わるか、など）。']
+  [0, 'dB（デシベル）', '比を対数で表す単位です。電力比が 10 倍で +10 dB、100 倍で +20 dB、半分で約 −3 dB になります。乗算が加算になるため、レーダの計算で広く使われます。', 'g-db'],
+  [0, 'S/N（信号対雑音比、signal-to-noise ratio）', '信号電力が雑音電力の何倍であるかを表す比です。S/N が大きいほど目標を検出しやすくなります。', 'g-snr'],
+  [0, 'I/Q（複素信号）', '受信信号を振幅と位相の両方が分かる形で表したものです。I（同相）と Q（直交）の 2 つの成分をもち、平面上の矢印（フェーザ）として表せます。', 'g-iq'],
+  [0, '位相（phase）', '波が 1 周期のうちのどの位置にあるかを、角度で表した量です。360° で 1 周します。', 'g-phase'],
+  [0, 'ドップラ周波数（Doppler frequency）', '目標が接近または離隔することによって、エコーの周波数が送信周波数から偏移する量です。fd = 2v/λ で表されます（v は接近速度、λ は波長）。', 'g-doppler-frequency'],
+  [0, 'PRF（pulse repetition frequency、パルス繰り返し周波数）', '1 秒間に送信するパルスの数です。その逆数がパルス繰り返し周期（パルス間隔）です。', 'g-prf'],
+  [0, '距離セル／レンジゲート（range cell / range gate）', '受信信号を距離（遅延時間）ごとに区切った 1 区画です。', 'g-range-cell'],
+  [0, 'クラッタ（clutter）', '地面、海面、雨など、目的の目標以外からの不要なエコーです。', 'g-clutter'],
+  [0, 'サイドローブ（sidelobe）', 'メインローブ（主ローブ）の両側に現れる小さなピークです。強い信号のサイドローブが、弱い信号を隠すことがあります。', 'g-sidelobe'],
+  [0, '重み付け（weighting）', 'データの両端が小さくなるような係数を掛けて、サイドローブを下げる処理です。その代わりにメインローブがわずかに広くなり、S/N がわずかに低下します。', 'g-weighting'],
+  [0, 'FFT（高速フーリエ変換）', '信号を周波数成分に分解する計算を、高速に行う方法です。', 'g-fft'],
+  [1, 'パルス圧縮（pulse compression）', '変調をかけた長いパルスを送信し、受信側のフィルタで短いパルスに圧縮する方法です。長いパルスのエネルギーと、短いパルスの距離分解能を両立させます。', 'g-pulse-compression'],
+  [1, '時間帯域幅積（time-bandwidth product）', 'パルス幅 T と帯域幅 B の積 TB です。パルス圧縮比にほぼ等しくなります。', 'g-time-bandwidth-product'],
+  [1, 'パルス圧縮比（pulse compression ratio）', '送信パルス幅と圧縮後のパルス幅の比です。時間帯域幅積 TB にほぼ等しくなります。', 'g-pulse-compression-ratio'],
+  [1, '距離分解能（range resolution）', '近接した 2 つの目標を分離できる最小の距離差です。帯域幅 B で決まり、およそ c/(2B) です。', 'g-range-resolution'],
+  [1, 'LFM／チャープ（linear frequency modulation）', 'パルスの中で周波数を直線的に変化させる変調です。パルス圧縮に最も広く使われます。', 'g-lfm'],
+  [1, '整合フィルタ（matched filter）', '送信波形に合わせて設計し、出力の S/N を最大にする受信フィルタです。', 'g-matched-filter'],
+  [1, '時間サイドローブ（time sidelobe、レンジサイドローブ）', 'パルス圧縮後の波形で、メインローブの前後に現れる小さなピークです。強い目標のサイドローブが弱い目標を隠すことがあります。', 'g-time-sidelobe'],
+  [1, 'テイラー重み付け（Taylor weighting）', 'LFM の時間サイドローブを下げるために使う、代表的な周波数領域の重み付けです。', 'g-taylor-weighting'],
+  [1, 'ミスマッチ損失（mismatch loss）', '重み付けなどによって整合フィルタから意図的に外したために生じる、S/N の低下です。', 'g-mismatch-loss'],
+  [1, '距離ドップラ結合（range-Doppler coupling）', 'LFM で目標のドップラ周波数によって、圧縮後のピークの位置（距離）が変化する現象です。', 'g-range-doppler-coupling'],
+  [1, '位相符号波形（phase-coded waveform）', 'パルスを短いサブパルスに分け、サブパルスごとに位相を切り替える波形です。', 'g-phase-coded-waveform'],
+  [1, 'バーカー符号（Barker code）', 'サイドローブがメインローブの 1/N になる、特別な 2 値位相符号です。長さは最大 13 です。', 'g-barker-code'],
+  [1, 'エクリプシング（eclipsing）', '送信している間は受信できないために、エコーの一部または全部が失われる現象です。デューティ比が高い波形で問題になります。', 'g-eclipsing'],
+  [1, 'ストレッチ処理（stretch processing）', '受信した LFM に参照 LFM を乗算し、周波数の差として距離を求める圧縮方法です。', 'g-stretch-processing'],
+  [2, 'MTI（moving target indication、移動目標指示）', 'パルスごとのエコーの変化を利用して、静止しているクラッタを除去し、運動している目標を残す処理です。', 'g-mti'],
+  [2, 'パルスキャンセラ（delay-line canceler）', '1 つ前のパルスのエコーを減算する MTI フィルタです。静止した物体のエコーは毎回同じであるため、除去されます。', 'g-pulse-canceler'],
+  [2, 'ブラインド速度（blind speed）', 'MTI で目標のエコーが静止クラッタと同様に抑圧される速度です。ドップラ周波数が PRF の整数倍になる速度に当たり、最初の値は λ·PRF/2 です。', 'g-blind-speed'],
+  [2, '改善係数（improvement factor、改善度）', 'MTI によって、信号対クラッタ比がどれだけ向上したかを表す値です。目標の速度については、すべての速度で平均します。', 'g-improvement-factor'],
+  [2, 'クラッタ減衰（clutter attenuation）', 'MTI フィルタの入力と出力での、クラッタ電力の比です。', 'g-clutter-attenuation'],
+  [2, 'スタガ PRF（staggered PRF）', 'パルス繰り返し周期を順に変えることによって、ブラインド速度を高い速度へ移す方法です。', 'g-staggered-prf'],
+  [2, 'クラッタのスペクトル幅（clutter spectral spread）', '風で揺れる木やアンテナの走査などによって、クラッタのドップラ周波数が 0 の付近に幅をもつことです。標準偏差で表します。', 'g-clutter-spectral-spread'],
+  [2, '走査変調（scanning modulation）', 'アンテナの回転によって、クラッタのエコーの振幅がパルスごとに変化する現象です。クラッタのスペクトル幅が大きくなる原因の 1 つです。', 'g-scanning-modulation'],
+  [2, 'クラッタマップ（clutter map）', '場所ごとに、過去のスキャンのクラッタの強度を記憶したものです。しきい値の設定などに使います。', 'g-clutter-map'],
+  [3, 'パルスドップラ（pulse Doppler）', 'パルス列のエコーを距離ごとにドップラ分析し、速度ごとに分離して目標を検出する方式です。', 'g-pulse-doppler'],
+  [3, 'ドップラフィルタ（Doppler filter）', '特定のドップラ周波数（速度）の成分だけを通過させるフィルタです。FFT によって多数を並べて構成します。', 'g-doppler-filter'],
+  [3, 'コヒーレント処理区間（CPI、coherent processing interval）', 'まとめてドップラ処理を行う 1 組のパルス列、またはその時間です。CPI が長いほどドップラ分解能（速度分解能）が高くなります。', 'g-cpi'],
+  [3, '距離のアンビギュイティ（range ambiguity、距離のあいまいさ）', 'エコーがどの送信パルスによるものかを区別できず、距離が一意に決まらないことです。PRF が高いほど生じやすくなります。', 'g-range-ambiguity'],
+  [3, 'ドップラのアンビギュイティ（Doppler ambiguity、ドップラのあいまいさ）', 'ドップラ周波数が PRF の整数倍だけ異なる目標を区別できないことです。PRF が低いほど生じやすくなります。', 'g-doppler-ambiguity'],
+  [3, 'メインビームクラッタ（mainbeam clutter）', 'アンテナのメインビームが照射する地面から返ってくる、強いクラッタです。', 'g-mainbeam-clutter'],
+  [3, 'サイドローブクラッタ（sidelobe clutter）', 'アンテナのサイドローブを通って、あらゆる方向の地面から返ってくるクラッタです。', 'g-sidelobe-clutter'],
+  [3, '高度線（altitude line）', '航空機の真下の地面からのクラッタです。ドップラ周波数がほぼ 0 の位置に強く現れます。', 'g-altitude-line'],
+  [3, 'ブラインドゾーン（blind zone）', 'エクリプシングやクラッタのために目標を検出できなくなる、距離やドップラ周波数の範囲です。', 'g-blind-zone'],
+  [4, 'しきい値（threshold）', '受信信号がこの値を超えた場合に「目標あり」と判定する、基準の値です。', 'g-threshold'],
+  [4, '検出確率（探知確率、probability of detection、Pd）', '目標が存在するときに、それを正しく検出できる確率です。', 'g-probability-of-detection'],
+  [4, '誤警報確率（probability of false alarm、Pfa）', '目標が存在しないにもかかわらず、雑音などによって「目標あり」と判定する確率です。', 'g-probability-of-false-alarm'],
+  [4, '積分（integration）', '複数のパルスの受信信号を加算して、目標を検出しやすくする処理です。', 'g-integration'],
+  [4, '移動窓積分器（moving-window integrator）', '直近の n パルスの和を、1 パルスごとに更新していく積分器です。', 'g-moving-window-integrator'],
+  [4, '2 値積分（binary integration）', '各回の判定結果（検出したかどうか）だけを数え、N 回のうち M 回以上で検出した場合に「目標あり」と判定する方法です。', 'g-binary-integration'],
+  [4, 'CFAR（constant false alarm rate、一定誤警報率）', '周囲のセルから雑音やクラッタのレベルを推定し、誤警報確率が一定になるようにしきい値を自動的に調整する処理です。', 'g-cfar'],
+  [4, 'セル平均 CFAR（cell-averaging CFAR）', '注目セルの周囲のセル（参照セル）の平均から背景の強度を推定する CFAR です。', 'g-cell-averaging-cfar'],
+  [4, '参照セル（reference cells）', 'CFAR で背景の強度を推定するために使う、注目セルの周囲のセルです。', 'g-reference-cells'],
+  [4, 'CFAR 損失（CFAR loss）', '背景を推定によって求めるために、しきい値を高めにする必要があり、その分だけ余分に必要になる S/N です。', 'g-cfar-loss'],
+  [4, 'Swerling モデル（Swerling models）', '目標の RCS 変動を表す代表的なモデルです。変動がスキャンごとに生じるか、パルスごとに生じるかなどによって区別します。', 'g-swerling-models']
 ];
 /* 前提知識の補足（30秒で読める長さ。すべてハンドブックにない一般知識＝補足） */
 const PREQ = {
-  db: ['dB（デシベル）とは', '大きさの比を、掛け算ではなく足し算で扱うための単位です。電力が 10 倍なら +10 dB、100 倍なら +20 dB、1/2 なら約 −3 dB、1/100 なら −20 dB。レーダでは信号の強さが何桁も変わるので、グラフの縦軸によく使います。このシリーズでは、dB の値の横に「何倍か」も書きます。'],
-  iq: ['I/Q（複素信号）とは', '受信した波の「強さ（振幅）」と「タイミング（位相）」を同時に表す方法です。平面の上に矢印を描き、矢印の長さが振幅、向きが位相です。横方向の成分を I、縦方向の成分を Q と呼びます。矢印がぐるぐる回る速さが、周波数にあたります。'],
-  dop: ['ドップラとは', '救急車が近づくとサイレンが高く聞こえるのと同じで、近づく目標からのエコーは周波数が少し高くなります。このずれがドップラ周波数で、fd = 2v/λ（v は近づく速度、λ は波長）。波長 3 cm で 15 m/s なら 1 kHz です。'],
-  prob: ['確率分布とは', '雑音の大きさは毎回ばらばらで、予測できません。ただし「どのくらいの大きさが、どのくらいの割合で出るか」は決まっています。これを表したグラフが確率分布で、横軸が大きさ、縦軸が出やすさです。ある値より右側の面積が、「その値を超える確率」になります。'],
-  wave: ['パルスとエコー、距離の測り方', 'レーダは短い電波（パルス）を出し、目標からはね返ってきた電波（エコー）を受けます。往復にかかった時間 t から、距離 R = c·t/2（c は光の速さ）が分かります。1 マイクロ秒の遅れが 150 m にあたります。'],
-  fft: ['周波数に分ける（スペクトル）とは', 'どんな信号も、いろいろな周波数の波の足し合わせとして表せます。「どの周波数の成分が、どのくらい入っているか」を表したものがスペクトルで、それを計算する方法が FFT です。'],
-  prf: ['パルスの繰り返しと PRF', 'レーダはパルスを一定の間隔で何度も送ります。1 秒あたりの回数が PRF です。同じ目標のエコーを、パルスごとに 1 つずつ受けることになり、その「パルスごとの変化」を見るのが MTI やパルスドップラです。']
+  db: ['dB（デシベル）とは', '大きさの比を乗算ではなく加算で扱うための単位です。電力が 10 倍の場合は +10 dB、100 倍の場合は +20 dB、1/2 の場合は約 −3 dB、1/100 の場合は −20 dB です。レーダでは信号の電力が何桁も変化するため、グラフの縦軸によく使います。このシリーズでは dB の値に倍率も添えています。'],
+  iq: ['I/Q（複素信号）とは', '受信信号の振幅と位相（波のタイミング）を同時に表す方法です。平面上に矢印（フェーザ）を描くと、矢印の長さが振幅を、方向が位相を表します。横方向の成分を I、縦方向の成分を Q と呼びます。矢印が 1 秒間に回転する回数が、周波数に当たります。'],
+  dop: ['ドップラとは', '救急車が近づくとサイレンが高く聞こえることと同様に、接近する目標からのエコーは周波数がわずかに高くなります。この周波数の偏移がドップラ周波数であり、fd = 2v/λ（v は接近速度、λ は波長）で表されます。波長 3 cm で 15 m/s の場合は 1 kHz です。'],
+  prob: ['確率分布とは', '雑音の大きさは毎回不規則に変化し、予測できません。ただし、「どの大きさが、どの程度の割合で現れるか」は決まっています。これを表したグラフが確率分布であり、横軸が大きさ、縦軸が確率密度です。ある値より右側の面積が、「その値を超える確率」になります。'],
+  wave: ['パルスとエコー、距離の測り方', 'レーダは短い電波（パルス）を送信し、目標で反射して戻ってきた電波（エコー）を受信します。往復に要した時間 t から、距離 R = c·t/2（c は光速）が分かります。1 マイクロ秒の遅延時間が 150 m に当たります。'],
+  fft: ['周波数に分ける（スペクトル）とは', 'どのような信号もさまざまな周波数の正弦波の和として表せます。「どの周波数の成分が、どれだけ含まれているか」を表したものがスペクトルであり、それを計算する方法が FFT です。'],
+  prf: ['パルスの繰り返しと PRF', 'レーダはパルスを一定の周期で繰り返し送信します。1 秒あたりの送信回数が PRF です。同じ目標のエコーをパルスごとに 1 つずつ受信することになり、その「パルスごとの変化」を利用する処理が MTI やパルスドップラです。']
 };
 
 /* ============================================================
@@ -897,7 +911,7 @@ const PREQ = {
 const STATE = {pred: [], shown: [], ms: [], touched: false};
 let cur = 0, PL = [], playT = null, hlT = null, lastR = {};
 /* dB の値に「何倍か」を添える（電力の比）。例：−20.0 dB（電力 1/100） */
-function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + ' 倍' : '1/' + s; }
+function ratioTxt(d){ const r = Math.pow(10, Math.abs(d) / 10), s = r >= 9950 ? fx(r / 1e4, r >= 99500 ? 0 : 1) + ' 万' : r >= 99.5 ? fx(r, 0) : r >= 9.95 ? fx(r, 0) : fx(r, 1); return Math.abs(d) < 0.05 ? '1 倍' : d > 0 ? s + (s.endsWith('万') ? '倍' : ' 倍') : '1/' + s; }
 function dbx(d, dg){ return isFinite(d) ? fx(d, dg === undefined ? 1 : dg) + ' dB（電力 ' + ratioTxt(d) + '）' : '—'; }
 /* 読み物の書き方：[[キー|表示]] はシミュレータ側を強調するリンク、{H} は「補足」の印 */
 function rt(s){ return String(s || '').replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, '<a class="term" data-hl="$1" role="button" tabindex="0">$2</a>').replace(/\{H\}/g, H); }
@@ -952,23 +966,23 @@ function showMission(){
 function showAnswer(){
   const st = STEPS[cur], body = $('#ansBody'), p = STATE.pred[cur]; if (!body || !STATE.shown[cur]) return;
   body.hidden = false;
-  body.innerHTML = '<p><b>' + (p === st.ans ? '予想どおりです。' : '予想とは違いましたね。外れても大丈夫、ここで「なぜ」を確かめれば身につきます。') + '</b></p><p>答え：<b>' + st.ch[st.ans] + '</b></p><p>' + rt(st.why) + '</p>';
+  body.innerHTML = '<p><b>' + (p === st.ans ? '予想どおりです。' : '予想とは異なりました。ここで理由を確かめることが、理解につながります。') + '</b></p><p>答え：<b>' + st.ch[st.ans] + '</b></p><p>' + rt(st.why) + '</p>';
   const bs = $('#choices').children; for (let i = 0; i < bs.length; i++) bs[i].classList.toggle('right', i === st.ans);
 }
 function renderRead(st, i){
   const r = st.read || {}; let h = '<h2><span class="num">ステップ ' + (i + 1) + ' / ' + STEPS.length + '</span>' + st.title + '</h2>';
   if (i === 0 && typeof PRE !== 'undefined'){
-    h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと 30 秒で読める説明が出ます）';
-    for (const p of PRE){ if (typeof p === 'string') h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + '</p></details>'; else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回のステップ' + p.step + 'を先に見てね</a></p>'; }
+    h += '<div class="pre"><b>このシミュレータに必要な前提知識</b>　' + H + '（開くと、30 秒ほどで読める説明が表示されます）';
+    for (const p of PRE){ if (typeof p === 'string') h += '<details><summary>' + PREQ[p][0] + '</summary><p>' + PREQ[p][1] + '</p></details>'; else h += '<p style="margin:6px 0 0;font-size:13px">' + p.t + '　<a href="' + SERIES[p.no].file + '#s' + p.step + '">第' + p.no + '回 ステップ ' + p.step + ' を先に確認してください</a></p>'; }
     h += '</div>';
   }
   if (r.ana) h += '<h3>① 身近なたとえ　' + H + '</h3><p>' + rt(r.ana) + '</p>';
   if (r.what) h += '<h3>② 何が起きているか</h3>' + rt(r.what).split('||').map(p => '<p>' + p + '</p>').join('');
-  if (r.eq) h += '<h3>③ 大事な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
+  if (r.eq) h += '<h3>③ 重要な式</h3>' + eq(r.eq) + '<p class="sym">' + rt(r.sym) + '</p>';
   if (r.mis) h += '<h3>④ よくある誤解</h3><div class="mis">' + rt(r.mis) + '</div>';
   if (st.extra) h += '<div id="extra"></div>';
   h += '<div class="src"><b>出典</b>　Radar Handbook 3rd ed.　' + st.src + '</div>';
-  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声のかけ方）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
+  if (st.memo) h += '<details class="memo"><summary>指導者向けメモ（つまずきやすい点と、声かけの例）</summary>' + rt(st.memo).split('||').map(p => '<p>' + p + '</p>').join('') + '</details>';
   $('#read').innerHTML = h;
   if (st.extra) $('#extra').innerHTML = st.extra();
 }
@@ -976,11 +990,11 @@ function renderSim(st, i){
   const sim = $('#sim'); sim.innerHTML = ''; PL = []; PLOTS.length = 0;
   const unlocked = (st.free && !st.q) || STATE.pred[i] !== undefined;
   if (st.q){
-    const q = el('div', 'card q', '<span class="lbl">問い</span><p>' + st.q + '</p><div class="ch" id="choices">' + st.ch.map((c, k) => '<button type="button" data-k="' + k + '" aria-pressed="' + (STATE.pred[i] === k) + '">' + c + '</button>').join('') + '</div><div class="hint">まず予想を 1 つ選ぼう（当たり外れは気にしなくて大丈夫）。選ぶと下の操作部が使えるようになります。</div>');
+    const q = el('div', 'card q', '<span class="lbl">問い</span><p>' + st.q + '</p><div class="ch" id="choices">' + st.ch.map((c, k) => '<button type="button" data-k="' + k + '" aria-pressed="' + (STATE.pred[i] === k) + '">' + c + '</button>').join('') + '</div><div class="hint">まず予想を 1 つ選びましょう（正否は問いません）。選ぶと、下の操作部が使えるようになります。</div>');
     sim.appendChild(q);
     $('#choices', q).addEventListener('click', ev => { const k = ev.target && ev.target.dataset ? ev.target.dataset.k : undefined; if (k === undefined) return; STATE.pred[i] = Number(k); for (const b of $('#choices').children) b.setAttribute('aria-pressed', b.dataset.k === k); $('#opCard').classList.remove('locked'); $('#ansBtn').disabled = false; redraw(); });
   }
-  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">予想してから触ろう</div><span class="lbl">操作</span><span class="hint" style="margin:0">' + (st.do || 'スライダーを動かして確かめよう') + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
+  const op = el('div', 'card op' + (unlocked ? '' : ' locked'), '<div class="lockmsg">先に予想を選びましょう</div><span class="lbl">操作</span><span class="hint" style="margin:0">' + (st.do || 'スライダーを動かして確かめましょう') + '</span><div class="fixed" id="fixed" style="margin-top:6px"></div><div class="ctls" id="ctls"></div><div class="acts" id="acts"></div><div class="plotgrid" id="plots"></div><div class="tiles" id="tiles"></div>');
   op.id = 'opCard'; sim.appendChild(op);
   for (const c of (st.ctl || [])) buildCtl($('#ctls', op), c);
   const acts = $('#acts', op);
@@ -993,7 +1007,7 @@ function renderSim(st, i){
   for (const p of (st.plots || [{}])) PL.push(new Plot($('#plots', op), {h: p.h || 230}));
   if (st.mission){ const m = el('div', 'card ms', '<span class="lbl" style="background:var(--s2)">ミッション</span><span class="st"></span><p>' + st.mission.t + '</p>'); m.id = 'msCard'; sim.appendChild(m); }
   if (st.q){
-    const a = el('div', 'card ans', '<button type="button" class="btn primary" id="ansBtn"' + (unlocked ? '' : ' disabled') + '>答えを見る</button>　<span class="hint">操作して確かめてから押そう</span><div class="body" id="ansBody" hidden></div>');
+    const a = el('div', 'card ans', '<button type="button" class="btn primary" id="ansBtn"' + (unlocked ? '' : ' disabled') + '>答えを見る</button>　<span class="hint">操作して確かめてから押しましょう</span><div class="body" id="ansBody" hidden></div>');
     sim.appendChild(a); $('#ansBtn', a).addEventListener('click', () => { STATE.shown[i] = true; showAnswer(); });
   }
 }
@@ -1018,11 +1032,11 @@ function highlight(key){
   hlT = setTimeout(() => { HLKEY = null; for (const e of document.querySelectorAll('.flash')) e.classList.remove('flash'); redrawAll(); }, 4000);
 }
 function buildGloss(){
-  const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
-  let h = '<h2>用語集（4 回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><input type="search" id="glFind" placeholder="用語をさがす" aria-label="用語をさがす"><dl id="glList">';
+  const g = $('#gloss'), grp = n => GLOSS.filter(t => t[0] === n).map(t => '<dt' + (t[3] ? ' id="' + t[3] + '"' : '') + '>' + t[1] + '</dt><dd>' + t[2] + '</dd>').join('');
+  let h = '<h2>用語集（4 回共通）<button class="btn sm" type="button" id="glClose">閉じる</button></h2><p class="glpage"><a href="glossary.html" target="_blank" rel="noopener">用語集のページを開く</a>（五十音順と回ごとの一覧。入門と中級のすべての用語）</p><input type="search" id="glFind" placeholder="用語を検索" aria-label="用語を検索"><dl id="glList">';
   h += '<h3>この回（第' + SIM_NO + '回 ' + SERIES[SIM_NO].name + '）の用語</h3>' + grp(SIM_NO) + '<h3>基礎の用語　' + H + '</h3>' + grp(0);
   for (let n = 1; n <= 4; n++) if (n !== SIM_NO) h += '<h3>第' + n + '回 ' + SERIES[n].name + '</h3>' + grp(n);
-  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は、Radar Handbook 3rd ed. の用語を新人向けに言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
+  g.innerHTML = h + '</dl><p class="sym" style="margin-top:12px">用語の訳と説明は Radar Handbook 3rd ed. の用語を言い換えたものです。「基礎の用語」は一般的な知識による補足です。</p>';
   const toggle = on => { g.hidden = !on; if (on) $('#glFind').focus(); };
   $('#glBtn').addEventListener('click', () => toggle(g.hidden)); $('#glTab').addEventListener('click', () => toggle(g.hidden)); $('#glClose').addEventListener('click', () => toggle(false));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
@@ -1049,81 +1063,132 @@ function boot(){
 }
 
 /* ============================================================
+   用語のリンク：本文の用語（a.gt）を押すと、ページを移らずに、その場に小さな説明を出す。
+   説明は、この HTML の中の GLOSS（[グループ, 見出し, 説明, ID]）から引く。印は、組み立てのときに gterm.py が a.gt に直す。
+   ============================================================ */
+let gPop = null, gFrom = null;
+function gClose(back){
+  if (!gPop) return;
+  gPop.remove(); gPop = null;
+  if (gFrom){ gFrom.setAttribute('aria-expanded', 'false'); if (back && document.contains(gFrom)) gFrom.focus(); }
+  gFrom = null;
+}
+function gPlace(){
+  if (!gPop || !gFrom || !document.contains(gFrom)){ gClose(false); return; }
+  const r = gFrom.getBoundingClientRect(), dw = document.documentElement.clientWidth, pw = gPop.offsetWidth, ph = gPop.offsetHeight;
+  const left = Math.max(8, Math.min(r.left, dw - pw - 8)) + window.scrollX;
+  const below = r.bottom + 6 + ph <= window.innerHeight || r.top - 6 - ph < 50;
+  gPop.style.left = left + 'px'; gPop.style.top = ((below ? r.bottom + 6 : r.top - 6 - ph) + window.scrollY) + 'px';
+}
+function gOpen(a){
+  const t = GLOSS.find(x => x[3] === a.dataset.g); if (!t) return;
+  gClose(false);
+  gPop = el('div', 'gpop', '<span class="gh">' + t[1] + '</span><p>' + t[2] + '</p><div class="gpa"><button type="button" class="btn sm" data-act="panel">この画面の用語集で開く</button><a class="btn sm" href="glossary.html#' + t[3] + '" target="_blank" rel="noopener">用語集で見る</a><button type="button" class="btn sm" data-act="close">閉じる</button></div>');
+  gPop.setAttribute('role', 'dialog'); gPop.setAttribute('aria-label', '用語の説明：' + t[1].replace(/<[^>]*>/g, '')); gPop.tabIndex = -1;
+  document.body.appendChild(gPop); gFrom = a; a.setAttribute('aria-expanded', 'true');
+  gPlace(); gPop.focus({preventScroll: true});
+}
+/* 右端の用語集のパネルを開いて、ID の用語を見せる */
+function glossAt(id){
+  const g = $('#gloss'), f = $('#glFind'); if (!g) return;
+  if (f && f.value){ f.value = ''; f.dispatchEvent(new Event('input')); }
+  g.hidden = false;
+  const dt = document.getElementById(id); if (!dt) return;
+  for (const e of g.querySelectorAll('dt.hit')) e.classList.remove('hit');
+  dt.classList.add('hit'); dt.scrollIntoView({block: 'center'}); dt.tabIndex = -1; dt.focus({preventScroll: true});
+}
+document.addEventListener('click', e => {
+  const t = e.target, a = t && t.closest ? t.closest('a.gt') : null;
+  if (a){ e.preventDefault(); if (gFrom === a) gClose(false); else gOpen(a); return; }
+  if (!gPop) return;
+  const b = t && t.closest ? t.closest('.gpop [data-act]') : null;
+  if (b){ const id = gFrom ? gFrom.dataset.g : null, act = b.dataset.act; gClose(act === 'close'); if (act === 'panel' && id) glossAt(id); return; }
+  if (!gPop.contains(t)) gClose(false);
+});
+document.addEventListener('keydown', e => {
+  const a = e.target && e.target.closest ? e.target.closest('a.gt') : null;
+  if (a && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); if (gFrom === a) gClose(true); else gOpen(a); }
+  else if (e.key === 'Escape' && gPop){ e.stopPropagation(); gClose(true); }
+}, true);
+window.addEventListener('resize', gPlace);
+window.addEventListener('hashchange', () => gClose(false));
+
+/* ============================================================
    第3回 パルスドップラ：ステップの定義
    ============================================================ */
 function resetS(init){ const d = cloneDef(); for (const k in S) delete S[k]; Object.assign(S, d, {rg: 14, t: [{on: true, r: 9, v: 45, s: 0}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, init); }
-const PRE = ['prf', 'dop', 'fft', {no: 2, step: 2, t: 'パルスごとの位相の変化は、'}];
+const PRE = ['prf', 'dop', 'fft', {no: 2, step: 2, t: 'パルスごとの位相の変化：'}];
 const tg0 = () => S.t[0];
 const CT = {
-  tv: {l: '目標の速度（近づく向きが＋）', min: -70, max: 70, step: 0.25, f: v => fx(v, 2) + ' m/s', get: () => tg0().v, set: v => { tg0().v = v; }},
-  tr: {l: '目標までの距離', min: 0.3, max: 14.7, step: 0.15, f: v => fx(v, 2) + ' km', get: () => tg0().r, set: v => { tg0().r = Math.round(v * 1000) / 1000; }},
-  ts: {l: '目標の強さ（1 パルスの S/N）', min: -10, max: 30, step: 1, f: v => dbx(v, 0), get: () => tg0().s, set: v => { tg0().s = v; }},
+  tv: {l: '目標の速度（接近方向が＋）', min: -70, max: 70, step: 0.25, f: v => fx(v, 2) + ' m/s', get: () => tg0().v, set: v => { tg0().v = v; }},
+  tr: {l: '目標距離', min: 0.3, max: 14.7, step: 0.15, f: v => fx(v, 2) + ' km', get: () => tg0().r, set: v => { tg0().r = Math.round(v * 1000) / 1000; }},
+  ts: {l: '目標の強度（1 パルスの S/N）', min: -10, max: 30, step: 1, f: v => dbx(v, 0), get: () => tg0().s, set: v => { tg0().s = v; }},
   np: {l: 'まとめて処理するパルス数 N', seg: [[16, '16'], [32, '32'], [64, '64'], [128, '128'], [256, '256']]},
   wt: {l: '重み付け（チェビシェフ）', seg: [['none', 'なし'], ['c50', '50 dB'], ['c70', '70 dB'], ['c90', '90 dB']]},
   prf: {l: 'PRF（1 秒あたりのパルス数）', min: 1, max: 40, step: 0.25, f: v => fx(v, 2) + ' kHz'},
   prfc: {l: 'PRF の種類', seg: [[2, '低 2 kHz'], [15, '中 15 kHz'], [60, '高 60 kHz']], get: () => S.prf, set: v => { S.prf = v; }},
-  cn: {l: 'クラッタの強さ（雑音との比 C/N）', min: 0, max: 80, step: 5, f: v => dbx(v, 0)},
-  vr: {l: '自分（レーダ）の速度', min: 0, max: 300, step: 10, f: v => v > 0 ? fx(v, 0) + ' m/s' : '0（地上に設置）'},
-  az: {l: 'ビームの方位（進行方向が 0°）', min: 0, max: 180, step: 1, f: v => fx(v, 0) + '°', h: v => v < 60 ? '前方' : v > 120 ? '後方' : '横'},
+  cn: {l: 'クラッタの強度（雑音との比 C/N）', min: 0, max: 80, step: 5, f: v => dbx(v, 0)},
+  vr: {l: '自機（レーダ）の速度', min: 0, max: 300, step: 10, f: v => v > 0 ? fx(v, 0) + ' m/s' : '0（地上に設置）'},
+  az: {l: 'ビームの方位（進行方向が 0°）', min: 0, max: 180, step: 1, f: v => fx(v, 0) + '°', h: v => v < 60 ? '前方' : v > 120 ? '後方' : '真横'},
   pn: {l: '位相雑音の大きさ（信号との比）', min: -90, max: -40, step: 1, f: v => dbx(v, 0)},
-  rg: {l: '目標の本当の距離', min: 0, max: 60, step: 1, f: v => fx(v, 0) + ' ゲート目'},
+  rg: {l: '目標の真の距離', min: 0, max: 60, step: 1, f: v => fx(v, 0) + ' ゲート目'},
   f: {l: '送信周波数', min: 1, max: 16, step: 0.5, f: v => fx(v, 1) + ' GHz'}
 };
-const VAX = {xl: '速度 [m/s]（近づく向きが＋。0 が「止まっている」）', tipx: v => '速度 ' + fx(v, 1) + ' m/s', tipy: v => fx(v, 1) + ' dB'};
+const VAX = {xl: '速度 [m/s]（接近方向が＋。0 が「静止」）', tipx: v => '速度 ' + fx(v, 1) + ' m/s', tipy: v => fx(v, 1) + ' dB'};
 function specOf(sim, g, wt){ const sp = gateSpectrum(sim, g, wt, 8), k = sim.D.lam / 2; return {x0: sp.f0 * k, dx: sp.df * k, y: sp.db}; }
 function spMax(sp, v0, v1){ let m = -Infinity; const i0 = Math.max(0, Math.floor((v0 - sp.x0) / sp.dx)), i1 = Math.min(sp.y.length - 1, Math.ceil((v1 - sp.x0) / sp.dx)); for (let i = i0; i <= i1; i++) if (sp.y[i] > m) m = sp.y[i]; return m; }
 function spMin(sp, v0, v1){ let m = Infinity; const i0 = Math.max(0, Math.floor((v0 - sp.x0) / sp.dx)), i1 = Math.min(sp.y.length - 1, Math.ceil((v1 - sp.x0) / sp.dx)); for (let i = i0; i <= i1; i++) if (sp.y[i] < m) m = sp.y[i]; return m; }
 function heatCfg(sim, map, o){
   o = o || {}; const D = sim.D, N = sim.N, ng = sim.ng, kg = D.gate / 1000; let zmax = 30; for (let i = N; i < map.db.length; i++) if (map.db[i] > zmax) zmax = map.db[i];
-  return {title: o.title || '距離–ドップラマップ', xr: [-D.vprf / 2, D.vprf / 2], yr: [-0.5 * kg, (ng - 0.5) * kg], xl: '見かけの速度 [m/s]（近づく向きが＋）', yl: '見かけの距離 [km]', series: [],
-    heat: {db: map.db, rows: ng, cols: N, x0: -D.vprf / 2 - D.dv / 2, x1: D.vprf / 2 - D.dv / 2, y0: -0.5 * kg, y1: (ng - 0.5) * kg, zmin: 0, zmax: Math.ceil(zmax / 10) * 10, zl: '強さ [dB]（雑音 = 0）'},
+  return {title: o.title || '距離–ドップラマップ', xr: [-D.vprf / 2, D.vprf / 2], yr: [-0.5 * kg, (ng - 0.5) * kg], xl: '見かけの速度 [m/s]（接近方向が＋）', yl: '見かけの距離 [km]', series: [],
+    heat: {db: map.db, rows: ng, cols: N, x0: -D.vprf / 2 - D.dv / 2, x1: D.vprf / 2 - D.dv / 2, y0: -0.5 * kg, y1: (ng - 0.5) * kg, zmin: 0, zmax: Math.ceil(zmax / 10) * 10, zl: '強度 [dB]（雑音 = 0）'},
     pts: sim.tg.map(t => ({x: t.vapp, y: t.g * kg, color: 's2', hollow: true, r: 9, label: t.ga < 0.05 ? '目標（受信できない）' : '目標', left: t.vapp > D.vprf * 0.2, below: t.g > ng * 0.85})), marks: o.marks, notes: o.notes,
     tipx: v => '速度 ' + fx(v, 1) + ' m/s', tipy2: v => '距離 ' + fx(v, 2) + ' km'};
 }
 const STEPS = [];
 
 /* 1 */
-STEPS.push({short: 'パルスドップラとは', title: 'パルスドップラとは — エコーを「速度ごと」に分けて、クラッタの中の目標を見つける', src: '§4.1 Characteristics and Applications（p.4.1–4.2）、p.4.9–4.14',
-  q: '第2回の MTI は、止まった物のエコーを「消す」方法だった。パルスドップラは、エコーをどう扱う？',
-  ch: ['強さの順に並べる', '速度（ドップラ）ごとに分ける', '届いた順に足し合わせる'], ans: 1,
-  why: 'パルスドップラは、距離ごとに区切ったエコーを、さらに速度（ドップラ周波数）ごとに分けます。止まっているクラッタは「速度 0」の場所に集まり、動く目標は自分の速度の場所に現れるので、別々に見えます。',
+STEPS.push({short: 'パルスドップラとは', title: 'パルスドップラとは — エコーを「速度ごと」に分離して、クラッタの中の目標を検出する', src: '§4.1 Characteristics and Applications（p.4.1–4.2）、p.4.9–4.14',
+  q: '第2回の MTI は静止した物体のエコーを「除去する」方法でした。パルスドップラはエコーをどのように扱いますか。',
+  ch: ['強度の順に並べる', '速度（ドップラ周波数）ごとに分離する', '到着した順に加算する'], ans: 1,
+  why: 'パルスドップラは距離ごとに区切ったエコーを、さらに速度（ドップラ周波数）ごとに分離します。静止しているクラッタは「速度 0」の位置に集中し、運動する目標は自身の速度の位置に現れるため、別々に観測できます。',
   read: {
-    ana: 'たくさんの楽器が同時に鳴っていても、音の高さごとに聞き分ければ、大きな太鼓の音のかげで鳴っている小さな笛の音を見つけられます。パルスドップラは、エコーを「音の高さ」にあたるドップラ周波数で聞き分けます。',
-    what: 'パルスドップラ（pulse Doppler）レーダは、受信信号をレンジゲート（距離ごとの区切り）に分け、ゲートごとに、パルスからパルスへの位相の変化を調べます。上の図は 1 パルス分の受信信号で、目標は[[cl|クラッタ]]に埋もれています。||下の図は、目標のいるゲートを速度ごとに分けた結果です。クラッタは[[zero|速度 0]]の位置に集まり、[[tgt|目標]]は自分の速度の位置に離れて現れます。MTI が阻止するフィルタ 1 本なのに対し、パルスドップラは通すフィルタをすき間なく並べます。',
+    ana: '多数の楽器が同時に鳴っていても、音の高さごとに聞き分ければ、大きな太鼓の音に隠れている小さな笛の音を見つけられます。パルスドップラはエコーを「音の高さ」に当たるドップラ周波数によって分離します。',
+    what: '<a class=gt data-g=g-pulse-doppler tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>パルスドップラ</a>（pulse Doppler）レーダは受信信号を<a class=gt data-g=g-range-cell tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>レンジゲート</a>（距離ごとの区切り）に分け、レンジゲートごとに、パルスからパルスへの位相の変化を調べます。上の図は 1 パルス分の受信信号であり、目標は[[cl|クラッタ]]に埋もれています。||下の図は目標のあるレンジゲートを速度ごとに分離した結果です。クラッタは[[zero|速度 0]]の位置に集中し、[[tgt|目標]]は自身の速度の位置に離れて現れます。MTI が阻止フィルタ 1 本であるのに対して、パルスドップラは通過フィルタを隙間なく並べます。',
     eq: '<i>f</i><sub>d</sub> = 2·<i>v</i> / λ',
-    sym: '<i>f</i><sub>d</sub>：ドップラ周波数 [Hz]。<i>v</i>：目標が近づく速さ [m/s]（遠ざかるときは負）。λ：波長 [m]。波長 3 cm で 15 m/s なら 1 kHz。',
-    mis: '「速度 0 でない目標なら必ず見える」わけではありません。クラッタの山には幅があり、その中に入る遅い目標は隠れます。また、強いクラッタのサイドローブに隠れることもあります（ステップ4）。'},
-  hosoku: ['楽器の聞き分けのたとえ', '地上に置いた（動かない）レーダから説明を始めていること', 'ハンドブックの符号の約束（遠ざかる向きを正の距離変化率とする）を、この教材では「近づく向きが＋」の速度で表示していること'],
-  memo: 'つまずきやすい点：上の図（距離）と下の図（速度）の横軸の違い。下の図は「1 つのゲートだけ」を見ている。||声かけの例：「目標をクラッタの山に近づけると、どこから見えなくなる？」「遠ざかる目標（速度がマイナス）は、図のどちら側に出る？」',
+    sym: '<i>f</i><sub>d</sub>：ドップラ周波数 [Hz]。<i>v</i>：目標の接近速度 [m/s]（離隔する場合は負）。λ：波長 [m]。波長 3 cm で 15 m/s の場合は 1 kHz です。',
+    mis: '「速度 0 でない目標であれば必ず検出できる」という理解は誤りです。クラッタのスペクトルには幅があり、その中に入る低速の目標は隠れます。また、強いクラッタのサイドローブに隠れることもあります（ステップ 4）。'},
+  hosoku: ['楽器の聞き分けのたとえ', '地上に設置した（移動しない）レーダから説明を始めていること', 'ハンドブックの符号の規約（離隔方向を正の距離変化率とする）を、この教材では「接近方向が＋」の速度で表示していること'],
+  memo: 'つまずきやすい点は、上の図（距離）と下の図（速度）の横軸の違いです。下の図は「1 つのレンジゲートだけ」を表示しています。||声かけの例：「目標をクラッタのピークに近づけると、どこから検出できなくなりますか」「離隔する目標（速度が負）は、図のどちら側に現れますか」',
   init: {wt: 'c70', t: [{on: true, r: 9, v: 3, s: 0}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, ctl: ['tv'], fixed: ['cn', 'np'], plots: [{h: 150}, {h: 230}],
-  mission: {t: '下の図で、目標の山がクラッタの山からはっきり離れて見える（速度の差が 20 m/s 以上）ようにしよう。', ok: r => Math.abs(tg0().v) >= 20}, sol: {tv: 30},
+  mission: {t: '下の図で目標のピークがクラッタのピークから明確に離れて見える（速度の差が 20 m/s 以上）ようにしましょう。', ok: r => Math.abs(tg0().v) >= 20}, sol: {tv: 30},
   draw(P){
     const sim = simulate(S), D = sim.D, t = sim.tg[0], sp = specOf(sim, t.g, S.wt), pr = new Float64Array(sim.ng); for (let g = 1; g < sim.ng; g++){ const q = g * sim.N; pr[g] = db10(sim.re[q] * sim.re[q] + sim.im[q] * sim.im[q]); } pr[0] = NaN;
-    P[0].set({title: '1 パルス分の受信信号（距離ごとの強さ）', xr: [0, 15], yr: [-10, 70], xl: '距離 [km]', yl: '強さ [dB]（雑音 = 0）', series: [{name: '受信信号', color: 'ref', x0: 0, dx: D.gate / 1000, y: pr, w: 1.3}], vl: [{x: t.g * D.gate / 1000, label: '目標はここ（見えない）'}], marks: {cl: {t: 'クラッタ'}}, tipx: v => fx(v, 2) + ' km', tipy: v => fx(v, 1) + ' dB'});
-    P[1].set(Object.assign({title: '目標のいるゲートを、速度ごとに分けた結果（' + S.np + ' パルス）', xr: [-75, 75], yr: [-15, 65], yl: '強さ [dB]（雑音 = 0）', series: [{name: '速度ごとの強さ', color: 's1', x0: sp.x0, dx: sp.dx, y: sp.y, w: 1.6}],
-      notes: [{x: 0, y: spMax(sp, -2, 2), t: 'クラッタ（速度 0）', dx: -40, dy: 4}, {x: t.vapp, y: spMax(sp, t.vapp - 2, t.vapp + 2), t: Math.abs(t.v) >= 20 ? '目標' : '目標はクラッタの山の中', dx: 30, dy: -10}], marks: {zero: {x0: -6, x1: 6, t: '速度 0'}, tgt: {x0: t.vapp - 5, x1: t.vapp + 5, t: '目標'}}}, VAX));
-    return {tiles: [{k: '目標のドップラ周波数 2v/λ', v: fx(t.fd, 0) + ' <small>Hz</small>', s: '波長 ' + fx(D.lam * 100, 1) + ' cm、速度 ' + fx(t.v, 1) + ' m/s'}, {k: 'クラッタの強さ（いちばん強いゲート）', v: dbx(S.cn, 0)}]};
+    P[0].set({title: '1 パルス分の受信信号（距離ごとの強度）', xr: [0, 15], yr: [-10, 70], xl: '距離 [km]', yl: '強度 [dB]（雑音 = 0）', series: [{name: '受信信号', color: 'ref', x0: 0, dx: D.gate / 1000, y: pr, w: 1.3}], vl: [{x: t.g * D.gate / 1000, label: '目標の位置（検出できない）'}], marks: {cl: {t: 'クラッタ'}}, tipx: v => fx(v, 2) + ' km', tipy: v => fx(v, 1) + ' dB'});
+    P[1].set(Object.assign({title: '目標のあるレンジゲートを、速度ごとに分離した結果（' + S.np + ' パルス）', xr: [-75, 75], yr: [-15, 65], yl: '強度 [dB]（雑音 = 0）', series: [{name: '速度ごとの強度', color: 's1', x0: sp.x0, dx: sp.dx, y: sp.y, w: 1.6}],
+      notes: [{x: 0, y: spMax(sp, -2, 2), t: 'クラッタ（速度 0）', dx: -40, dy: 4}, {x: t.vapp, y: spMax(sp, t.vapp - 2, t.vapp + 2), t: Math.abs(t.v) >= 20 ? '目標' : '目標はクラッタのスペクトルの中', dx: 30, dy: -10}], marks: {zero: {x0: -6, x1: 6, t: '速度 0'}, tgt: {x0: t.vapp - 5, x1: t.vapp + 5, t: '目標'}}}, VAX));
+    return {tiles: [{k: '目標のドップラ周波数 2v/λ', v: fx(t.fd, 0) + ' <small>Hz</small>', s: '波長 ' + fx(D.lam * 100, 1) + ' cm、速度 ' + fx(t.v, 1) + ' m/s'}, {k: 'クラッタの強度（最も強いレンジゲート）', v: dbx(S.cn, 0)}]};
   }});
 
 /* 2 */
-STEPS.push({short: 'ドップラと位相', title: 'ドップラ周波数と、パルスごとの位相の変化', src: '§4.1（p.4.1–4.2）、p.4.9–4.10',
-  q: '波長 3 cm（10 GHz）のレーダ。速度 15 m/s で近づく目標のドップラ周波数は、いくつ？',
+STEPS.push({short: 'ドップラと位相', title: 'ドップラ周波数とパルスごとの位相の変化', src: '§4.1（p.4.1–4.2）、p.4.9–4.10',
+  q: '波長 3 cm（10 GHz）のレーダを用いて、速度 15 m/s で接近する目標を観測します。そのドップラ周波数はいくらですか。',
   ch: ['100 Hz', '1 kHz', '10 kHz'], ans: 1,
-  why: 'f<sub>d</sub> = 2v/λ = 2 × 15 ÷ 0.03 = 1000 Hz です。「2」は電波が往復するためです。波長が短いレーダほど、同じ速度でもドップラ周波数が大きくなります。',
+  why: 'f<sub>d</sub> = 2v/λ = 2 × 15 ÷ 0.03 = 1000 Hz です。係数「2」は、電波が往復するために付きます。波長が短いレーダほど、同じ速度でもドップラ周波数が大きくなります。',
   read: {
-    ana: 'パラパラ漫画の 1 枚 1 枚がパルスです。1 枚では止まった絵ですが、順にめくると動きが見えます。パルスドップラは、同じ目標を何十回も続けて「撮り」、その変化の速さから速度を読み取ります。',
-    what: '1 発のパルスは短すぎて、ドップラ周波数を直接測ることはできません。そこで、パルスごとのエコーの位相を順に並べます。動く目標では、位相が毎回同じ角度ずつ進むので、並べると[[wave|波]]になります。||この波の周波数がドップラ周波数です。波が[[cyc|何回くり返すか]]を数えれば、速度が分かります。まとめて処理する 1 かたまりのパルス列を、コヒーレント処理区間（CPI）と呼びます。',
+    ana: 'パラパラ漫画の 1 枚 1 枚がパルスに当たります。1 枚では静止した絵ですが、順にめくると動きが見えます。パルスドップラは同じ目標を数十回続けて観測し、その変化の速さから速度を求めます。',
+    what: '1 発のパルスは短すぎて、ドップラ周波数を直接測定することはできません。そこで、パルスごとのエコーの位相を順に並べます。運動する目標では位相が毎回同じ角度ずつ進むため、並べると[[wave|正弦波]]になります。||この正弦波の周波数がドップラ周波数です。正弦波が[[cyc|何回繰り返すか]]を数えれば、速度が分かります。まとめて処理する 1 組のパルス列を、<a class=gt data-g=g-cpi tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>コヒーレント処理区間</a>（CPI）と呼びます。',
     eq: 'Δφ = 2π·<i>f</i><sub>d</sub>·<i>T</i>',
-    sym: 'Δφ：1 パルスごとの位相の進み [ラジアン]（2π が 1 周）。<i>f</i><sub>d</sub>：ドップラ周波数 [Hz]。<i>T</i>：パルスの間隔 [秒]（= 1/PRF）。{H}この式は「周波数 × 時間 = 回った回数」という関係です。',
-    mis: '「ドップラ周波数は 1 発のパルスの中で測る」のではありません。パルスの中での位相の変化はごくわずかで、パルスからパルスへの変化を使います。'},
-  hosoku: ['パラパラ漫画のたとえ', 'Δφ = 2π·fd·T という関係の書き方', '目標だけ（雑音・クラッタなし）で描いていること'],
-  memo: 'つまずきやすい点：点（各パルスの値）をつないだ波が、ドップラ周波数の波であること。||声かけの例：「速度を 2 倍にすると、波は何回くり返す？」「波が 8 回くり返すとき、ドップラ周波数は PRF の何分の 1？」',
+    sym: 'Δφ：1 パルスごとの位相の変化 [ラジアン]（2π が 1 周）。<i>f</i><sub>d</sub>：ドップラ周波数 [Hz]。<i>T</i>：パルス繰り返し周期 [秒]（= 1/PRF）。{H}この式は「周波数 × 時間 = 回転数」という関係です。',
+    mis: '「ドップラ周波数は 1 発のパルスの中で測定する」という理解は誤りです。パルスの中での位相の変化はごくわずかであり、パルスからパルスへの変化を使います。'},
+  hosoku: ['パラパラ漫画のたとえ', 'Δφ = 2π·fd·T という関係の表し方', '目標だけ（雑音・クラッタなし）で作図していること'],
+  memo: 'つまずきやすい点は、点（各パルスの値）をつないだ正弦波が、ドップラ周波数の正弦波であることです。||声かけの例：「速度を 2 倍にすると、正弦波は何回繰り返しますか」「正弦波が 8 回繰り返す場合、ドップラ周波数は PRF の何分の 1 ですか」',
   init: {t: [{on: true, r: 9, v: 5, s: 0}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, ctl: [{k: 'tv', min: 0, max: 40}], fixed: ['f', 'prf', 'np'], plots: [{h: 250}],
-  mission: {t: '64 パルスの間に、波がちょうど 8 回くり返す速度にしよう。', ok: r => Math.abs(r.cyc - 8) < 0.05}, sol: {tv: 18.75},
+  mission: {t: '64 パルスの間に正弦波がちょうど 8 回繰り返す速度にしましょう。', ok: r => Math.abs(r.cyc - 8) < 0.05}, sol: {tv: 18.75},
   draw(P){
     const D = derive(), t = tgtInfo(S, D, 0), xs = [], ys = [], cyc = t.fd * D.N / D.prf; for (let n = 0; n < D.N; n++){ xs.push(n + 1); ys.push(Math.cos(2 * Math.PI * t.fd * D.T * n)); }
-    P[0].set({title: '目標のエコーの I 成分を、パルスの順に並べたもの', xr: [0, 65], yr: [-1.4, 1.4], xl: 'パルスの番号（1 〜 64）', yl: 'I 成分（波の高さ）', series: [{name: '各パルスの値', color: 's1', x: xs, y: ys, w: 1, mk: 3}], marks: {wave: {t: '並べると波になる'}, cyc: {x0: 1, x1: 1 + D.N / Math.max(cyc, 0.5), t: '1 回のくり返し'}}, tipx: v => 'パルス ' + Math.round(v), tipy: v => fx(v, 2)});
-    return {cyc, tiles: [{k: 'ドップラ周波数', v: fx(t.fd, 0) + ' <small>Hz</small>', s: 'PRF は ' + fx(D.prf, 0) + ' Hz'}, {k: '64 パルスの間のくり返し', v: fx(cyc, 2) + ' <small>回</small>'}, {k: '1 パルスごとの位相の進み', v: fx(360 * t.fd * D.T, 1) + ' <small>°</small>'}]};
+    P[0].set({title: '目標のエコーの I 成分を、パルスの順に並べたもの', xr: [0, 65], yr: [-1.4, 1.4], xl: 'パルスの番号（1 〜 64）', yl: 'I 成分（振幅）', series: [{name: '各パルスの値', color: 's1', x: xs, y: ys, w: 1, mk: 3}], marks: {wave: {t: '並べると正弦波になる'}, cyc: {x0: 1, x1: 1 + D.N / Math.max(cyc, 0.5), t: '1 回の繰り返し'}}, tipx: v => 'パルス ' + Math.round(v), tipy: v => fx(v, 2)});
+    return {cyc, tiles: [{k: 'ドップラ周波数', v: fx(t.fd, 0) + ' <small>Hz</small>', s: 'PRF は ' + fx(D.prf, 0) + ' Hz'}, {k: '64 パルスの間の繰り返し', v: fx(cyc, 2) + ' <small>回</small>'}, {k: '1 パルスごとの位相の変化', v: fx(360 * t.fd * D.T, 1) + ' <small>°</small>'}]};
   }});
 
 /* 3 */
@@ -1132,204 +1197,204 @@ function dipOf(np){          // 2 つの目標それぞれのスペクトルを�
   for (let i = 0; i < y.length; i++) y[i] = 10 * Math.log10(Math.pow(10, a.y[i] / 10) + Math.pow(10, b.y[i] / 10) + 1);
   const sp = {x0: a.x0, dx: a.dx, y}, pk = Math.min(spMax(sp, 28.5, 31.5), spMax(sp, 34.5, 37.5)), mn = spMin(sp, 31, 35); return {sim: s1, sp, dip: Math.max(0, pk - mn)};
 }
-STEPS.push({short: 'フィルタバンク', title: 'ドップラフィルタバンク（FFT）— 長く見るほど、速度を細かく分けられる', src: '§4.1（p.4.2）、p.4.9–4.13（Doppler Filter Bank）',
-  q: 'まとめて処理するパルスの数を 2 倍にする（2 倍の時間、目標を見続ける）。速度を見分ける細かさ（速度分解能）はどうなる？',
-  ch: ['2 倍粗くなる', '変わらない', '2 倍細かくなる'], ans: 2,
-  why: 'ドップラフィルタ 1 本の幅は、パルス列の長さ（CPI）に反比例します。2 倍長く見れば、フィルタの幅は半分になり、近い速度の 2 つの目標を分けられるようになります。',
+STEPS.push({short: 'フィルタバンク', title: 'ドップラフィルタバンク（FFT）— 観測時間が長いほど、速度分解能が高い', src: '§4.1（p.4.2）、p.4.9–4.13（Doppler Filter Bank）',
+  q: 'まとめて処理するパルス数を 2 倍にします（2 倍の時間、目標を観測します）。速度分解能はどうなりますか。',
+  ch: ['2 倍低くなる', '変わらない', '2 倍高くなる'], ans: 2,
+  why: 'ドップラフィルタ 1 本の幅は、パルス列の長さ（CPI）に反比例します。2 倍の時間観測すれば、フィルタの幅は半分になり、速度の近い 2 つの目標を分離できるようになります。',
   read: {
-    ana: '2 つのメトロノームのテンポがわずかに違うとき、数秒聞いただけでは同じに聞こえます。でも長く聞いていると、だんだんずれてくるので違いが分かります。わずかな差を見分けるには、長い時間が必要です。',
-    what: 'N 個のパルスを FFT にかけると、ドップラ周波数の範囲（PRF の幅）が N 本の[[bank|ドップラフィルタ（Doppler filter）]]に分かれます。これがフィルタバンクです。||フィルタ 1 本の幅は PRF/N、つまり CPI の長さの逆数です。図には速度の差が 6 m/s の[[two|2 つの目標]]があります。パルス数が少ないと 1 つの山に見え、増やすと 2 つに分かれます。',
+    ana: '2 つのメトロノームのテンポがわずかに異なる場合、数秒聞いただけでは同じに聞こえます。しかし、長く聞いていると、しだいに差が大きくなるため、違いが分かります。わずかな差を識別するには、長い時間が必要です。',
+    what: 'N 個のパルスを <a class=gt data-g=g-fft tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>FFT</a>（高速フーリエ変換。信号を周波数成分に分解する計算）で処理すると、ドップラ周波数の範囲（PRF の幅）が N 本の<a class=gt data-g=g-doppler-filter tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>ドップラフィルタ</a>（Doppler filter）に分かれます。[[bank|このように並んだフィルタ]]をフィルタバンクと呼びます。||フィルタ 1 本の幅は PRF/N、すなわち CPI の長さの逆数です。図には速度の差が 6 m/s の[[two|2 つの目標]]があります。パルス数が少ないと 1 つのピークに見え、増やすと 2 つに分離します。',
     eq: 'Δ<i>f</i> = 1 / (<i>N</i>·<i>T</i>) = PRF / <i>N</i>',
-    sym: 'Δ<i>f</i>：ドップラフィルタ 1 本の幅 [Hz]。<i>N</i>：まとめて処理するパルスの数。<i>T</i>：パルスの間隔 [秒]。<i>N</i>·<i>T</i> が CPI の長さ。速度に直すには λ/2 を掛けます。',
-    mis: '「PRF を上げれば速度分解能が上がる」わけではありません。効くのは見ている時間の長さ（N·T）です。PRF を 2 倍にしてパルス数が同じなら、時間が半分になり、分解能はかえって粗くなります。'},
-  hosoku: ['メトロノームのたとえ', '速度への換算（λ/2 を掛ける）', 'このステップはクラッタなしで、2 つの目標の位相差について平均した強さを描いていること'],
-  memo: 'つまずきやすい点：分解能が「パルス数」ではなく「時間」で決まること。||声かけの例：「N = 64 のとき、フィルタ 1 本の幅は何 m/s？ 6 m/s の差と比べると？」「見る時間を長くすることの欠点は何だろう？（アンテナの走査、目標の動き）」',
+    sym: 'Δ<i>f</i>：ドップラフィルタ 1 本の幅 [Hz]。<i>N</i>：まとめて処理するパルス数。<i>T</i>：パルス繰り返し周期 [秒]。<i>N</i>·<i>T</i> が CPI の長さです。速度に換算するには λ/2 を掛けます。',
+    mis: '「PRF を上げれば速度分解能が高くなる」という理解は誤りです。影響するのは観測時間の長さ（N·T）です。PRF を 2 倍にしてパルス数が同じであれば、時間が半分になり、分解能はかえって低くなります。'},
+  hosoku: ['メトロノームのたとえ', '速度への換算（λ/2 を掛ける）', 'このステップはクラッタなしで、2 つの目標の位相差について平均した強度を作図していること'],
+  memo: 'つまずきやすい点は、分解能が「パルス数」ではなく「時間」で決まることです。||声かけの例：「N = 64 の場合、フィルタ 1 本の幅は何 m/s ですか。6 m/s の差と比較するとどうですか」「観測時間を長くすることの欠点は何ですか（アンテナの走査、目標の運動）」',
   init: {np: 16, cn: 0, t: [{on: true, r: 9, v: 30, s: 3}, {on: true, r: 9, v: 36, s: 3}, {on: false, r: 9, v: 0, s: 0}]}, ctl: ['np'], fixed: ['prf'], plots: [{h: 270}],
-  mission: {t: '速度の差が 6 m/s の 2 つの目標が、2 つの山に分かれて見える（谷の深さ 3 dB 以上）、いちばん少ないパルス数を選ぼう。', ok: r => r.dip >= 3 && r.dipHalf < 3}, sol: {np: 32},
+  mission: {t: '速度の差が 6 m/s の 2 つの目標が、2 つのピークに分離して見える（落ち込みの深さ 3 dB 以上）、最小のパルス数を選びましょう。', ok: r => r.dip >= 3 && r.dipHalf < 3}, sol: {np: 32},
   draw(P){
     const a = dipOf(S.np), D = a.sim.D, dipHalf = S.np > 16 ? dipOf(S.np / 2).dip : 0;
-    P[0].set(Object.assign({title: '2 つの目標（30 m/s と 36 m/s）のいるゲートを、速度ごとに分けた結果（平均の強さ）', xr: [10, 56], yr: [-10, 40], yl: '強さ [dB]（雑音 = 0）', series: [{name: '速度ごとの強さ', color: 's1', x0: a.sp.x0, dx: a.sp.dx, y: a.sp.y, w: 1.8}], vl: [{x: 30, label: '目標1'}, {x: 36, label: '目標2'}],
-      notes: [a.dip >= 3 ? {x: 33, y: spMin(a.sp, 31, 35), t: '谷 ' + fx(a.dip, 0) + ' dB：2 つと分かる', dx: 40, dy: 30} : {x: 33, y: spMax(a.sp, 29, 37), t: '1 つの山に見える', dx: 40, dy: -20}], marks: {bank: {x0: 33 - D.dv / 2, x1: 33 + D.dv / 2, t: 'フィルタ 1 本の幅 ' + fx(D.dv, 1) + ' m/s'}, two: {x0: 28, x1: 38, t: '2 つの目標'}}}, VAX));
-    return {dip: a.dip, dipHalf, tiles: [{k: 'フィルタ 1 本の幅（速度）', v: fx(D.dv, 2) + ' <small>m/s</small>', s: '周波数では ' + fx(D.df, 0) + ' Hz'}, {k: '見ている時間（CPI の長さ）', v: fx(D.cpi * 1000, 1) + ' <small>ms</small>', s: S.np + ' パルス × ' + fx(D.T * 1e6, 0) + ' µs'}, {k: '2 つの山の間の谷', v: a.dip >= 0.5 ? fx(a.dip, 1) + ' <small>dB</small>' : 'なし'}]};
+    P[0].set(Object.assign({title: '2 つの目標（30 m/s と 36 m/s）のあるレンジゲートを、速度ごとに分離した結果（平均の強度）', xr: [10, 56], yr: [-10, 40], yl: '強度 [dB]（雑音 = 0）', series: [{name: '速度ごとの強度', color: 's1', x0: a.sp.x0, dx: a.sp.dx, y: a.sp.y, w: 1.8}], vl: [{x: 30, label: '目標1'}, {x: 36, label: '目標2'}],
+      notes: [a.dip >= 3 ? {x: 33, y: spMin(a.sp, 31, 35), t: '落ち込み ' + fx(a.dip, 0) + ' dB：2 つと分かる', dx: 40, dy: 30} : {x: 33, y: spMax(a.sp, 29, 37), t: '1 つのピークに見える', dx: 40, dy: -20}], marks: {bank: {x0: 33 - D.dv / 2, x1: 33 + D.dv / 2, t: 'フィルタ 1 本の幅 ' + fx(D.dv, 1) + ' m/s'}, two: {x0: 28, x1: 38, t: '2 つの目標'}}}, VAX));
+    return {dip: a.dip, dipHalf, tiles: [{k: 'フィルタ 1 本の幅（速度）', v: fx(D.dv, 2) + ' <small>m/s</small>', s: '周波数で ' + fx(D.df, 0) + ' Hz'}, {k: '観測時間（CPI の長さ）', v: fx(D.cpi * 1000, 1) + ' <small>ms</small>', s: S.np + ' パルス × ' + fx(D.T * 1e6, 0) + ' µs'}, {k: '2 つのピークの間の落ち込み', v: a.dip >= 0.5 ? fx(a.dip, 1) + ' <small>dB</small>' : 'なし'}]};
   }});
 
 /* 4 */
 function wtMargins(sim, g){ const o = {}; for (const k of ['none', 'c50', 'c70', 'c90']){ const sp = specOf(sim, g, k); o[k] = {sp, m: spMax(sp, 38, 42) - Math.max(spMax(sp, 20, 33), spMax(sp, 47, 60))}; } return o; }
-STEPS.push({short: '重み付け', title: '重み付けとドップラのサイドローブ — 強いクラッタの「すそ」に隠れた目標を出す', src: 'p.4.13（Doppler Filter Bank）、p.4.17（Mainbeam Clutter Filtering）、p.4.31、p.4.43（Doppler Filter Weighting Loss）',
-  q: 'クラッタは目標の 10 万倍（50 dB）も強く、速度 0 にあるのに、そのサイドローブが目標の速度まで届いて目標を隠している。重み付けを強くすると、どうなる？',
-  ch: ['サイドローブが下がるが、山が太り S/N が少し下がる', 'サイドローブも下がり、山も細くなる', '何も変わらない'], ans: 0,
-  why: '重み付けは、パルス列の両端を弱めてサイドローブを下げます。その代わり、フィルタの幅（雑音の入る幅）が広がり、S/N が下がります。90 dB のチェビシェフ重み付けでは、約 2.7 dB の損失になります。',
+STEPS.push({short: '重み付け', title: '重み付けとドップラサイドローブ — 強いクラッタのサイドローブに隠れた目標を検出する', src: 'p.4.13（Doppler Filter Bank）、p.4.17（Mainbeam Clutter Filtering）、p.4.31、p.4.43（Doppler Filter Weighting Loss）',
+  q: 'クラッタは目標の 10 万倍（50 dB）も強く、速度 0 にありますが、そのサイドローブが目標の速度まで及んで目標を隠しています。重み付けを強くすると、どうなりますか。',
+  ch: ['サイドローブが下がるが、メインローブの幅が広くなり、S/N がわずかに低下する', 'サイドローブも下がり、メインローブの幅も狭くなる', '何も変わらない'], ans: 0,
+  why: '重み付けは、パルス列の両端の振幅を小さくして、サイドローブを下げます。その代わり、フィルタの幅（雑音帯域幅）が広くなり、S/N が低下します。90 dB のチェビシェフ重み付けでは、約 2.7 dB の損失になります。',
   read: {
-    ana: '窓から外を見るとき、窓枠がくっきりしていると、明るい光が枠の縁でにじんで広がります。窓の縁をぼかすと、にじみは減りますが、景色全体が少し暗く、ぼんやりします。重み付けは、パルス列という「窓」の縁をぼかす操作です。',
-    what: 'FFT のフィルタは、中心の速度以外にも少しだけ感度を持ちます。これが[[sl|ドップラのサイドローブ]]です。クラッタが非常に強いと、そのサイドローブが遠く離れた速度まで届き、[[tgt4|弱い目標]]を隠します。||重み付け（weighting）は、サイドローブを下げます。強くするほどサイドローブは下がりますが、フィルタの雑音帯域が広がって S/N が下がります。これがドップラフィルタの重み付け損失です。クラッタの強さに合わせて、必要なだけの重み付けを選びます。',
-    eq: '見えるための条件：（クラッタの強さ）−（サイドローブの低さ）＜（目標の強さ）',
-    sym: 'すべて dB で考えます。例：クラッタが雑音より 50 dB 強く、サイドローブが −50 dB なら、サイドローブは雑音と同じ高さ（0 dB）まで下がります。{H}これはハンドブックの説明を 1 行にまとめた目安です。',
-    mis: '「重み付けは強いほど良い」わけではありません。必要以上に強くすると、S/N と速度分解能を無駄に失います。ハンドブックでは、クラッタの強さに応じて重み付けを選ぶ方法が紹介されています。'},
-  hosoku: ['窓の縁をぼかすたとえ', '「見えるための条件」の 1 行の目安', '重み付けにチェビシェフ重みを使っていること（ハンドブックの数値例に合わせた）'],
-  memo: 'つまずきやすい点：サイドローブは「クラッタそのもの」の一部で、雑音ではないこと（第1回ステップ6 と同じ考え方）。||声かけの例：「重みなしのとき、目標の位置でのクラッタのサイドローブは何 dB？」「50 dB と 90 dB で、目標の山の高さはどれだけ違う？」',
+    ana: '窓から外を見るとき、窓枠の縁が鋭いと、明るい光が枠の縁でにじんで広がります。窓の縁をぼかすと、にじみは減りますが、景色全体がやや暗く、不鮮明になります。重み付けは、パルス列という「窓」の縁をぼかす操作です。',
+    what: 'FFT のフィルタは、中心の速度以外にもわずかな感度をもちます。これが[[sl|ドップラサイドローブ]]です。クラッタが極めて強いと、そのサイドローブが大きく離れた速度まで及び、[[tgt4|弱い目標]]を隠します。||<a class=gt data-g=g-weighting tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>重み付け</a>（weighting）は、サイドローブを下げます。強くするほどサイドローブは下がりますが、フィルタの雑音帯域幅が広くなって S/N が低下します。これがドップラフィルタの重み付け損失です。クラッタの強度に合わせて、必要な分だけの重み付けを選びます。',
+    eq: '検出できる条件：（クラッタの強度）−（サイドローブの抑圧量）＜（目標の強度）',
+    sym: 'すべて dB で考えます。例：クラッタが雑音より 50 dB 強く、サイドローブが −50 dB であれば、サイドローブは雑音と同じレベル（0 dB）まで下がります。{H}これはハンドブックの説明を 1 行にまとめた目安です。',
+    mis: '「重み付けは強いほどよい」という理解は誤りです。必要以上に強くすると、S/N と速度分解能を不必要に失います。ハンドブックではクラッタの強度に応じて重み付けを選択する方法が紹介されています。'},
+  hosoku: ['窓の縁をぼかすたとえ', '「検出できる条件」の 1 行の目安', '重み付けにチェビシェフ重み付けを使っていること（ハンドブックの数値例に合わせた）'],
+  memo: 'つまずきやすい点は、サイドローブが「クラッタそのもの」の一部であり、雑音ではないことです（第1回のステップ 6 と同じ考え方）。||声かけの例：「重み付けなしの場合、目標の位置でのクラッタのサイドローブは何 dB ですか」「50 dB と 90 dB とでは、目標のピークのレベルはどれだけ異なりますか」',
   init: {wt: 'none', cn: 50, t: [{on: true, r: 2.1, v: 40, s: 0}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, ctl: ['wt'], fixed: ['cn', 'np'], plots: [{h: 280}],
-  mission: {t: '目標の山が、まわり（クラッタのサイドローブや雑音）より 10 dB 以上高く見える重み付けのうち、損失がいちばん小さいものを選ぼう。', ok: r => r.best === S.wt}, sol: {wt: 'c70'},
+  mission: {t: '目標のピークが周囲（クラッタのサイドローブや雑音）より 10 dB 以上高く見える重み付けのうち、損失が最小のものを選びましょう。', ok: r => r.best === S.wt}, sol: {wt: 'c70'},
   draw(P){
     const sim = simulate(S), t = sim.tg[0], all = wtMargins(sim, t.g), cur = all[S.wt], ws = winStats(S.np, S.wt), best = ['none', 'c50', 'c70', 'c90'].find(k => all[k].m >= 10) || 'c90';
-    P[0].set(Object.assign({title: '目標のいるゲートを速度ごとに分けた結果（重み付け：' + WT[S.wt].name + '）', xr: [-75, 75], yr: [-20, 60], yl: '強さ [dB]（雑音 = 0）', series: [{name: '速度ごとの強さ', color: 's1', x0: cur.sp.x0, dx: cur.sp.dx, y: cur.sp.y, w: 1.5}], vl: [{x: 40, label: '目標の速度'}],
-      notes: [cur.m >= 10 ? {x: 40, y: spMax(cur.sp, 38, 42), t: '目標が見えた', dx: 30, dy: -8} : {x: 40, y: spMax(cur.sp, 38, 42), t: 'サイドローブに埋もれている', dx: 30, dy: -24}], marks: {sl: {x0: 8, x1: 75, y0: -20, y1: spMax(cur.sp, 10, 30) + 4, t: 'クラッタのサイドローブ'}, tgt4: {x0: 36, x1: 44, t: '弱い目標'}}}, VAX));
-    return {best, msHint: '目標の高さ：まわりより ' + fx(cur.m, 0) + ' dB', tiles: [{k: 'サイドローブの低さ（設計値）', v: S.wt === 'none' ? '約 −13 <small>dB</small>' : MINUS + WT[S.wt].sl + ' <small>dB</small>', s: '計算値 ' + fx(ws.pslDb, 1) + ' dB'}, {k: '重み付けによる S/N の損失', v: fx(ws.lossDb, 2) + ' <small>dB</small>', s: '電力で ' + ratioTxt(-ws.lossDb)}, {k: '目標の山（まわりとの差）', v: fx(cur.m, 1) + ' <small>dB</small>'}]};
+    P[0].set(Object.assign({title: '目標のあるレンジゲートを速度ごとに分離した結果（重み付け：' + WT[S.wt].name + '）', xr: [-75, 75], yr: [-20, 60], yl: '強度 [dB]（雑音 = 0）', series: [{name: '速度ごとの強度', color: 's1', x0: cur.sp.x0, dx: cur.sp.dx, y: cur.sp.y, w: 1.5}], vl: [{x: 40, label: '目標の速度'}],
+      notes: [cur.m >= 10 ? {x: 40, y: spMax(cur.sp, 38, 42), t: '目標が現れた', dx: 30, dy: -8} : {x: 40, y: spMax(cur.sp, 38, 42), t: 'サイドローブに埋もれている', dx: 30, dy: -24}], marks: {sl: {x0: 8, x1: 75, y0: -20, y1: spMax(cur.sp, 10, 30) + 4, t: 'クラッタのサイドローブ'}, tgt4: {x0: 36, x1: 44, t: '弱い目標'}}}, VAX));
+    return {best, msHint: '目標のレベル：周囲より ' + fx(cur.m, 0) + ' dB', tiles: [{k: 'サイドローブレベル（設計値）', v: S.wt === 'none' ? '約 −13 <small>dB</small>' : MINUS + WT[S.wt].sl + ' <small>dB</small>', s: '計算値 ' + fx(ws.pslDb, 1) + ' dB'}, {k: '重み付けによる S/N の損失', v: fx(ws.lossDb, 2) + ' <small>dB</small>', s: '電力で ' + ratioTxt(-ws.lossDb)}, {k: '目標のピーク（周囲との差）', v: fx(cur.m, 1) + ' <small>dB</small>'}]};
   }});
 
 /* 5 */
-STEPS.push({short: '距離–ドップラマップ', title: '距離–ドップラマップ — 距離と速度の「地図」を作る', src: 'p.4.8（図4.5）、p.4.9–4.14',
-  q: '全部のレンジゲートで FFT をして、縦に距離、横に速度をとった地図を作る。止まっている地面のクラッタは、地図のどこに現れる？',
-  ch: ['地図の全体に広がる', '速度 0 の縦 1 列に集まる', '距離 0 の横 1 列に集まる'], ans: 1,
-  why: '止まっているクラッタは、どの距離にあってもドップラが 0 です。だから「速度 0」の縦 1 列に集まります。地図の残りの広い部分は雑音だけなので、動く目標はそこで見つけられます。',
+STEPS.push({short: '距離–ドップラマップ', title: '距離–ドップラマップ — 距離と速度のマップを作る', src: 'p.4.8（図4.5）、p.4.9–4.14',
+  q: 'すべてのレンジゲートで FFT を行い、縦軸に距離、横軸に速度を取ったマップを作ります。静止している地面のクラッタは、マップのどこに現れますか。',
+  ch: ['マップの全体に広がる', '速度 0 の縦 1 列に集中する', '距離 0 の横 1 列に集中する'], ans: 1,
+  why: '静止しているクラッタは、どの距離にあってもドップラ周波数が 0 です。このため、「速度 0」の縦 1 列に集中します。マップの残りの広い部分は雑音だけであるため、運動する目標はそこで検出できます。',
   read: {
-    ana: '図書館の本を「分野」と「出版年」の 2 つで棚に並べると、探している 1 冊が見つけやすくなります。レーダのエコーも、「距離」と「速度」の 2 つで並べると、ごちゃごちゃに重なっていたものが別々のマスに分かれます。',
-    what: 'CPI ごとに、すべてのレンジゲートについてドップラフィルタの出力を並べたものが、距離–ドップラマップです。マス目の数は（ゲートの数）×（パルス数）です。||止まっているクラッタは[[col|速度 0 の列]]に集まります。[[tgt5|目標]]は、自分の距離と速度のマスに現れます。このあと、マスごとにしきい値と比べて検出します（第4回）。',
-    eq: 'マスの大きさ = （距離：<i>c</i>·τ / 2）×（速度：λ / (2·<i>N</i>·<i>T</i>)）',
-    sym: '<i>c</i>：光の速さ。τ：パルス幅（レンジゲートの幅）[秒]。λ：波長 [m]。<i>N</i>：パルス数。<i>T</i>：パルスの間隔 [秒]。{H}それぞれ第1回の距離分解能、ステップ3 の速度分解能と同じ式です。',
-    mis: '地図に書かれた距離と速度は、いつも本当の値とは限りません。PRF によっては、距離や速度が「折り返して」別の場所に見えます（次のステップ）。'},
-  hosoku: ['図書館の棚のたとえ', 'マスの大きさの式（距離分解能と速度分解能を並べたもの）'],
-  memo: 'つまずきやすい点：色が「強さ」を表す第 3 の軸であること。||声かけの例：「目標を速度 0 に持っていくとどうなる？」「地図の上端は何 km？ それより遠い目標はどうなると思う？（ステップ6 の予告）」',
+    ana: '図書館の本を「分野」と「出版年」の 2 つで棚に並べると、探している 1 冊が見つけやすくなります。レーダのエコーも「距離」と「速度」の 2 つで並べると、重なっていたものが別々のセルに分かれます。',
+    what: 'CPI ごとに、すべてのレンジゲートについてドップラフィルタの出力を並べたものが、距離–ドップラマップです。セルの数は（レンジゲートの数）×（パルス数）です。||静止しているクラッタは[[col|速度 0 の列]]に集中します。[[tgt5|目標]]は自身の距離と速度のセルに現れます。この後、セルごとにしきい値と比較して検出します（第4回）。',
+    eq: 'セルの大きさ = （距離：<i>c</i>·τ / 2）×（速度：λ / (2·<i>N</i>·<i>T</i>)）',
+    sym: '<i>c</i>：光速。τ：パルス幅（レンジゲートの幅）[秒]。λ：波長 [m]。<i>N</i>：パルス数。<i>T</i>：パルス繰り返し周期 [秒]。{H}それぞれ、第1回の距離分解能、ステップ 3 の速度分解能と同じ式です。',
+    mis: 'マップに表示される距離と速度は、常に真の値であるとは限りません。PRF によっては、距離や速度が「折り返して」別の位置に現れます（次のステップ）。'},
+  hosoku: ['図書館の棚のたとえ', 'セルの大きさの式（距離分解能と速度分解能を並べたもの）'],
+  memo: 'つまずきやすい点は、色が「強度」を表す第 3 の軸であることです。||声かけの例：「目標を速度 0 に移すとどうなりますか」「マップの上端は何 km ですか。それより遠い目標はどうなると思いますか（ステップ 6 の予告）」',
   init: {wt: 'c70', t: [{on: true, r: 4.5, v: 20, s: 5}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, ctl: ['tr', 'tv'], fixed: ['prf', 'np'], plots: [{h: 330}],
-  mission: {t: '目標を、地図の「距離 12 km・速度 −50 m/s（遠ざかる）」の位置に動かそう。', ok: r => Math.abs(tg0().r - 12) <= 0.16 && Math.abs(tg0().v + 50) <= 3}, sol: {tr: 12, tv: -50},
+  mission: {t: '目標をマップの「距離 12 km・速度 −50 m/s（離隔）」の位置に移しましょう。', ok: r => Math.abs(tg0().r - 12) <= 0.16 && Math.abs(tg0().v + 50) <= 3}, sol: {tr: 12, tv: -50},
   draw(P){
     const sim = simulate(S), map = rdMap(sim, S.wt), D = sim.D, t = sim.tg[0];
-    P[0].set(heatCfg(sim, map, {title: '距離–ドップラマップ（色が濃いほど強い）', marks: {col: {x0: -4, x1: 4, t: '速度 0 の列（クラッタ）'}, tgt5: {x0: t.vapp - 8, x1: t.vapp + 8, y0: t.g * D.gate / 1000 - 0.8, y1: t.g * D.gate / 1000 + 0.8, t: '目標'}}}));
-    return {tiles: [{k: 'マスの数', v: sim.ng + ' × ' + sim.N, s: 'ゲート数 × パルス数'}, {k: 'マス 1 つの大きさ', v: fx(D.gate, 0) + ' <small>m</small> × ' + fx(D.dv, 1) + ' <small>m/s</small>'}, {k: '目標のマスの強さ', v: fx(map.db[t.g * sim.N + ((Math.round(t.vapp / D.dv) + sim.N / 2) % sim.N + sim.N) % sim.N], 1) + ' <small>dB</small>'}]};
+    P[0].set(heatCfg(sim, map, {title: '距離–ドップラマップ（色と強度の対応は右の目盛り）', marks: {col: {x0: -4, x1: 4, t: '速度 0 の列（クラッタ）'}, tgt5: {x0: t.vapp - 8, x1: t.vapp + 8, y0: t.g * D.gate / 1000 - 0.8, y1: t.g * D.gate / 1000 + 0.8, t: '目標'}}}));
+    return {tiles: [{k: 'セルの数', v: sim.ng + ' × ' + sim.N, s: 'レンジゲート数 × パルス数'}, {k: 'セル 1 つの大きさ', v: fx(D.gate, 0) + ' <small>m</small> × ' + fx(D.dv, 1) + ' <small>m/s</small>'}, {k: '目標のセルの強度', v: fx(map.db[t.g * sim.N + ((Math.round(t.vapp / D.dv) + sim.N / 2) % sim.N + sim.N) % sim.N], 1) + ' <small>dB</small>'}]};
   }});
 
 /* 6 */
-STEPS.push({short: '2 つのあいまいさ', title: '2 つのあいまいさ — 距離と速度は、同時には広く測れない', src: '§4.1（p.4.2–4.3）、PRF の分類（p.4.2–4.4）',
-  q: 'PRF を上げていく。あいまいさなしに測れる「距離」の範囲と「速度」の範囲は、それぞれどうなる？',
-  ch: ['どちらも広がる', '距離は狭まり、速度は広がる', '距離は広がり、速度は狭まる'], ans: 1,
-  why: 'PRF を上げると、次のパルスを送るまでの時間が短くなるので、あいまいさなしに測れる距離は短くなります。一方、1 パルスごとの位相の進みが小さくなるので、速い目標まであいまいさなしに測れます。2 つは逆向きに動きます。',
+STEPS.push({short: '2 つのアンビギュイティ', title: '2 つのアンビギュイティ — 距離と速度は同時には広い範囲を測定できない', src: '§4.1（p.4.2–4.3）、PRF の分類（p.4.2–4.4）',
+  q: 'PRF を上げていきます。アンビギュイティなしに測定できる「距離」の範囲と「速度」の範囲はそれぞれどうなりますか。',
+  ch: ['どちらも広くなる', '距離は狭くなり、速度は広くなる', '距離は広くなり、速度は狭くなる'], ans: 1,
+  why: 'PRF を上げると、次のパルスを送信するまでの時間が短くなるため、アンビギュイティなしに測定できる距離は短くなります。一方、1 パルスごとの位相の変化が小さくなるため、高速の目標までアンビギュイティなしに測定できます。2 つは逆方向に変化します。',
   read: {
-    ana: 'やまびこで距離を測るとき、「ヤッホー」を次々に叫ぶと、返ってきた声が何回目の「ヤッホー」のものか分からなくなります（距離のあいまいさ）。逆に、叫ぶ間隔を空けすぎると、その間に相手が大きく動いてしまい、動きを追えません（速度のあいまいさ）。',
-    what: 'エコーが戻る前に次のパルスを送ると、どのパルスのエコーか区別できません。これが距離のあいまいさ（range ambiguity）です。あいまいさなしに測れる距離は c/(2·PRF) です。||一方、位相が 1 パルスで 1 周以上進むと、何周したか分かりません。これがドップラのあいまいさ（Doppler ambiguity）です。図の[[box|青い枠]]が、両方をあいまいさなしに測れる範囲です。PRF を変えても、枠の面積は変わりません。',
+    ana: 'やまびこで距離を測るとき、「ヤッホー」を続けて叫ぶと、返ってきた声が何回目の「ヤッホー」のものであるかが分からなくなります（距離アンビギュイティ）。逆に、叫ぶ間隔を長くしすぎると、その間に相手が大きく移動し、運動を追うことができません（速度のアンビギュイティ）。',
+    what: 'エコーが戻る前に次のパルスを送信すると、どのパルスのエコーであるかを区別できません。これが<a class=gt data-g=g-range-ambiguity tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>距離アンビギュイティ</a>（range ambiguity）です。あいまいさのない最大距離は c/(2·PRF) です。||一方、位相が 1 パルスで 1 周以上進むと、何周したかが分かりません。これが<a class=gt data-g=g-doppler-ambiguity tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>ドップラアンビギュイティ</a>（Doppler ambiguity）です。図の[[box|青い枠]]が両方をアンビギュイティなしに測定できる範囲です。PRF を変えても、枠の面積は変わりません。',
     eq: '<i>R</i><sub>u</sub> = <i>c</i> / (2·<i>f</i><sub>R</sub>)　　速度の幅 = <i>f</i><sub>R</sub>·λ / 2',
-    sym: '<i>R</i><sub>u</sub>：あいまいさなしに測れる距離 [m]。<i>c</i>：光の速さ。<i>f</i><sub>R</sub>：PRF [Hz]。λ：波長 [m]。速度の幅は、近づく向きと遠ざかる向きを合わせた全体の幅です。{H}2 つを掛けると c·λ/4 で、PRF によらず一定です。',
-    mis: '「あいまいさがある PRF は使えない」わけではありません。実際のレーダは、あいまいさを承知で PRF を選び、複数の PRF を使って本当の値を割り出します（ステップ9）。'},
-  hosoku: ['やまびこのたとえ', '「あいまいさなしの距離 × 速度の幅 = c·λ/4 で一定」という関係', '速度の幅の式（PRF × λ/2）'],
-  memo: 'つまずきやすい点：2 つのあいまいさが「トレードオフ」であること。枠の面積が一定であることを図で確認。||声かけの例：「40 km・200 m/s の目標を、両方ともあいまいさなしで測れる PRF はある？」「波長を長くすると枠はどう変わる？」',
+    sym: '<i>R</i><sub>u</sub>：あいまいさのない最大距離 [m]。<i>c</i>：光速。<i>f</i><sub>R</sub>：PRF [Hz]。λ：波長 [m]。速度の幅は接近方向と離隔方向を合わせた全体の幅です。{H}2 つを掛けると c·λ/4 であり、PRF によらず一定です。',
+    mis: '「アンビギュイティがある PRF は使えない」という理解は誤りです。実際のレーダはアンビギュイティを前提として PRF を選択し、複数の PRF を使って真の値を求めます（ステップ 9）。'},
+  hosoku: ['やまびこのたとえ', '「あいまいさのない最大距離 × 速度の幅 = c·λ/4 で一定」という関係', '速度の幅の式（PRF × λ/2）'],
+  memo: 'つまずきやすい点は、2 つのアンビギュイティが「トレードオフ」の関係にあることです。枠の面積が一定であることを図で確認します。||声かけの例：「40 km・200 m/s の目標を、両方ともアンビギュイティなしに測定できる PRF はありますか」「波長を長くすると、枠はどのように変わりますか」',
   init: {prf: 20}, ctl: ['prf'], fixed: ['f'], plots: [{h: 300}],
-  mission: {t: '距離 40 km の目標を、距離のあいまいさなしで測れる、いちばん高い PRF を見つけよう。（そのとき、速度 200 m/s はあいまいさなしで測れる？）', ok: r => r.Ru >= 40 && C / (2 * (S.prf + 0.25) * 1e3) / 1000 < 40}, sol: {prf: 3.75},
+  mission: {t: '距離 40 km の目標を、距離アンビギュイティなしに測定できる、最も高い PRF を見つけましょう。また、速度 200 m/s をアンビギュイティなしに測定できるかどうかも確かめましょう。', ok: r => r.Ru >= 40 && C / (2 * (S.prf + 0.25) * 1e3) / 1000 < 40}, sol: {prf: 3.75},
   draw(P){
     const D = derive(), Ru = D.Ru / 1000, vu = D.vprf, inR = Ru >= 40, inV = vu / 2 >= 200;
-    P[0].set({title: 'あいまいさなしに測れる範囲（青い枠）と、目標（距離 40 km・速度 200 m/s）', xr: [-450, 450], yr: [0, 160], xl: '速度 [m/s]（近づく向きが＋）', yl: '距離 [km]', series: [], rects: [{x0: -vu / 2, x1: vu / 2, y0: 0, y1: Ru, color: 's1', fill: 0.18, w: 2}],
-      pts: [{x: 200, y: 40, color: 's2', r: 7, label: '目標'}], notes: [{x: 0, y: Math.min(Ru, 150), t: '距離は ' + fx(Ru, 1) + ' km まで', dx: 40, dy: -6}, {x: Math.min(vu / 2, 440), y: Math.min(Ru, 150) / 2, t: '速度は ±' + fx(vu / 2, 0) + ' m/s まで', dx: vu > 500 ? -60 : 40, dy: 10}], marks: {box: {x0: -vu / 2, x1: vu / 2, y0: 0, y1: Math.min(Ru, 160), t: 'あいまいさなしの範囲'}}, noHover: true});
-    return {Ru, tiles: [{k: 'あいまいさなしに測れる距離', v: fx(Ru, 2) + ' <small>km</small>', s: '40 km の目標は' + (inR ? '測れる' : 'あいまい')}, {k: 'あいまいさなしに測れる速度', v: '±' + fx(vu / 2, 1) + ' <small>m/s</small>', s: '200 m/s の目標は' + (inV ? '測れる' : 'あいまい')}, {k: '距離 × 速度の幅（一定）', v: fx(Ru * vu, 0) + ' <small>km·m/s</small>'}]};
+    P[0].set({title: 'アンビギュイティなしに測定できる範囲（青い枠）と、目標（距離 40 km・速度 200 m/s）', xr: [-450, 450], yr: [0, 160], xl: '速度 [m/s]（接近方向が＋）', yl: '距離 [km]', series: [], rects: [{x0: -vu / 2, x1: vu / 2, y0: 0, y1: Ru, color: 's1', fill: 0.18, w: 2}],
+      pts: [{x: 200, y: 40, color: 's2', r: 7, label: '目標'}], notes: [{x: 0, y: Math.min(Ru, 150), t: '距離は ' + fx(Ru, 1) + ' km まで', dx: -95, dy: -6}, {x: Math.min(vu / 2, 440), y: Math.min(Ru, 150) / 2, t: '速度は ±' + fx(vu / 2, 0) + ' m/s まで', dx: vu > 500 ? -60 : 40, dy: 10}], marks: {box: {x0: -vu / 2, x1: vu / 2, y0: 0, y1: Math.min(Ru, 160), t: 'アンビギュイティのない範囲'}}, noHover: true});
+    return {Ru, tiles: [{k: 'あいまいさのない最大距離', v: fx(Ru, 2) + ' <small>km</small>', s: '40 km の目標は' + (inR ? '測定できる' : 'アンビギュイティあり')}, {k: 'あいまいさのない速度幅', v: '±' + fx(vu / 2, 1) + ' <small>m/s</small>', s: '200 m/s の目標は' + (inV ? '測定できる' : 'アンビギュイティあり')}, {k: '距離 × 速度の幅（一定）', v: fx(Ru * vu, 0) + ' <small>km·m/s</small>'}]};
   }});
 
 /* 7 */
-STEPS.push({short: '低・中・高 PRF', title: '低・中・高 PRF の特徴 — どちらのあいまいさを受け入れるか', src: '§4.1（p.4.2–4.4、表4.1〜4.3）、p.4.6（式4.1）、§4.5（p.4.36–4.38）',
-  q: '高 PRF（速度はあいまいさなし、距離はひどくあいまい）が、いちばん得意とする目標はどれ？',
-  ch: ['高速で近づいてくる目標', 'ゆっくり横切る目標', '止まっている目標'], ans: 0,
-  why: '高 PRF では、高速で近づく目標のドップラが、クラッタのある範囲の外に出ます。そこは雑音だけなので、クラッタに邪魔されずに検出できます。逆に、速度の小さい目標はクラッタと重なって苦手です。',
+STEPS.push({short: '低・中・高 PRF', title: '低・中・高 PRF の特徴 — どちらのアンビギュイティを許容するか', src: '§4.1（p.4.2–4.4、表4.1〜4.3）、p.4.6（式4.1）、§4.5（p.4.36–4.38）',
+  q: '高 PRF（速度はアンビギュイティなし、距離は大きなアンビギュイティあり）が最も適している目標はどれですか。',
+  ch: ['高速で接近してくる目標', '低速で横切る目標', '静止している目標'], ans: 0,
+  why: '高 PRF では高速で接近する目標のドップラ周波数が、クラッタのある範囲の外に出ます。その範囲は雑音だけであるため、クラッタの影響を受けずに検出できます。逆に、速度の小さい目標はクラッタと重なるため、検出が困難です。',
   read: {
-    ana: '網で魚を取るとき、目の粗い網は大きな魚だけを、目の細かい網は小さな魚まで取れますが、ゴミも一緒にかかります。PRF の選び方も、「何を取りたいか」で決まり、すべてに万能な選び方はありません。',
-    what: '低 PRF は距離があいまいさなしで、速度がひどくあいまいです。ハンドブックでは、これを MTI と呼びます。高 PRF はその逆で、速度があいまいさなし、距離がひどくあいまいです。中 PRF は両方が少しずつあいまいです。||図は同じ[[tgt7|目標]]（27 km、250 m/s）を、3 種類の PRF で見たマップです。PRF によって、目標が現れる場所が変わります。高 PRF では距離が折り返すので、遠くの目標のエコーが、近くの強いクラッタと同じ行に重なります。',
-    eq: '<i>f</i><sub>R</sub> ≥ 2·(<i>V</i><sub>近づく最大</sub> + <i>V</i><sub>遠ざかる最大</sub> + <i>V</i><sub>g</sub>) / λ',
-    sym: '<i>f</i><sub>R</sub>：高 PRF にするための PRF の下限 [Hz]。<i>V</i>：見たい目標の最大の速度 [m/s]（近づく側と遠ざかる側）。<i>V</i><sub>g</sub>：地上を走る車などを除くための速度の幅 [m/s]。λ：波長 [m]。',
-    mis: '「高 PRF は距離が測れない」わけではありません。パルスの遅れでは測れませんが、送信周波数をゆっくり変える方法（FM 測距）などで距離を求めます。'},
-  hosoku: ['網のたとえ', '地上に置いたレーダの簡単なクラッタで 3 種類の PRF を比べていること（ハンドブックの表は航空機搭載が前提）'],
-  memo: 'つまずきやすい点：「見かけ」と「本当」の区別。マップの軸は見かけの値。||声かけの例：「低 PRF で目標の速度はいくつに見えている？ 本当は？」「中 PRF はどちらも中途半端に見えるけど、どんな利点があるだろう？（全方向の目標に対応、次のステップ以降）」',
+    ana: '網で魚を取るとき、目の粗い網では大きな魚だけが取れ、目の細かい網では小さな魚まで取れますが、ごみも同時にかかります。PRF の選択も「何を取りたいか」で決まり、すべてに適した選択はありません。',
+    what: '低 PRF は距離にアンビギュイティがなく、速度に大きなアンビギュイティがあります。ハンドブックではこれを MTI と呼んでいます。高 PRF はその逆であり、速度にアンビギュイティがなく、距離に大きなアンビギュイティがあります。中 PRF は両方にある程度のアンビギュイティがあります。||図は同じ[[tgt7|目標]]（27 km、250 m/s）を、3 種類の PRF で観測したマップです。PRF によって、目標が現れる位置が変わります。高 PRF では距離が折り返すため、遠距離の目標のエコーが、近距離の強いクラッタと同じ行に重なります。',
+    eq: '<i>f</i><sub>R</sub> ≥ 2·(<i>V</i><sub>接近の最大</sub> + <i>V</i><sub>離隔の最大</sub> + <i>V</i><sub>g</sub>) / λ',
+    sym: '<i>f</i><sub>R</sub>：高 PRF にするための PRF の下限 [Hz]。<i>V</i>：対象とする目標の最大速度 [m/s]（接近側と離隔側）。<i>V</i><sub>g</sub>：地上を走行する車両などを除くための速度の幅 [m/s]。λ：波長 [m]。',
+    mis: '「高 PRF では距離を測定できない」という理解は誤りです。パルスの遅延時間からは測定できませんが、送信周波数を緩やかに変化させる方法（FM 測距）などによって距離を求めます。'},
+  hosoku: ['網のたとえ', '地上に設置したレーダの単純なクラッタで 3 種類の PRF を比較していること（ハンドブックの表は航空機搭載が前提）'],
+  memo: 'つまずきやすい点は、「見かけの値」と「真の値」の区別です。マップの軸は見かけの値です。||声かけの例：「低 PRF で目標の速度はいくらに見えていますか。真の値はいくらですか」「中 PRF はどちらも不十分に見えますが、どのような利点がありますか（全方向の目標に対応できる。次のステップ以降）」',
   init: {prf: 2, wt: 'c70', cn: 40, t: [{on: true, r: 27, v: 250, s: 10}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, ctl: ['prfc'], fixed: ['f', 'cn'], fixT: ['目標 距離 27 km・速度 250 m/s'], plots: [{h: 330}],
-  mission: {t: '目標の速度（250 m/s）が、折り返さずにそのまま読める PRF を選ぼう。', ok: r => r.kv === 0 && Math.abs(r.vapp - 250) < 8}, sol: {prfc: 60},
+  mission: {t: '目標の速度（250 m/s）が、折り返さずにそのまま読み取れる PRF を選びましょう。', ok: r => r.kv === 0 && Math.abs(r.vapp - 250) < 8}, sol: {prfc: 60},
   draw(P){
     const sim = simulate(S), map = rdMap(sim, S.wt), D = sim.D, t = sim.tg[0];
     P[0].set(heatCfg(sim, map, {title: '距離–ドップラマップ（PRF ' + S.prf + ' kHz）', marks: {tgt7: {x0: t.vapp - D.vprf * 0.05, x1: t.vapp + D.vprf * 0.05, y0: (t.g - sim.ng * 0.06) * D.gate / 1000, y1: (t.g + sim.ng * 0.06) * D.gate / 1000, t: '目標'}}}));
-    return {kv: t.kv, vapp: t.vapp, tiles: [{k: '見かけの距離', v: fx(t.Ramb / 1000, 2) + ' <small>km</small>', s: t.k > 0 ? '本当は 27 km（' + (t.k + 1) + ' 周期目のエコー）' : '本当の距離と同じ'}, {k: '見かけの速度', v: fx(t.vapp, 0) + ' <small>m/s</small>', s: t.kv !== 0 ? '本当は 250 m/s（折り返している）' : '本当の速度と同じ'}, {k: 'あいまいさなしの範囲', v: fx(D.Ru / 1000, 1) + ' <small>km</small>、±' + fx(D.vprf / 2, 0) + ' <small>m/s</small>'}]};
+    return {kv: t.kv, vapp: t.vapp, tiles: [{k: '見かけの距離', v: fx(t.Ramb / 1000, 2) + ' <small>km</small>', s: t.k > 0 ? '真の値は 27 km（' + (t.k + 1) + ' 周期目のエコー）' : '真の距離と同じ'}, {k: '見かけの速度', v: fx(t.vapp, 0) + ' <small>m/s</small>', s: t.kv !== 0 ? '真の値は 250 m/s（折り返している）' : '真の速度と同じ'}, {k: 'アンビギュイティのない範囲', v: fx(D.Ru / 1000, 1) + ' <small>km</small>、±' + fx(D.vprf / 2, 0) + ' <small>m/s</small>'}]};
   }});
 
 /* 8 */
-STEPS.push({short: '航空機のクラッタ', title: '航空機搭載でのクラッタ — 自分が動くと、地面にもドップラが付く', src: '§4.1（p.4.4–4.8、図4.2〜4.5）、§4.2 Pulse Doppler Clutter（p.4.14–4.18、式4.2〜4.4）',
-  q: '速度 V で飛ぶ航空機から、真正面の地面を見る。その地面からのクラッタのドップラ周波数は？',
-  ch: ['0（地面は止まっているから）', '2V/λ（地面が速度 V で近づいて見えるから）', 'V/λ'], ans: 1,
-  why: 'ドップラを決めるのは、レーダと相手の「近づく速さ」です。地面は止まっていても、自分が速度 V で近づけば、地面のエコーには 2V/λ のドップラが付きます。真横の地面は近づきも遠ざかりもしないので 0、真後ろは −2V/λ です。',
+STEPS.push({short: '航空機搭載の場合のクラッタ', title: '航空機搭載の場合のクラッタ — 自機が移動すると、地面にもドップラ偏移が生じる', src: '§4.1（p.4.4–4.8、図4.2〜4.5）、§4.2 Pulse Doppler Clutter（p.4.14–4.18、式4.2〜4.4）',
+  q: '速度 V で飛行する航空機から、正面の地面を観測します。その地面からのクラッタのドップラ周波数はいくらですか。',
+  ch: ['0（地面は静止しているため）', '2V/λ（地面が速度 V で接近して見えるため）', 'V/λ'], ans: 1,
+  why: 'ドップラ周波数を決めるのは、レーダと対象の間の接近速度です。地面が静止していても、自機が速度 V で接近すれば、地面のエコーには 2V/λ のドップラ偏移が生じます。真横の地面は接近も離隔もしないため 0、真後ろは −2V/λ です。',
   read: {
-    ana: '走っている電車の窓から外を見ると、前方の景色は自分に向かって近づき、真横の景色は横に流れ、後方の景色は遠ざかっていきます。止まっているはずの地面が、見る方向によって違う速さで動いて見えます。',
-    what: '航空機のレーダでは、地面のクラッタが方向によって違うドップラを持ちます。アンテナの主ビームが当たる地面からの強いクラッタが[[mb|メインビームクラッタ（mainbeam clutter）]]で、ビームの向きで位置が変わります。||サイドローブを通って、あらゆる方向の地面から返るのが[[slc|サイドローブクラッタ（sidelobe clutter）]]で、±2V/λ の範囲に広がります。真下の地面からの強い反射は、ドップラ 0 の位置に出て、[[alt|高度線（altitude line）]]と呼ばれます。その外側が、クラッタのない領域です。',
+    ana: '走行中の電車の窓から外を見ると、前方の景色は接近し、真横の景色は横に流れ、後方の景色は離れていきます。静止しているはずの地面が、見る方向によって異なる速度で動いて見えます。',
+    what: '航空機のレーダでは、地面のクラッタが方向によって異なるドップラ周波数をもちます。アンテナのメインビームが照射する地面からの強いクラッタを<a class=gt data-g=g-mainbeam-clutter tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>メインビームクラッタ</a>（mainbeam clutter）と呼び、[[mb|その位置]]はビームの方向によって変わります。||サイドローブを通ってあらゆる方向の地面から返るクラッタを<a class=gt data-g=g-sidelobe-clutter tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>サイドローブクラッタ</a>（sidelobe clutter）と呼び、[[slc|±2V/λ の範囲]]に分布します。真下の地面からの強い反射は[[alt|ドップラ周波数 0 の位置]]に現れ、これを<a class=gt data-g=g-altitude-line tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>高度線</a>（altitude line）と呼びます。サイドローブクラッタの外側が、クラッタのない領域です。',
     eq: '<i>f</i><sub>MB</sub> = (2·<i>V</i><sub>R</sub> / λ)·cos ψ<sub>0</sub>',
-    sym: '<i>f</i><sub>MB</sub>：メインビームクラッタのドップラ周波数 [Hz]。<i>V</i><sub>R</sub>：レーダ（航空機）の速度 [m/s]。λ：波長 [m]。ψ<sub>0</sub>：進行方向と、ビームの向きとの間の角度。',
-    mis: '「クラッタは速度 0 にある」は、地上に置いたレーダの話です。動くレーダでは、クラッタは −V から +V までの速度に広がります。'},
-  hosoku: ['電車の窓のたとえ', '平らな地面・水平飛行・ビーム幅 3°・サイドローブ一定（−45 dB）としたクラッタの簡略モデル', '折り返しのないスペクトル（全距離の和）で描いていること'],
-  memo: 'つまずきやすい点：横軸の「速度」は、レーダから見た近づく速さ。+250 m/s が真正面の地面。||声かけの例：「ビームを真横（90°）に向けると、メインビームクラッタはどこに行く？」「速度 300 m/s で近づいてくる目標は、図のどこに出る？ クラッタと重なる？」',
+    sym: '<i>f</i><sub>MB</sub>：メインビームクラッタのドップラ周波数 [Hz]。<i>V</i><sub>R</sub>：レーダ（航空機）の速度 [m/s]。λ：波長 [m]。ψ<sub>0</sub>：進行方向とビームの方向との間の角度。',
+    mis: '「クラッタは速度 0 にある」というのは、地上に設置したレーダの場合です。移動するレーダでは、クラッタは −V から +V までの速度に分布します。'},
+  hosoku: ['電車の窓のたとえ', '平面大地・水平飛行・ビーム幅 3°・サイドローブ一定（−45 dB）としたクラッタの簡略モデル', '折り返しのないスペクトル（全距離の和）で作図していること'],
+  memo: 'つまずきやすい点は、横軸の「速度」が、レーダから見た接近速度であることです。+250 m/s が正面の地面です。||声かけの例：「ビームを真横（90°）に向けると、メインビームクラッタはどこに移りますか」「速度 300 m/s で接近してくる目標は、図のどこに現れますか。クラッタと重なりますか」',
   init: {vr: 250, az: 30, h: 3, prf: 40}, ctl: ['az'], fixed: ['vr'], plots: [{h: 290}],
-  mission: {t: 'メインビームクラッタが、高度線（ドップラ 0）にちょうど重なるビームの方位にしよう。', ok: r => Math.abs(r.vmb) <= 3}, sol: {az: 90},
+  mission: {t: 'メインビームクラッタが、高度線（ドップラ周波数 0）にちょうど重なるビームの方位にしましょう。', ok: r => Math.abs(r.vmb) <= 3}, sol: {az: 90},
   draw(P){
     const D = derive(), cu = clutterUnfolded(S, D, 500), k = D.lam / 2, y = new Float64Array(cu.U), vmb = D.fmb * k; for (let i = 0; i < cu.U; i++) y[i] = Math.max(-80, db10(cu.p[i]));
-    P[0].set(Object.assign({title: '地面クラッタのドップラスペクトル（自分の速度 ' + S.vr + ' m/s、高度 3 km）', xr: [-330, 330], yr: [-80, 8], yl: '強さ [dB]（いちばん強いところ = 0）', series: [{name: 'クラッタ', color: 's1', x0: cu.f0 * k, dx: cu.df * k, y, w: 1.8, fill: 0.12, base: -80}],
+    P[0].set(Object.assign({title: '地面クラッタのドップラスペクトル（自機の速度 ' + S.vr + ' m/s、高度 3 km）', xr: [-330, 330], yr: [-80, 8], yl: '強度 [dB]（最も強い点 = 0）', series: [{name: 'クラッタ', color: 's1', x0: cu.f0 * k, dx: cu.df * k, y, w: 1.8, fill: 0.12, base: -80}],
       vl: [{x: -S.vr, label: '−V'}, {x: S.vr, label: '+V'}], notes: [{x: vmb, y: 0, t: 'メインビームクラッタ', dx: vmb > 100 ? -40 : 40, dy: 14}, {x: 0, y: Math.max(-80, db10(cu.p[Math.round(cu.U / 2)])), t: '高度線（真下の地面）', dx: -50, dy: -30}, {x: 300, y: -75, t: 'クラッタのない領域', dx: -20, dy: -30}],
       marks: {mb: {x0: vmb - 15, x1: vmb + 15, t: 'メインビームクラッタ'}, slc: {x0: -S.vr, x1: S.vr, y0: -80, y1: -30, t: 'サイドローブクラッタ'}, alt: {x0: -8, x1: 8, t: '高度線'}}}, VAX));
-    return {vmb, tiles: [{k: 'メインビームクラッタの位置', v: fx(vmb, 0) + ' <small>m/s</small>', s: 'ドップラ周波数 ' + fx(D.fmb / 1000, 2) + ' kHz'}, {k: 'サイドローブクラッタの範囲', v: '±' + S.vr + ' <small>m/s</small>', s: '周波数では ±' + fx(D.F / 1000, 1) + ' kHz（2V/λ）'}]};
+    return {vmb, tiles: [{k: 'メインビームクラッタの位置', v: fx(vmb, 0) + ' <small>m/s</small>', s: 'ドップラ周波数 ' + fx(D.fmb / 1000, 2) + ' kHz'}, {k: 'サイドローブクラッタの範囲', v: '±' + S.vr + ' <small>m/s</small>', s: '周波数で ±' + fx(D.F / 1000, 1) + ' kHz（2V/λ）'}]};
   }});
 
 /* 9 */
-STEPS.push({short: 'あいまいさの解消', title: 'あいまいさの解消 — いくつかの PRF で見比べて、本当の距離を割り出す', src: '§4.4 Range and Doppler Ambiguity Resolution（p.4.31–4.34、式4.9・4.10、図4.17・4.18）',
-  q: '距離があいまいな PRF で、遠くの目標を見ている。PRF を少し変えると、目標の「見かけの距離」はどうなる？',
-  ch: ['変わらない', '変わる（PRF ごとに違う位置に見える）', '目標が消える'], ans: 1,
-  why: '見かけの距離は「本当の距離を、あいまいさなしの距離で割った余り」です。PRF を変えると割る数が変わるので、余りも変わります。この変わり方から、本当の距離を逆算できます。',
+STEPS.push({short: 'アンビギュイティの解消', title: 'アンビギュイティの解消 — 複数の PRF で比較して、真の距離を求める', src: '§4.4 Range and Doppler Ambiguity Resolution（p.4.31–4.34、式4.9・4.10、図4.17・4.18）',
+  q: '距離アンビギュイティのある PRF で、遠距離の目標を観測しています。PRF をわずかに変えると、目標の「見かけの距離」はどうなりますか。',
+  ch: ['変わらない', '変わる（PRF ごとに異なる位置に現れる）', '目標が消失する'], ans: 1,
+  why: '見かけの距離は「真の距離をあいまいさのない最大距離で割った余り」です。PRF を変えると割る数が変わるため、余りも変わります。この変化から、真の距離を逆算できます。',
   read: {
-    ana: '「ある数を 9 で割ると 3 余り、10 で割ると 9 余り、11 で割ると 6 余る。その数は？」というなぞなぞを考えます。余りを 1 つ知っただけでは答えが決まりませんが、3 つそろえば 1 つに絞れます。',
-    what: '1 つの PRF では、見かけの距離にあいまいさなしの距離の整数倍を足した値が、すべて[[cand|本当の距離の候補]]になります。PRF を変えて同じ目標を見ると、候補の並びが変わります。||本当の距離だけは、どの PRF でも候補に入ります。そこで、[[hit|3 つの PRF の候補がそろう場所]]を探します。図はハンドブックの例と同じで、パルスの間隔がレンジゲート 9、10、11 個分の 3 つの PRF を使っています。',
+    ana: '「ある数を 9 で割ると 3 余り、10 で割ると 9 余り、11 で割ると 6 余る。その数はいくらか」という問題を考えます。余りを 1 つ知っただけでは答えが決まりませんが、3 つそろえば 1 つに決まります。',
+    what: '1 つの PRF では見かけの距離に、あいまいさのない最大距離の整数倍を加えた値が、すべて[[cand|真の距離の候補]]になります。PRF を変えて同じ目標を観測すると、候補の並びが変わります。||真の距離だけはどの PRF でも候補に含まれます。そこで、[[hit|3 つの PRF の候補が一致する位置]]を探します。図はハンドブックの例と同じであり、パルス繰り返し周期がレンジゲート 9、10、11 個分の 3 つの PRF を使っています。',
     eq: '<i>R</i> = <i>R</i><sub>見かけ</sub> + <i>k</i>·<i>c</i> / (2·<i>f</i><sub>R</sub>)　（<i>k</i> = 0, 1, 2, …）',
-    sym: '<i>R</i>：本当の距離の候補。<i>R</i><sub>見かけ</sub>：その PRF で測った見かけの距離。<i>k</i>：何周期前のパルスのエコーか（整数）。<i>c</i>/(2·<i>f</i><sub>R</sub>)：その PRF であいまいさなしに測れる距離。',
-    mis: '「PRF は 2 つあれば十分」とは限りません。目標が複数あると、違う目標の候補どうしがたまたまそろって、偽の目標（ゴースト）ができます。そのため、ふつうは 3 つ以上（多いときは 5〜8 個）の PRF を使います。'},
-  hosoku: ['割り算の余りのなぞなぞのたとえ', '距離を「レンジゲート何個目か」の整数で表し、測定の誤差を入れていないこと'],
-  memo: 'つまずきやすい点：図の点は「候補」であって、全部が目標ではないこと。||声かけの例：「距離が 39 のとき、PRF 1 では何周期目のエコー？」「9、10、11 を使うと、何ゲート目まであいまいさなしに決められる？（9×10×11 = 990）」',
-  init: {rg: 14}, ctl: ['rg'], fixed: [], fixT: ['3 つの PRF のパルス間隔 9・10・11 ゲート分'], plots: [{h: 250}],
-  mission: {t: 'ハンドブックの例を再現しよう。3 つの PRF での見かけの距離が「3、9、6」ゲート目になる、本当の距離を見つけよう。', ok: r => S.rg === 39}, sol: {rg: 39},
+    sym: '<i>R</i>：真の距離の候補。<i>R</i><sub>見かけ</sub>：その PRF で測定した見かけの距離。<i>k</i>：何周期前のパルスのエコーであるか（整数）。<i>c</i>/(2·<i>f</i><sub>R</sub>)：その PRF でのあいまいさのない最大距離。',
+    mis: '「PRF は 2 つあれば十分である」という理解は誤りです。目標が複数あると、異なる目標の候補どうしが偶然一致して、偽目標（ゴースト）が生じます。このため、通常は 3 つ以上（多い場合は 5〜8 個）の PRF を使います。'},
+  hosoku: ['割り算の余りの問題のたとえ', '距離を「レンジゲートの番号」の整数で表し、測定誤差を含めていないこと'],
+  memo: 'つまずきやすい点は、図の点が「候補」であり、すべてが目標ではないことです。||声かけの例：「距離が 39 の場合、PRF 1 では何周期目のエコーですか」「9、10、11 を使うと、何ゲート目までアンビギュイティなしに決定できますか（9×10×11 = 990）」',
+  init: {rg: 14}, ctl: ['rg'], fixed: [], fixT: ['3 つの PRF のパルス繰り返し周期 9・10・11 ゲート分'], plots: [{h: 250}],
+  mission: {t: 'ハンドブックの例を再現しましょう。3 つの PRF での見かけの距離が「3、9、6」ゲート目になる、真の距離を見つけましょう。', ok: r => S.rg === 39}, sol: {rg: 39},
   draw(P){
     const ru = [9, 10, 11], dets = ru.map(u => ({ru: u, amb: [S.rg % u]})), res = correlate(dets, 0, 60, 0.3, 3), cols = ['s1', 's2', 's3'], pts = [];
     for (const c of res.cands) pts.push({x: c.r, y: 3 - c.p, color: cols[c.p], r: c.k === 0 ? 6 : 4.5, hollow: c.k !== 0, label: c.k === 0 ? '見かけ ' + c.r : ''});
-    P[0].set({title: '3 つの PRF それぞれの「本当の距離の候補」（中を塗った点が、測った見かけの距離）', xr: [-1, 62], yr: [0.4, 3.7], xl: '距離（レンジゲート何個目か）', yl: '', yticks: [[3, 'PRF 1'], [2, 'PRF 2'], [1, 'PRF 3']], series: [], pts, vl: res.hits.map(h => ({x: h.r, label: '3 つがそろう：' + fx(h.r, 0), color: 'ok', w: 2, dash: []})),
-      marks: {cand: {t: '本当の距離の候補'}, hit: {x0: S.rg - 1, x1: S.rg + 1, t: '候補がそろう場所'}}, noHover: true});
-    return {tiles: [{k: '見かけの距離（PRF 1・2・3）', v: dets.map(d => d.amb[0]).join('、') + ' <small>ゲート目</small>', s: 'パルスの間隔は 9・10・11 ゲート分'}, {k: '3 つの候補がそろった距離', v: res.hits.length ? res.hits.map(h => fx(h.r, 0)).join('、') + ' <small>ゲート目</small>' : 'なし'}]};
+    P[0].set({title: '3 つの PRF それぞれの「真の距離の候補」（塗りつぶした点が測定した見かけの距離）', xr: [-1, 62], yr: [0.4, 3.7], xl: '距離（レンジゲートの番号）', yl: '', yticks: [[3, 'PRF 1'], [2, 'PRF 2'], [1, 'PRF 3']], series: [], pts, vl: res.hits.map(h => ({x: h.r, label: '3 つが一致：' + fx(h.r, 0), color: 'ok', w: 2, dash: []})),
+      marks: {cand: {t: '真の距離の候補'}, hit: {x0: S.rg - 1, x1: S.rg + 1, t: '候補が一致する位置'}}, noHover: true});
+    return {tiles: [{k: '見かけの距離（PRF 1・2・3）', v: dets.map(d => d.amb[0]).join('、') + ' <small>ゲート目</small>', s: 'パルス繰り返し周期は 9・10・11 ゲート分'}, {k: '3 つの候補が一致した距離', v: res.hits.length ? res.hits.map(h => fx(h.r, 0)).join('、') + ' <small>ゲート目</small>' : 'なし'}]};
   }});
 
 /* 10 */
 function eclA(R, ipp){ const gpos = (2 * R * 1000 / C / 1e-6) % ipp; return bestGate(gpos, ipp).a; }
-STEPS.push({short: 'エクリプシング', title: 'エクリプシングとブラインドゾーン — 距離と速度の両方にできる「見えない帯」', src: '§4.5（p.4.36–4.39）、Losses：Eclipsing and Range Gate Straddle Loss（p.4.40–4.43、式4.17、図4.20）',
-  q: '送信している時間が全体の 20%（5 ゲートのうち 1 ゲートが送信中）のレーダ。遠くの目標のエコーが、たまたま送信のタイミングに戻ってくると？',
-  ch: ['問題なく受信できる', '受信できない。その距離は「見えない帯」になる', '2 倍強く受信できる'], ans: 1,
-  why: '送信中は受信機を止めているので、ちょうどそのタイミングに戻ってきたエコーは受信できません（エクリプシング）。PRF が高いと、この「見えない帯」が距離方向に何本もくり返し現れます。PRF を変えると帯の位置がずれるので、いくつかの PRF を組み合わせて穴を埋めます。',
+STEPS.push({short: 'エクリプシング', title: 'エクリプシングとブラインドゾーン — 距離と速度の両方に生じる、検出できない帯', src: '§4.5（p.4.36–4.39）、Losses：Eclipsing and Range Gate Straddle Loss（p.4.40–4.43、式4.17、図4.20）',
+  q: '送信時間が全体の 20%（5 ゲートのうち 1 ゲートが送信中）のレーダを考えます。遠距離の目標のエコーが、偶然送信のタイミングに戻ると、どうなりますか。',
+  ch: ['問題なく受信できる', '受信できず、その距離は検出できない帯になる', '2 倍の強度で受信できる'], ans: 1,
+  why: '送信中は受信機を停止しているため、そのタイミングに戻ったエコーは受信できません（エクリプシング）。PRF が高いと、この検出できない帯が、距離方向に繰り返し現れます。PRF を変えると帯の位置が変わるため、複数の PRF を組み合わせて検出できない範囲を補います。',
   read: {
-    ana: '踏切の遮断機が、決まった間隔で下りているとします。たまたま下りている時間に着いた車は、通れません。遮断機の間隔が違う別の踏切なら、同じ時刻でも通れることがあります。',
-    what: '送信パルスを出している間は受信できないので、その時間に戻るエコーは欠けます（第1回のステップ9）。距離があいまいな PRF では、[[bz|見えない帯（ブラインドゾーン）]]が、あいまいさなしの距離ごとにくり返し現れます。||ドップラの方向にも見えない帯があります。メインビームクラッタのある速度の近くは、クラッタを除くために使えません。[[prfb|PRF を変える]]と、どちらの帯も位置がずれるので、いくつかの PRF で順に見て穴を埋めます。',
+    ana: '踏切の遮断機が一定の間隔で下りているとします。遮断機が下りている時間に到着した車は、通過できません。遮断機の間隔が異なる別の踏切であれば、同じ時刻でも通過できることがあります。',
+    what: '送信パルスを送信している間は受信できないため、その時間に戻るエコーは欠落します（第1回のステップ 9）。距離アンビギュイティのある PRF では、[[bz|検出できない帯]]があいまいさのない最大距離ごとに繰り返し現れます。この帯を<a class=gt data-g=g-blind-zone tabindex=0 role=button aria-haspopup=dialog aria-expanded=false>ブラインドゾーン</a>と呼びます。||ドップラ周波数の方向にも、検出できない帯があります。メインビームクラッタのある速度の付近は、クラッタを除去するために使えません。[[prfb|PRF を変える]]と、どちらの帯も位置が変わるため、複数の PRF で順に観測して、検出できない範囲を補います。',
     eq: '平均の損失 ≈ 12·<i>N</i> / (7·<i>N</i> − 6)',
-    sym: '<i>N</i>：パルスの間隔を、パルス幅と同じ幅のレンジゲートで区切ったときのゲートの数（最初の 1 つは送信中で使えない）。N = 5 なら 2.07 倍（3.2 dB）。エコーの遅れがまんべんなく分布するときの、エクリプシングとゲートのまたがりを合わせた平均の損失です。',
-    mis: '「見えない帯にいる目標は、ずっと見えない」わけではありません。目標が動けば帯から出ますし、PRF を切り替えれば別の PRF で見えます。'},
-  hosoku: ['踏切のたとえ', 'パルスの間隔をゲート 5 個分（PRF A）と 6 個分（PRF B）にした場面設定'],
-  memo: 'つまずきやすい点：図の横軸は「本当の距離」。山と谷のくり返しの幅が、あいまいさなしの距離。||声かけの例：「PRF A の帯の間隔は何 m？ PRF B は？」「2 つの PRF の両方で見えない距離はある？」',
-  init: {t: [{on: true, r: 21.5, v: 45, s: 0}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, ctl: [{k: 'tr', min: 20, max: 24.5, step: 0.025}], fixed: [], fixT: ['PRF A のパルス間隔 5 ゲート（750 m）', 'PRF B のパルス間隔 6 ゲート（900 m）', 'パルス幅 1 ゲート（150 m）'], plots: [{h: 270}],
-  mission: {t: 'PRF A ではまったく見えない（出力が 1/100 以下）のに、PRF B では半分以上の強さで見える距離を見つけよう。', ok: r => r.pa <= 0.01 && r.pb >= 0.5}, sol: {tr: 20.25},
+    sym: '<i>N</i>：パルス繰り返し周期を、パルス幅と同じ幅のレンジゲートで区切った場合のゲートの数（最初の 1 つは送信中であり使えない）。N = 5 の場合は 2.07 倍（3.2 dB）です。エコーの遅延時間が一様に分布する場合の、エクリプシングとレンジゲートストラドルを合わせた平均の損失です。',
+    mis: '「検出できない帯にある目標は、常に検出できない」という理解は誤りです。目標が移動すれば帯から出ます。また、PRF を切り替えれば、別の PRF で検出できます。'},
+  hosoku: ['踏切のたとえ', 'パルス繰り返し周期をゲート 5 個分（PRF A）と 6 個分（PRF B）にした場面の設定'],
+  memo: 'つまずきやすい点は、図の横軸が「真の距離」であることです。応答の繰り返しの周期が、あいまいさのない最大距離です。||声かけの例：「PRF A の帯の間隔は何 m ですか。PRF B はどうですか」「2 つの PRF の両方で検出できない距離はありますか」',
+  init: {t: [{on: true, r: 21.5, v: 45, s: 0}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, ctl: [{k: 'tr', min: 20, max: 24.5, step: 0.025}], fixed: [], fixT: ['PRF A のパルス繰り返し周期 5 ゲート（750 m）', 'PRF B のパルス繰り返し周期 6 ゲート（900 m）', 'パルス幅 1 ゲート（150 m）'], plots: [{h: 270}],
+  mission: {t: 'PRF A ではまったく検出できない（出力が 1/100 以下）一方で、PRF B では半分以上の強度で検出できる距離を見つけましょう。', ok: r => r.pa <= 0.01 && r.pb >= 0.5}, sol: {tr: 20.25},
   draw(P){
     const xs = [], ya = [], yb = []; for (let R = 20; R <= 24.5001; R += 0.005){ xs.push(R); const a = eclA(R, 5), b = eclA(R, 6); ya.push(a * a); yb.push(b * b); }
     const a0 = eclA(tg0().r, 5), b0 = eclA(tg0().r, 6), pa = a0 * a0, pb = b0 * b0;
-    P[0].set({title: '目標の距離と、受信できる強さ（1 = 欠けずに受信）', xr: [20, 24.5], yr: [0, 1.25], xl: '目標の本当の距離 [km]', yl: '受信できる強さ（電力の割合）', series: [{name: 'PRF A（間隔 5 ゲート、750 m ごと）', color: 's1', x: xs, y: ya, w: 2}, {name: 'PRF B（間隔 6 ゲート、900 m ごと）', color: 's2', x: xs, y: yb, w: 2, dash: [6, 3]}],
-      vl: [{x: tg0().r, label: '目標', color: 'text2', w: 1.5}], pts: [{x: tg0().r, y: pa, color: 's1', r: 6}, {x: tg0().r, y: pb, color: 's2', r: 6}], marks: {bz: {x0: 20.85, x1: 21.15, t: '見えない帯'}, prfb: {y0: 0, y1: 1.05, t: 'PRF を変えると帯がずれる'}}, tipx: v => fx(v, 3) + ' km', tipy: v => fx(v, 2)});
-    return {pa, pb, tiles: [{k: 'PRF A での強さ', v: pa > 0.001 ? fx(pa * 100, 0) + ' <small>%</small>' : '見えない', s: pa > 0.001 ? dbx(db10(pa)) : '送信中に戻ってくる'}, {k: 'PRF B での強さ', v: pb > 0.001 ? fx(pb * 100, 0) + ' <small>%</small>' : '見えない', s: pb > 0.001 ? dbx(db10(pb)) : '送信中に戻ってくる'}, {k: '平均の損失（式の値、N = 5）', v: fx(db10(60 / 29), 1) + ' <small>dB</small>'}]};
+    P[0].set({title: '目標距離と受信できる強度（1 = 欠落なく受信）', xr: [20, 24.5], yr: [0, 1.25], xl: '目標の真の距離 [km]', yl: '受信できる強度（電力の割合）', series: [{name: 'PRF A（周期 5 ゲート、750 m ごと）', color: 's1', x: xs, y: ya, w: 2}, {name: 'PRF B（周期 6 ゲート、900 m ごと）', color: 's2', x: xs, y: yb, w: 2, dash: [6, 3]}],
+      vl: [{x: tg0().r, label: '目標', color: 'text2', w: 1.5}], pts: [{x: tg0().r, y: pa, color: 's1', r: 6}, {x: tg0().r, y: pb, color: 's2', r: 6}], marks: {bz: {x0: 20.85, x1: 21.15, t: '検出できない帯'}, prfb: {y0: 0, y1: 1.05, t: 'PRF を変えると帯の位置が変わる'}}, tipx: v => fx(v, 3) + ' km', tipy: v => fx(v, 2)});
+    return {pa, pb, tiles: [{k: 'PRF A での強度', v: pa > 0.001 ? fx(pa * 100, 0) + ' <small>%</small>' : '検出できない', s: pa > 0.001 ? dbx(db10(pa)) : '送信中に戻る'}, {k: 'PRF B での強度', v: pb > 0.001 ? fx(pb * 100, 0) + ' <small>%</small>' : '検出できない', s: pb > 0.001 ? dbx(db10(pb)) : '送信中に戻る'}, {k: '平均の損失（式の値、N = 5）', v: fx(db10(60 / 29), 1) + ' <small>dB</small>'}]};
   }});
 
 /* 11 */
-STEPS.push({short: '発展：位相雑音', title: '発展 — 位相雑音が、クラッタのない領域の「床」を持ち上げる', src: '§4.3 Dynamic-Range and Stability Requirements（p.4.24–4.31、式4.8、表4.5）',
-  q: '非常に強いメインビームクラッタに、送信機のわずかな位相のゆらぎ（位相雑音）が乗っている。クラッタのない速度の領域は、どうなる？',
-  ch: ['何も変わらない', '雑音の床が持ち上がり、弱い目標が隠れる', 'クラッタが消える'], ans: 1,
-  why: '位相雑音は、強い信号に「掛け算」で乗る雑音です。クラッタが強いほど、その周りに広がる雑音も強くなり、本来は熱雑音だけのはずの領域の床を持ち上げます。重み付けでは下げられません。',
+STEPS.push({short: '発展：位相雑音', title: '発展 — 位相雑音がクラッタのない領域の雑音フロアを上げる', src: '§4.3 Dynamic-Range and Stability Requirements（p.4.24–4.31、式4.8、表4.5）',
+  q: '極めて強いメインビームクラッタに、送信機のわずかな位相の変動（位相雑音）が加わっています。クラッタのない速度の領域は、どうなりますか。',
+  ch: ['何も変わらない', '雑音フロアが上がり、弱い目標が隠れる', 'クラッタが除去される'], ans: 1,
+  why: '位相雑音は強い信号に乗算の形で加わる雑音です。クラッタが強いほど、その周囲に分布する雑音も強くなり、本来は熱雑音だけであるはずの領域の雑音フロアを上げます。重み付けでは下げられません。',
   read: {
-    ana: '静かな図書館で、1 人だけ大きな声で話す人がいて、その声がわずかに震えているとします。震えは小さくても、元の声が大きいので、部屋中にざわざわした音が広がり、ひそひそ話が聞き取れなくなります。',
-    what: 'ドップラ処理の利点は、十分に速い目標を、熱雑音だけと競わせられることです。ところが、送信機や発振器の位相が短い時間でゆらぐと、強いクラッタの周りに雑音の[[skirt|すそ]]が広がります。これが位相雑音です。||位相雑音は強い信号に比例するので、クラッタが強いほど[[floor|雑音の床]]が上がります。ハンドブックの例では、位相雑音を熱雑音より 4 dB 低く抑えると、感度の損失は約 1.5 dB になります。',
+    ana: '静かな図書館で 1 人だけ大きな声で話す人がいて、その声がわずかに震えているとします。震えは小さくても、元の声が大きいため、部屋全体に雑音が広がり、小声の会話が聞き取れなくなります。',
+    what: 'ドップラ処理の利点は、十分に高速の目標を、熱雑音だけを背景にして検出できることです。しかし、送信機や発振器の位相が短い時間で変動すると、強いクラッタの周囲に雑音の[[skirt|スカート部]]が生じます。これが位相雑音です。||位相雑音は強い信号に比例するため、クラッタが強いほど[[floor|雑音フロア]]が上がります。ハンドブックの例では、位相雑音を熱雑音より 4 dB 低く抑えると、感度の損失は約 1.5 dB になります。',
     eq: '感度の損失 = 10·log<sub>10</sub>( 1 + <i>P</i><sub>位相雑音</sub> / <i>P</i><sub>熱雑音</sub> )　[dB]',
-    sym: '<i>P</i><sub>位相雑音</sub>：フィルタに入る位相雑音の電力（強い信号の電力 × 位相雑音の比）。<i>P</i><sub>熱雑音</sub>：フィルタに入る熱雑音の電力。比が −4 dB（0.4 倍）なら損失は 1.5 dB。',
-    mis: '「サイドローブを十分下げれば、強いクラッタは問題にならない」とは限りません。位相雑音はサイドローブとは別の原因で、重み付けでは下がりません。発振器そのものの安定度で決まります。'},
-  hosoku: ['図書館の声のたとえ', '位相雑音を「パルスごと・ゲートごとに独立な白色雑音」としたモデル', '目標を、クラッタの強い近距離のゲートに置いた場面設定'],
-  memo: 'つまずきやすい点：「信号との比」で表した雑音（dBc）という考え方。クラッタが 60 dB 強ければ、−60 dB の位相雑音が熱雑音と同じ高さになる。||声かけの例：「クラッタを 10 dB 弱くすると、床はどうなる？」「位相雑音を −64 dB にしたとき、床は熱雑音より何 dB 上がっている？」',
+    sym: '<i>P</i><sub>位相雑音</sub>：フィルタに入る位相雑音の電力（強い信号の電力 × 位相雑音の比）。<i>P</i><sub>熱雑音</sub>：フィルタに入る熱雑音の電力。比が −4 dB（0.4 倍）の場合、損失は 1.5 dB です。',
+    mis: '「サイドローブを十分に下げれば、強いクラッタは問題にならない」という理解は誤りです。位相雑音はサイドローブとは別の原因によるものであり、重み付けでは下がりません。発振器そのものの安定度で決まります。'},
+  hosoku: ['図書館の声のたとえ', '位相雑音を「パルスごと・ゲートごとに独立な白色雑音」としたモデル', '目標をクラッタの強い近距離のレンジゲートに置いた場面の設定'],
+  memo: 'つまずきやすい点は、「信号との比」で表した雑音（dBc）という考え方です。クラッタが 60 dB 強ければ、−60 dB の位相雑音が熱雑音と同じレベルになります。||声かけの例：「クラッタを 10 dB 弱くすると、雑音フロアはどうなりますか」「位相雑音を −64 dB にした場合、雑音フロアは熱雑音より何 dB 上がっていますか」',
   init: {pn: -45, cn: 60, wt: 'c90', t: [{on: true, r: 1.2, v: 40, s: 0}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, ctl: ['pn'], fixed: ['cn', 'wt'], plots: [{h: 280}],
-  mission: {t: '雑音の床の上昇（感度の損失）を 1.5 dB 以下に抑えられる、いちばん大きい位相雑音の値を見つけよう。', ok: r => r.rise <= 1.5 && r.riseNext > 1.5}, sol: {pn: -63},
+  mission: {t: '雑音フロアの上昇（感度の損失）を 1.5 dB 以下に抑えられる、最大の位相雑音の値を見つけましょう。', ok: r => r.rise <= 1.5 && r.riseNext > 1.5}, sol: {pn: -63},
   draw(P){
     const sim = simulate(S), t = sim.tg[0], sp = specOf(sim, t.g, S.wt), cg = sim.cl.pg[t.g], rz = p => 10 * Math.log10(1 + cg * Math.pow(10, p / 10)), rise = rz(S.pn), riseNext = rz(S.pn + 1);
-    P[0].set(Object.assign({title: '目標のいるゲートを速度ごとに分けた結果（クラッタはこのゲートで雑音の ' + fx(db10(cg), 0) + ' dB 上）', xr: [-75, 75], yr: [-15, 70], yl: '強さ [dB]（熱雑音 = 0）', series: [{name: '速度ごとの強さ', color: 's1', x0: sp.x0, dx: sp.dx, y: sp.y, w: 1.5}], hl: [{y: rise, label: '雑音の床（計算値）+' + fx(rise, 1) + ' dB', color: 's2'}], vl: [{x: 40, label: '目標の速度'}],
-      marks: {skirt: {x0: -75, x1: 75, y0: -15, y1: rise + 8, t: '位相雑音のすそ'}, floor: {y0: rise - 5, y1: rise + 5, t: '雑音の床'}}}, VAX));
-    return {rise, riseNext, msHint: '床の上昇 ' + fx(rise, 1) + ' dB', tiles: [{k: '雑音の床の上昇（感度の損失）', v: fx(rise, 1) + ' <small>dB</small>', s: '式4.8 の形で計算'}, {k: '位相雑音 ÷ 熱雑音', v: fx(db10(cg) + S.pn, 1) + ' <small>dB</small>', s: 'クラッタ ' + fx(db10(cg), 0) + ' dB ＋ 位相雑音 ' + S.pn + ' dB'}, {k: '目標の山（熱雑音からの高さ）', v: fx(spMax(sp, 38, 42), 1) + ' <small>dB</small>'}]};
+    P[0].set(Object.assign({title: '目標のあるレンジゲートを速度ごとに分離した結果（クラッタはこのレンジゲートで雑音の ' + fx(db10(cg), 0) + ' dB 上）', xr: [-75, 75], yr: [-15, 70], yl: '強度 [dB]（熱雑音 = 0）', series: [{name: '速度ごとの強度', color: 's1', x0: sp.x0, dx: sp.dx, y: sp.y, w: 1.5}], hl: [{y: rise, label: '雑音フロア（計算値）+' + fx(rise, 1) + ' dB', color: 's2'}], vl: [{x: 40, label: '目標の速度'}],
+      marks: {skirt: {x0: -75, x1: 75, y0: -15, y1: rise + 8, t: '位相雑音のスカート部'}, floor: {y0: rise - 5, y1: rise + 5, t: '雑音フロア'}}}, VAX));
+    return {rise, riseNext, msHint: '雑音フロアの上昇 ' + fx(rise, 1) + ' dB', tiles: [{k: '雑音フロアの上昇（感度の損失）', v: fx(rise, 1) + ' <small>dB</small>', s: '式4.8 の形で計算'}, {k: '位相雑音 ÷ 熱雑音', v: fx(db10(cg) + S.pn, 1) + ' <small>dB</small>', s: 'クラッタ ' + fx(db10(cg), 0) + ' dB ＋ 位相雑音 ' + fx(S.pn, 0) + ' dB'}, {k: '目標のピーク（熱雑音からのレベル）', v: fx(spMax(sp, 38, 42), 1) + ' <small>dB</small>'}]};
   }});
 
 /* 12 */
@@ -1338,26 +1403,26 @@ function checkTable3(){
   for (const r of R) h += '<tr><td>' + r.item + '</td><td>' + r.cond + '</td><td>' + fx(r.meas, 2) + ' ' + r.unit + '</td><td>' + fx(r.ref, 2) + ' ' + r.unit + '</td><td>' + (r.ok === null ? '<span class="info">参考</span>' : r.ok ? '<span class="ok">一致</span>' : '<span class="ng">不一致</span>') + '</td><td>' + r.src + (r.note ? '<br><small>' + r.note + '</small>' : '') + '</td></tr>';
   return h + '</table></div>';
 }
-STEPS.push({short: '自由実験', title: '自由実験とまとめ — 全部のつまみを自由に動かす', src: '第4章 Pulse Doppler Radar（p.4.1–4.49）', free: true,
-  q: '初期設定（PRF 20 kHz）で、距離 20 km・速度 400 m/s の目標は、地図のどこに見える？',
-  ch: ['本当の距離と速度の位置', '距離だけ折り返した位置', '距離も速度も折り返した位置'], ans: 2,
-  why: 'PRF 20 kHz では、あいまいさなしの距離は 7.5 km、速度の幅は ±150 m/s です（波長 3 cm）。20 km も 400 m/s もこの範囲の外なので、どちらも折り返して、5 km・100 m/s の位置に見えます。', do: 'ここでは全部のパラメータを自由に動かせます（自分の速度を 0 にすると、地上に置いたレーダになります）',
+STEPS.push({short: '自由実験', title: '自由実験とまとめ — すべての設定を自由に変える', src: '第4章 Pulse Doppler Radar（p.4.1–4.49）', free: true,
+  q: '初期設定（PRF 20 kHz）で、距離 20 km・速度 400 m/s の目標は、マップのどこに現れますか。',
+  ch: ['真の距離と速度の位置', '距離だけ折り返した位置', '距離も速度も折り返した位置'], ans: 2,
+  why: 'PRF 20 kHz では、あいまいさのない最大距離は 7.5 km、速度の幅は ±150 m/s です（波長 3 cm）。20 km も 400 m/s もこの範囲の外にあるため、どちらも折り返して、5 km・100 m/s の位置に現れます。', do: 'ここではすべてのパラメータを自由に変えられます（自機の速度を 0 にすると、地上に設置したレーダになります）',
   read: {
-    ana: '地図アプリで、縮尺と表示する範囲を自分で選ぶのに似ています。PRF を変えると、距離と速度の「折り返し方」が同時に変わります。目標とクラッタが地図のどこに出るかを、自分で調整してみてください。',
+    ana: '地図アプリで縮尺と表示範囲を選ぶことに似ています。PRF を変えると、距離と速度の折り返し方が同時に変わります。目標とクラッタがマップのどこに現れるかを、調整して確かめてください。',
     eq: '<i>R</i><sub>u</sub> = <i>c</i> / (2·<i>f</i><sub>R</sub>)　　速度の幅 = <i>f</i><sub>R</sub>·λ / 2',
-    sym: '<i>R</i><sub>u</sub>：あいまいさなしに測れる距離 [m]。<i>c</i>：光の速さ。<i>f</i><sub>R</sub>：PRF [Hz]。λ：波長 [m]。ステップ 6 と同じ式です。',
-    what: 'パルスドップラの流れをまとめます。位相のそろったパルス列を送る → 受信信号をレンジゲートに区切る → ゲートごとに N パルスを並べ、重み付けして FFT → 距離–ドップラマップ → マスごとにしきい値と比べる（第4回）。||覚えておきたい関係は 4 つです。(1) 速度ごとに分ければ、クラッタと目標が別のマスに入る。(2) 速度分解能は見ている時間で決まる。(3) PRF を上げると、距離のあいまいさが増え、速度のあいまいさが減る。(4) 動くレーダでは、クラッタが ±2V/λ に広がる。その外側がクラッタのない領域。',
-    mis: 'マップの軸は「見かけ」の距離と速度です。PRF によって折り返しているかもしれないので、下のタイルで本当の値と比べてください。 さらに深く：PRF・パルスの長さ・帯域幅を、要求から自分で決めるには、<a href="m03_waveform_ambiguity.html">中級 第3回 波形とあいまいさ</a>へ。'},
+    sym: '<i>R</i><sub>u</sub>：あいまいさのない最大距離 [m]。<i>c</i>：光速。<i>f</i><sub>R</sub>：PRF [Hz]。λ：波長 [m]。ステップ 6 と同じ式です。',
+    what: 'パルスドップラの流れをまとめます。コヒーレントなパルス列を送信する → 受信信号をレンジゲートに区切る → レンジゲートごとに N パルスを並べ、重み付けして FFT を行う → 距離–ドップラマップが得られる → セルごとにしきい値と比較する（第4回）、という順です。||重要な関係は次の 4 つです。<br>(1) 速度ごとに分離すれば、クラッタと目標が別のセルに入る<br>(2) 速度分解能は観測時間で決まる<br>(3) PRF を上げると、距離アンビギュイティが増え、速度のアンビギュイティが減る<br>(4) 移動するレーダでは、クラッタが ±2V/λ に分布し、その外側がクラッタのない領域になる',
+    mis: 'マップの軸は「見かけ」の距離と速度です。PRF によっては折り返している可能性があるため、下のタイルで真の値と比較してください。 さらに深く：PRF・パルス幅・帯域幅を要求から決定する方法は、<a href="m03_waveform_ambiguity.html">中級 第3回 波形とあいまいさ</a>で扱います。'},
   hosoku: ['地図アプリのたとえ', 'まとめの 4 つの関係の整理のしかた'],
-  memo: '声かけの例：「目標がクラッタに重なっているとき、PRF を変えると目標はどちらへ動く？ クラッタは？」「エクリプシングで目標が消えたら、PRF をどう変える？」',
+  memo: '声かけの例：「目標がクラッタに重なっている場合、PRF を変えると目標はどちらへ移りますか。クラッタはどうですか」「エクリプシングで目標が検出できなくなった場合、PRF をどのように変えますか」',
   init: {prf: 20, vr: 250, az: 30, h: 3, cn: 50, wt: 'c70', t: [{on: true, r: 20, v: 400, s: 10}, {on: false, r: 9, v: 0, s: 0}, {on: false, r: 9, v: 0, s: 0}]}, plots: [{h: 330}],
   ctl: [{k: 'prf', max: 100, step: 1}, 'np', 'wt', 'vr', 'az', 'cn', {k: 'tr', max: 60, step: 0.5}, {k: 'tv', min: -600, max: 600, step: 5}, 'ts'], fixed: [],
-  mission: {t: '自分の速度 250 m/s で飛びながら、速度 400 m/s で近づく目標を見る。目標が、速度の折り返しなしで、クラッタのない領域（サイドローブクラッタの外側）に出る PRF にしよう。エクリプシングで消えないことも確かめよう。', ok: r => S.vr >= 250 && tg0().v === 400 && r.kv === 0 && r.fd > r.F && r.ga > 0.3}, sol: {prf: 55},
+  mission: {t: '自機の速度 250 m/s で飛行しながら、速度 400 m/s で接近する目標を観測します。目標が速度の折り返しなしで、クラッタのない領域（サイドローブクラッタの外側）に現れる PRF にしましょう。エクリプシングで欠落しないことも確かめましょう。', ok: r => S.vr >= 250 && tg0().v === 400 && r.kv === 0 && r.fd > r.F && r.ga > 0.3}, sol: {prf: 55},
   extra: checkTable3,
   draw(P){
     const sim = simulate(S), map = rdMap(sim, S.wt), D = sim.D, t = sim.tg[0];
     P[0].set(heatCfg(sim, map, {title: '距離–ドップラマップ（PRF ' + S.prf + ' kHz、' + (D.air ? '航空機搭載' : '地上設置') + '）'}));
-    return {kv: t.kv, fd: t.fd, F: D.F, ga: t.ga, msHint: (t.kv !== 0 ? '速度が折り返している' : t.fd <= D.F ? 'クラッタの範囲の中' : t.ga <= 0.3 ? 'エクリプシングで欠けている' : ''), tiles: [{k: 'あいまいさなしの範囲', v: fx(D.Ru / 1000, 2) + ' <small>km</small>、±' + fx(D.vprf / 2, 0) + ' <small>m/s</small>'}, {k: '目標の見かけの位置', v: fx(t.Ramb / 1000, 2) + ' <small>km</small>、' + fx(t.vapp, 0) + ' <small>m/s</small>', s: '本当は ' + fx(t.R / 1000, 1) + ' km、' + fx(t.v, 0) + ' m/s'}, {k: 'サイドローブクラッタの範囲', v: D.air ? '±' + fx(S.vr, 0) + ' <small>m/s</small>' : '速度 0 のみ'}, {k: 'エクリプシング（受信できる割合）', v: fx(t.ga * t.ga * 100, 0) + ' <small>%</small>'}]};
+    return {kv: t.kv, fd: t.fd, F: D.F, ga: t.ga, msHint: (t.kv !== 0 ? '速度が折り返している' : t.fd <= D.F ? 'クラッタの範囲の内側' : t.ga <= 0.3 ? 'エクリプシングで欠落している' : ''), tiles: [{k: 'アンビギュイティのない範囲', v: fx(D.Ru / 1000, 2) + ' <small>km</small>、±' + fx(D.vprf / 2, 0) + ' <small>m/s</small>'}, {k: '目標の見かけの位置', v: fx(t.Ramb / 1000, 2) + ' <small>km</small>、' + fx(t.vapp, 0) + ' <small>m/s</small>', s: '真の値は ' + fx(t.R / 1000, 1) + ' km、' + fx(t.v, 0) + ' m/s'}, {k: 'サイドローブクラッタの範囲', v: D.air ? '±' + fx(S.vr, 0) + ' <small>m/s</small>' : '速度 0 のみ'}, {k: 'エクリプシング（受信できる割合）', v: fx(t.ga * t.ga * 100, 0) + ' <small>%</small>'}]};
   }});
 boot();
 </script>
